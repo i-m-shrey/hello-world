@@ -1,0 +1,92 @@
+{% extends "layout.html" %}
+
+{% block title %}Trading Algo Subscribers - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="fas fa-robot me-2"></i>ETF Trading Algo Subscribers</h2>
+        <p class="text-muted">All clients who have purchased the ETF Trading Algo add-on.</p>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('admin_trading_algo_settings') }}" class="btn btn-outline-primary">
+            <i class="fas fa-cog me-1"></i> Algo Settings
+        </a>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary ms-2">
+            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Subscriber List</h5>
+        <span class="badge bg-primary rounded-pill">{{ subs|length }} total</span>
+    </div>
+    <div class="card-body p-0">
+        {% if subs %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>User</th>
+                        <th>Customer ID</th>
+                        <th>Billing Cycle</th>
+                        <th>Amount Paid</th>
+                        <th>Start Date</th>
+                        <th>Expiry Date</th>
+                        <th>Status</th>
+                        <th>Investment Plan</th>
+                        <th>Payment ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for algo_sub, user in subs %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <strong>{{ user.username }}</strong><br>
+                            <small class="text-muted">{{ user.email }}</small>
+                        </td>
+                        <td><code>{{ user.customer_id }}</code></td>
+                        <td>
+                            <span class="badge bg-secondary">{{ algo_sub.billing_cycle|title }}</span>
+                        </td>
+                        <td>₹{{ '%.2f'|format(algo_sub.amount_paid) }}</td>
+                        <td>{{ algo_sub.start_date.strftime('%d %b %Y') }}</td>
+                        <td>{{ algo_sub.expiry_date.strftime('%d %b %Y') }}</td>
+                        <td>
+                            {% if algo_sub.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">Queued / Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin_view_subscription', subscription_id=algo_sub.subscription_id) }}"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-receipt me-1"></i>Sub #{{ algo_sub.subscription_id }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if algo_sub.payment_id %}
+                            <small class="font-monospace text-muted">{{ algo_sub.payment_id[:20] }}...</small>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="fas fa-robot fa-3x mb-3 d-block"></i>
+            No subscribers yet. The ETF Trading Algo add-on can be purchased at checkout.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -376,6 +376,15 @@ def activate_queued_subscriptions():
                                               is_master=True).first() and broker_accounts:
                     broker_accounts[0].is_master = True
 
+        # Activate any linked ETF Trading Algo add-on subscription
+        from models import TradingAlgoSubscription
+        algo_sub = TradingAlgoSubscription.query.filter_by(
+            subscription_id=subscription.id,
+            is_active=False
+        ).first()
+        if algo_sub:
+            algo_sub.is_active = True
+
     if subscriptions_to_activate:
         try:
             db.session.commit()
@@ -1998,6 +2007,18 @@ def dashboard():
     upcoming_subscriptions = get_upcoming_subscriptions(user_id)
     queued_subscriptions = get_queued_subscriptions(user_id)
 
+    from models import TradingAlgoSubscription
+    now_dt = datetime.datetime.utcnow()
+    algo_subscription = None
+    if current_subscription:
+        algo_subscription = TradingAlgoSubscription.query.filter_by(
+            user_id=user_id,
+            subscription_id=current_subscription.id,
+            is_active=True
+        ).filter(
+            TradingAlgoSubscription.expiry_date > now_dt
+        ).first()
+
     # Get broker connections for the current user
     broker_connections = Broker.query.filter_by(user_id=user_id).all()
 
@@ -2082,7 +2103,8 @@ def dashboard():
             for sb in SupportedBroker.query.filter(
                 SupportedBroker.name.in_([b.broker_name for b in broker_connections])
             ).all()
-        } if broker_connections else {}
+        } if broker_connections else {},
+        algo_subscription=algo_subscription,
     )
 
 
@@ -7352,6 +7374,21 @@ def checkout(plan_id):
     billing_cycle = request.form.get('billing_cycle') or request.args.get('billing_cycle', 'monthly')
     is_upgrade = request.args.get('upgrade', '0') == '1'
 
+    # ETF Trading Algo add-on
+    from models import TradingAlgoSettings
+    algo_settings = TradingAlgoSettings.query.first()
+    algo_enabled = bool(algo_settings and algo_settings.is_enabled)
+    add_algo = request.args.get('add_algo', '0') == '1'
+    algo_addon_price = 0.0
+    if algo_enabled and add_algo:
+        price_map_algo = {
+            'monthly':     float(algo_settings.monthly_price or 0),
+            'quarterly':   float(algo_settings.quarterly_price or 0),
+            'half_yearly': float(algo_settings.half_yearly_price or 0),
+            'annually':    float(algo_settings.annually_price or 0),
+        }
+        algo_addon_price = price_map_algo.get(billing_cycle, 0.0)
+
     # Get current subscription
     current_subscription = get_current_subscription(user_id)
 
@@ -7436,6 +7473,10 @@ def checkout(plan_id):
                     session.pop('applied_discount_amount', None)
                     applied_code = None
 
+        # Add algo add-on price AFTER discount (discount applies to plan price only)
+        if algo_enabled and add_algo and algo_addon_price > 0:
+            final_price = round(final_price + algo_addon_price, 2)
+
         amount_in_paise = int(final_price * 100)
         if amount_in_paise < 100:
             amount_in_paise = 100
@@ -7451,7 +7492,9 @@ def checkout(plan_id):
                 'is_extension': '1' if is_extension else '0',
                 'is_upgrade': '1' if is_upgrade else '0',
                 'discount_code': applied_code or '',
-                'discount_amount': str(discount_amount)
+                'discount_amount': str(discount_amount),
+                'add_algo': '1' if (algo_enabled and add_algo) else '0',
+                'algo_amount': str(algo_addon_price),
             }
         }
 
@@ -7468,6 +7511,8 @@ def checkout(plan_id):
                 "annually": plan.annually_price or 0
             }
             final_price = price_map.get(billing_cycle, plan.monthly_price or 0)
+            if algo_enabled and add_algo and algo_addon_price > 0:
+                final_price += algo_addon_price
 
     # Additional checkout handling code...
 
@@ -7510,7 +7555,11 @@ def checkout(plan_id):
         campaign_popup_code=campaign_popup_code,
         campaign_popup_campaign=campaign_popup_campaign,
         campaign_popup_discount=campaign_popup_discount,
-        campaign_popup_scope=campaign_popup_scope
+        campaign_popup_scope=campaign_popup_scope,
+        algo_settings=algo_settings,
+        algo_enabled=algo_enabled,
+        add_algo=add_algo,
+        algo_addon_price=algo_addon_price,
     )
 
 
@@ -7640,6 +7689,7 @@ def payment_verify():
             db.session.add(subscription)
 
             discount_code_str = order_details['notes'].get('discount_code', '')
+
             discount_amt_str = order_details['notes'].get('discount_amount', '0')
             if discount_code_str:
                 dc = DiscountCode.query.filter_by(code=discount_code_str).first()
@@ -7667,6 +7717,23 @@ def payment_verify():
 
             session.pop('applied_discount_code', None)
             session.pop('applied_discount_amount', None)
+
+            # ---- ETF Trading Algo add-on ----
+            from models import TradingAlgoSettings, TradingAlgoSubscription
+            add_algo_flag = order_details['notes'].get('add_algo', '0') == '1'
+            algo_amount_paid = float(order_details['notes'].get('algo_amount', '0') or '0')
+            if add_algo_flag and algo_amount_paid > 0:
+                algo_sub = TradingAlgoSubscription(
+                    user_id=user_id,
+                    subscription_id=subscription.id,
+                    billing_cycle=billing_cycle,
+                    amount_paid=algo_amount_paid,
+                    payment_id=payment_id,
+                    is_active=not is_queued,
+                    start_date=start_date,
+                    expiry_date=expiry_date,
+                )
+                db.session.add(algo_sub)
 
             # Create payment record
             payment = PaymentMethod(
@@ -8266,6 +8333,84 @@ def admin_test_email():
         flash(f'❌ Error sending email: {e}', 'error')
     
     return redirect(url_for('admin_email_settings'))
+
+
+# ── ETF Trading Algo Settings ──────────────────────────────────────────────
+
+@app.route('/admin/trading-algo-settings', methods=['GET', 'POST'])
+@admin_required
+def admin_trading_algo_settings():
+    from models import TradingAlgoSettings, TradingAlgoETFConfig
+    settings = TradingAlgoSettings.query.first()
+    if not settings:
+        settings = TradingAlgoSettings()
+        db.session.add(settings)
+        db.session.commit()
+
+    if request.method == 'POST':
+        action = request.form.get('action', 'save_global')
+
+        if action == 'save_global':
+            settings.is_enabled = request.form.get('is_enabled') == '1'
+            settings.monthly_price = float(request.form.get('monthly_price') or 0)
+            settings.quarterly_price = float(request.form.get('quarterly_price') or 0)
+            settings.half_yearly_price = float(request.form.get('half_yearly_price') or 0)
+            settings.annually_price = float(request.form.get('annually_price') or 0)
+            settings.fall_mode = request.form.get('fall_mode', 'average')
+            settings.global_fall_percent = float(request.form.get('global_fall_percent') or 3)
+            settings.global_profit_percent = float(request.form.get('global_profit_percent') or 3)
+            settings.apply_globally = request.form.get('apply_globally') == '1'
+            settings.updated_by = session.get('username', 'admin')
+            settings.updated_at = datetime.datetime.utcnow()
+
+            etf_raw = request.form.get('selected_etfs', '')
+            settings.selected_etfs = [s.strip().upper() for s in etf_raw.split('\n') if s.strip()]
+            db.session.commit()
+            flash('Trading Algo settings saved.', 'success')
+
+        elif action == 'save_etf_configs':
+            TradingAlgoETFConfig.query.filter_by(settings_id=settings.id).delete()
+            db.session.flush()
+            symbols = request.form.getlist('etf_symbol')
+            fall_modes = request.form.getlist('etf_fall_mode')
+            fall_pcts = request.form.getlist('etf_fall_percent')
+            profit_pcts = request.form.getlist('etf_profit_percent')
+            for sym, fm, fp, pp in zip(symbols, fall_modes, fall_pcts, profit_pcts):
+                if not sym.strip():
+                    continue
+                cfg = TradingAlgoETFConfig(
+                    settings_id=settings.id,
+                    etf_symbol=sym.strip().upper(),
+                    fall_mode=fm or 'average',
+                    fall_percent=float(fp or 3),
+                    profit_percent=float(pp or 3),
+                )
+                db.session.add(cfg)
+            db.session.commit()
+            flash('Per-ETF configurations saved.', 'success')
+
+        return redirect(url_for('admin_trading_algo_settings'))
+
+    etf_configs = {c.etf_symbol: c for c in (settings.etf_configs or [])}
+    return render_template(
+        'admin/trading_algo_settings.html',
+        settings=settings,
+        etf_configs=etf_configs,
+    )
+
+
+@app.route('/admin/trading-algo-subscribers')
+@admin_required
+def admin_trading_algo_subscribers():
+    """List all clients who have the Trading Algo add-on."""
+    from models import TradingAlgoSubscription
+    subs = (
+        db.session.query(TradingAlgoSubscription, User)
+        .join(User, TradingAlgoSubscription.user_id == User.id)
+        .order_by(TradingAlgoSubscription.created_at.desc())
+        .all()
+    )
+    return render_template('admin/trading_algo_subscribers.html', subs=subs)
 
 
 print("✓ All routes loaded")

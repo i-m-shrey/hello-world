@@ -1,0 +1,253 @@
+{% extends "layout.html" %}
+
+{% block title %}ETF Trading Algo Settings - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="fas fa-robot me-2"></i>ETF Trading Algo Settings</h2>
+        <p class="text-muted">Configure the optional ETF Trading Algo add-on shown at checkout.</p>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('admin_trading_algo_subscribers') }}" class="btn btn-outline-info">
+            <i class="fas fa-users me-1"></i> View Subscribers
+        </a>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary ms-2">
+            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for cat, msg in messages %}
+<div class="alert alert-{{ 'success' if cat == 'success' else 'danger' }} alert-dismissible fade show">
+    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+<!-- Section 1: Global Settings -->
+<div class="card shadow mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-sliders-h me-2"></i>Global Settings</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('admin_trading_algo_settings') }}">
+            <input type="hidden" name="action" value="save_global">
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="is_enabled" name="is_enabled"
+                               value="1" {% if settings.is_enabled %}checked{% endif %}>
+                        <label class="form-check-label fw-semibold" for="is_enabled">
+                            Show Add-on at Checkout
+                        </label>
+                        <div class="form-text">When disabled, the add-on checkbox is hidden from new checkouts. Existing subscribers keep access.</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="apply_globally" name="apply_globally"
+                               value="1" {% if settings.apply_globally %}checked{% endif %}
+                               onchange="togglePerETFSection(this)">
+                        <label class="form-check-label fw-semibold" for="apply_globally">
+                            Apply One Config to All ETFs
+                        </label>
+                        <div class="form-text">Uncheck to configure fall/profit % per ETF.</div>
+                    </div>
+                </div>
+            </div>
+
+            <h6 class="fw-semibold mt-3 mb-2">Add-on Prices (₹)</h6>
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label">Monthly</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="number" class="form-control" name="monthly_price" step="0.01" min="0"
+                               value="{{ settings.monthly_price or 0 }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Quarterly</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="number" class="form-control" name="quarterly_price" step="0.01" min="0"
+                               value="{{ settings.quarterly_price or 0 }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Half-Yearly</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="number" class="form-control" name="half_yearly_price" step="0.01" min="0"
+                               value="{{ settings.half_yearly_price or 0 }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Annually</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="number" class="form-control" name="annually_price" step="0.01" min="0"
+                               value="{{ settings.annually_price or 0 }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Selected ETFs</label>
+                    <textarea class="form-control font-monospace" name="selected_etfs" rows="6"
+                              placeholder="One symbol per line, e.g.&#10;GOLDBEES&#10;BANKBEES&#10;NIFTYBEES">{{ (settings.selected_etfs or []) | join('\n') }}</textarea>
+                    <div class="form-text">Enter one ETF symbol per line. Symbols are uppercased automatically.</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Fall Logic Mode</label>
+                    <div class="mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="fall_mode" id="fall_avg" value="average"
+                                   {% if settings.fall_mode == 'average' %}checked{% endif %}
+                                   onchange="toggleFallPercent()">
+                            <label class="form-check-label" for="fall_avg">
+                                <strong>Average</strong> — use existing dynamic avg fall calculation per ETF
+                            </label>
+                        </div>
+                        <div class="form-check mt-1">
+                            <input class="form-check-input" type="radio" name="fall_mode" id="fall_fixed" value="fixed"
+                                   {% if settings.fall_mode == 'fixed' %}checked{% endif %}
+                                   onchange="toggleFallPercent()">
+                            <label class="form-check-label" for="fall_fixed">
+                                <strong>Fixed</strong> — use admin-defined fall % below
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="global_fall_percent_block" class="mb-3"
+                         style="{{ 'display:none' if settings.fall_mode != 'fixed' else '' }}">
+                        <label class="form-label">Global Fall % (used when Fixed mode is on)</label>
+                        <div class="input-group" style="max-width:200px;">
+                            <input type="number" class="form-control" name="global_fall_percent"
+                                   step="0.1" min="0.1" max="100"
+                                   value="{{ settings.global_fall_percent or 3.0 }}">
+                            <span class="input-group-text">%</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Global Profit Booking %</label>
+                        <div class="input-group" style="max-width:200px;">
+                            <input type="number" class="form-control" name="global_profit_percent"
+                                   step="0.1" min="0.1" max="100"
+                                   value="{{ settings.global_profit_percent or 3.0 }}">
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <div class="form-text">Sell all when current price ≥ avg buy × (1 + profit%/100).</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Save Global Settings
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Section 2: Per-ETF Configuration -->
+<div class="card shadow mb-4" id="per-etf-section"
+     style="{{ 'display:none' if settings.apply_globally else '' }}">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-table me-2"></i>Per-ETF Configuration</h5>
+        <small class="text-muted">Only active when "Apply One Config to All ETFs" is unchecked.</small>
+    </div>
+    <div class="card-body">
+        {% set etf_list = settings.selected_etfs or [] %}
+        {% if etf_list %}
+        <form method="POST" action="{{ url_for('admin_trading_algo_settings') }}">
+            <input type="hidden" name="action" value="save_etf_configs">
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ETF Symbol</th>
+                            <th>Fall Mode</th>
+                            <th>Fall %</th>
+                            <th>Profit %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sym in etf_list %}
+                        {% set cfg = etf_configs.get(sym) %}
+                        <tr>
+                            <td>
+                                <input type="hidden" name="etf_symbol" value="{{ sym }}">
+                                <strong>{{ sym }}</strong>
+                            </td>
+                            <td>
+                                <select class="form-select form-select-sm" name="etf_fall_mode">
+                                    <option value="average" {% if not cfg or cfg.fall_mode == 'average' %}selected{% endif %}>Average</option>
+                                    <option value="fixed" {% if cfg and cfg.fall_mode == 'fixed' %}selected{% endif %}>Fixed</option>
+                                </select>
+                            </td>
+                            <td>
+                                <div class="input-group input-group-sm" style="max-width:130px;">
+                                    <input type="number" class="form-control" name="etf_fall_percent"
+                                           step="0.1" min="0.1" max="100"
+                                           value="{{ cfg.fall_percent if cfg else 3.0 }}">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-group input-group-sm" style="max-width:130px;">
+                                    <input type="number" class="form-control" name="etf_profit_percent"
+                                           step="0.1" min="0.1" max="100"
+                                           value="{{ cfg.profit_percent if cfg else 3.0 }}">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-grid gap-2 d-md-flex">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save me-2"></i>Save Per-ETF Config
+                </button>
+            </div>
+        </form>
+        {% else %}
+        <p class="text-muted">No ETFs selected yet. Add ETF symbols in the Global Settings section first.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="text-center mt-2 mb-4">
+    <a href="{{ url_for('admin_trading_algo_subscribers') }}" class="btn btn-outline-info">
+        <i class="fas fa-users me-1"></i> View Trading Algo Subscribers
+    </a>
+</div>
+
+<script>
+function toggleFallPercent() {
+    var mode = document.querySelector('input[name="fall_mode"]:checked');
+    var block = document.getElementById('global_fall_percent_block');
+    if (mode && mode.value === 'fixed') {
+        block.style.display = '';
+    } else {
+        block.style.display = 'none';
+    }
+}
+function togglePerETFSection(checkbox) {
+    var section = document.getElementById('per-etf-section');
+    if (section) {
+        section.style.display = checkbox.checked ? 'none' : '';
+    }
+}
+</script>
+{% endblock %}
