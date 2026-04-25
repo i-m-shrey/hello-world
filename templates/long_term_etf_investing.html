@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Long-Term ETF Investing Guide | SmartETF</title>
+    <meta name="description" content="Learn long-term ETF investing basics in India and how SmartETF automation helps you buy dips and build wealth consistently.">
+    <link rel="canonical" href="{{ request.url_root.rstrip('/') ~ request.path }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family:'Inter',sans-serif; background:#f8fafc; color:#0f172a; }
+        .marketing-header { background:white; box-shadow:0 2px 12px rgba(15,23,42,0.08); position:sticky; top:0; z-index:10; }
+        .nav-link { font-weight:500; margin:0 12px; }
+        .btn-primary-custom { background:linear-gradient(135deg,#1e3a8a,#0ea5e9); border:none; color:#fff; padding:10px 24px; border-radius:999px; font-weight:600; }
+        .btn-secondary-custom { border:2px solid #1e3a8a; color:#1e3a8a; padding:10px 24px; border-radius:999px; font-weight:600; background:transparent; }
+        .hero { background:#0f172a; color:#fff; padding:90px 0; }
+        .hero h1 { font-size:3rem; font-weight:800; }
+        .section-title { font-weight:700; margin-bottom:1rem; }
+        .info-card { background:white; border-radius:18px; border:1px solid #e2e8f0; padding:1.8rem; box-shadow:0 15px 35px rgba(15,23,42,0.08); height:100%; }
+        .icon-circle { width:48px; height:48px; border-radius:50%; background:#dbeafe; display:flex; align-items:center; justify-content:center; color:#1d4ed8; font-size:1.3rem; margin-bottom:1rem; }
+        .table { border-radius:18px; overflow:hidden; }
+        .table thead { background:#e0e7ff; }
+        .table th { border-bottom:0; }
+        .highlight-row { background:#fef9c3; }
+        .guide-nav { background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:1.5rem; position:sticky; top:100px; }
+        .guide-nav a { display:block; margin-bottom:0.8rem; color:#1d4ed8; text-decoration:none; font-weight:600; }
+        footer { background:#0f172a; color:#94a3b8; padding:30px 0; text-align:center; margin-top:60px; }
+        .brand-link { display:flex; align-items:center; gap:0.75rem; text-decoration:none; color:#0f172a; }
+        .brand-logo { height:56px; width:56px; border-radius:50%; box-shadow:0 10px 24px rgba(15,23,42,0.2); }
+        .brand-text { display:flex; flex-direction:column; line-height:1.1; }
+        .brand-title { font-weight:800; font-size:1.1rem; color:#0f172a; }
+        .brand-subtitle { font-size:0.75rem; color:#475569; font-weight:600; }
+    </style>
+</head>
+<body>
+<header class="marketing-header">
+    <div class="container">
+        <nav class="navbar navbar-expand-lg">
+            <a class="navbar-brand brand-link" href="/">
+                <img src="{{ url_for('static', filename='images/logo_smartetf.png') }}" alt="SmartETF Algo logo" class="brand-logo">
+                <span class="brand-text">
+                    <span class="brand-title">SmartETF Algo</span>
+                    <span class="brand-subtitle">Automated ETF Investing</span>
+                </span>
+            </a>
+            <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#nav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="nav">
+                <ul class="navbar-nav ms-auto align-items-lg-center">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/how-it-works">How It Works</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/resources">Resources</a></li>
+                    <li class="nav-item"><a class="btn btn-secondary-custom" href="/login">Login</a></li>
+                    <li class="nav-item ms-lg-2"><a class="btn btn-primary-custom" href="/register">Start Investing</a></li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<section class="hero">
+    <div class="container">
+        <p class="text-warning text-uppercase fw-semibold">Beginner friendly guide</p>
+        <h1>Build long-term wealth with ETFs + SmartETF automation</h1>
+        <p class="mt-3">Understand what ETFs are, why they beat individual stocks for busy professionals, and how SmartETF adds ₹21.77L extra over 15 years.</p>
+        <div class="d-flex flex-column flex-md-row gap-3 mt-4">
+            <a href="/register" class="btn btn-primary-custom">Start from ₹8,000/month</a>
+            <a href="#etf-basics" class="btn btn-secondary-custom">Jump to basics</a>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="guide-nav">
+                    <h6 class="text-uppercase text-muted">On this page</h6>
+                    <a href="#etf-basics">1. ETF basics</a>
+                    <a href="#etf-vs-stocks">2. ETFs vs stocks</a>
+                    <a href="#etf-vs-mf">3. ETFs vs mutual funds</a>
+                    <a href="#smartetf-boost">4. SmartETF advantage</a>
+                    <a href="#get-started">5. Get started</a>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <article id="etf-basics" class="mb-5">
+                    <div class="section-title">1. What is an ETF?</div>
+                    <p>Exchange Traded Funds (ETFs) are baskets of stocks that track an index (e.g., Nifty 50, Nifty Auto). They trade like stocks but give mutual-fund style diversification.</p>
+                    <div class="row g-3 mt-3">
+                        <div class="col-md-4">
+                            <div class="info-card text-center">
+                                <div class="icon-circle"><i class="fas fa-chart-line"></i></div>
+                                <h5>Low cost</h5>
+                                <p class="mb-0">Expense ratios typically 0.05% – 0.3%.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="info-card text-center">
+                                <div class="icon-circle"><i class="fas fa-layer-group"></i></div>
+                                <h5>Diversified</h5>
+                                <p class="mb-0">Own 50+ stocks in one click.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="info-card text-center">
+                                <div class="icon-circle"><i class="fas fa-clock"></i></div>
+                                <h5>Liquid</h5>
+                                <p class="mb-0">Buy/sell anytime during market hours.</p>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article id="etf-vs-stocks" class="mb-5">
+                    <div class="section-title">2. ETFs vs picking individual stocks</div>
+                    <p>Unless you have hours daily to research, concentrated stock bets can ruin compounding. ETFs smooth out the ride.</p>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Individual Stocks</th>
+                                <th>ETFs</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Time required</td>
+                                <td>High – tracking quarterly results</td>
+                                <td>Low – index rebalances automatically</td>
+                            </tr>
+                            <tr>
+                                <td>Risk of blowups</td>
+                                <td>High – 1 bad stock hurts portfolio</td>
+                                <td>Low – diversified basket</td>
+                            </tr>
+                            <tr>
+                                <td>Costs</td>
+                                <td>Brokerage + slippage per stock</td>
+                                <td>Single transaction, very low fee</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </article>
+
+                <article id="etf-vs-mf" class="mb-5">
+                    <div class="section-title">3. ETFs vs mutual funds (2026)</div>
+                    <p>Mutual funds are still great, but ETFs win on cost and transparency.</p>
+                    <ul>
+                        <li><strong>Fees:</strong> Active equity mutual funds average 1.5% expense ratio; ETFs ~0.15%.</li>
+                        <li><strong>Transparency:</strong> ETFs publish holdings daily, mutual funds monthly.</li>
+                        <li><strong>Taxation:</strong> Both share same capital gains rules, but ETFs avoid exit loads.</li>
+                        <li><strong>Execution:</strong> Mutual funds execute end-of-day; ETFs trade instantly, letting SmartETF catch dips.</li>
+                    </ul>
+                </article>
+
+                <article id="smartetf-boost" class="mb-5">
+                    <div class="section-title">4. How SmartETF multiplies ETF performance</div>
+                    <p>We keep the benefits of ETFs and add automation:</p>
+                    <div class="info-card">
+                        <ul class="mb-0">
+                            <li class="mb-2"><strong>Crash multiplier:</strong> When ETF price drops by X%, SmartETF automatically buys more units (based on your settings).</li>
+                            <li class="mb-2"><strong>Volatility guard:</strong> Stops over-buying when markets are overheated.</li>
+                            <li class="mb-2"><strong>Broker integration:</strong> Orders execute inside Zerodha, Dhan, Groww, or Finvasia.</li>
+                            <li><strong>Reporting:</strong> Monthly PDF + dashboard shows regular SIP vs SmartETF extra wealth.</li>
+                        </ul>
+                    </div>
+                </article>
+
+                <article id="get-started" class="mb-5">
+                    <div class="section-title">5. Ready to begin?</div>
+                    <ol>
+                        <li>Open/ensure API access with your broker.</li>
+                        <li>Sign up on SmartETF, connect broker, choose ETFs.</li>
+                        <li>Set SIP + dip-multiplier rules, fund your broker account.</li>
+                        <li>Let automation run. Review monthly and adjust.</li>
+                    </ol>
+                    <div class="d-flex flex-column flex-md-row gap-3 mt-3">
+                        <a href="/register" class="btn btn-primary-custom">Start SmartETF today</a>
+                        <a href="/how-it-works" class="btn btn-secondary-custom">See automation flow</a>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5 bg-white">
+    <div class="container text-center">
+        <h3 class="fw-bold">Related ETF automation guides</h3>
+        <p class="text-muted">Explore algorithm, automation, and diversification strategy pages.</p>
+        <div class="d-flex flex-wrap justify-content-center gap-3 mt-3">
+            <a href="/long-term-etf-investment" class="btn btn-secondary-custom">Long-Term Plan</a>
+            <a href="/etf-automation" class="btn btn-secondary-custom">ETF Automation</a>
+            <a href="/etf-algorithm" class="btn btn-secondary-custom">ETF Algorithm</a>
+            <a href="/resources/sector-etf-diversification" class="btn btn-secondary-custom">Diversification</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <p class="mb-1">Questions? Email <a href="mailto:smartetfalgo@gmail.com" class="text-decoration-none text-info">smartetfalgo@gmail.com</a></p>
+        <p class="mb-0">© {{ current_year|default(2026) }} SmartETF Algo</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+{% extends "layout.html" %}
+
+{% block title %}Users - Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>User Management</h2>
+    <div class="d-flex">
+        <form class="me-2" action="{{ url_for('admin_users') }}" method="GET">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Search users..." name="search" id="search-users">
+                <button class="btn btn-outline-secondary" type="submit">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">All Users</h5>
+        <span class="badge bg-secondary">{{ user_details|length }} users</span>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Customer ID</th>
+                        <th>Plan Expiry</th>
+                        <th>Brokers</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for details in user_details %}
+                    <tr>
+                        <td>{{ details.user.username }}</td>
+                        <td>{{ details.user.email }}</td>
+                        <td>{{ details.user.customer_id }}</td>
+                        <td>
+                            {% if details.subscription %}
+                                {{ details.subscription.expiry_date|datetime('%d %b, %Y') }}
+                                {% if details.subscription.expiry_date > now() %}
+                                    <span class="badge bg-success ms-1">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger ms-1">Expired</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">No subscription</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if details.broker_count > 0 %}
+                                <span class="badge bg-info">{{ details.broker_count }}</span>
+                                <small class="ms-1">{{ details.broker_names }}</small>
+                            {% else %}
+                                <span class="text-muted">None</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if details.account_status == 'Active' %}
+                                <span class="badge bg-success">Active</span>
+                            {% elif details.account_status == 'No Subscription' %}
+                                <span class="badge bg-warning text-dark">No Subscription</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{{ url_for('admin_view_user', user_id=details.user.id) }}" class="btn btn-sm btn-info me-1">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('admin_edit_user', user_id=details.user.id) }}" class="btn btn-sm btn-primary me-1">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-danger"
+                                        onclick="confirmDeleteUser('{{ details.user.username }}', {{ details.user.id }})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if not user_details %}
+        <div class="text-center py-4">
+            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+            <p>No users found.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete user <span id="usernameToDelete"></span>? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteUserForm" method="POST" action="">
+                    <button type="submit" class="btn btn-danger">Delete User</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    function confirmDeleteUser(username, userId) {
+        document.getElementById('usernameToDelete').textContent = username;
+        document.getElementById('deleteUserForm').action = "{{ url_for('admin_delete_user', user_id=0) }}".replace('0', userId);
+
+        const modal = new bootstrap.Modal(document.getElementById('deleteUserModal'));
+        modal.show();
+    }
+
+    // Add client-side filtering for the search box
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('search-users');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                const searchTerm = this.value.toLowerCase();
+                const tableRows = document.querySelectorAll('tbody tr');
+
+                tableRows.forEach(function(row) {
+                    let matchFound = false;
+                    const textCells = row.querySelectorAll('td:not(:last-child)');
+
+                    textCells.forEach(function(cell) {
+                        if (cell.textContent.toLowerCase().includes(searchTerm)) {
+                            matchFound = true;
+                        }
+                    });
+
+                    row.style.display = matchFound ? '' : 'none';
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

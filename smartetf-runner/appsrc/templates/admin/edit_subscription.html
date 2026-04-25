@@ -1,0 +1,247 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Subscription - Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Edit Subscription</h2>
+    <div>
+        <a href="{{ url_for('admin_view_subscription', subscription_id=subscription.id) }}" class="btn btn-outline-primary me-2">
+            <i class="fas fa-eye me-1"></i> View Subscription
+        </a>
+        <a href="{{ url_for('admin_subscriptions') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Subscriptions
+        </a>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Subscription Details</h5>
+
+        <!-- User Info Badge -->
+        <span class="badge bg-info">
+            User: {{ user.username }} ({{ user.customer_id }})
+        </span>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <!-- User Info Section (Read-only) -->
+            <div class="alert alert-info mb-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>User:</strong> {{ user.username }}</p>
+                        <p class="mb-1"><strong>Email:</strong> {{ user.email }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Customer ID:</strong> {{ user.customer_id }}</p>
+                        <p class="mb-1"><strong>Account Created:</strong> {{ user.created_at|datetime('%d %b, %Y') }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="plan_id" class="form-label">Plan</label>
+                    <select class="form-select" id="plan_id" name="plan_id" required>
+                        <option value="">-- Select Plan --</option>
+                        {% for plan in plans %}
+                        <option value="{{ plan.id }}"
+                                {% if subscription.plan_id == plan.id %}selected{% endif %}
+                                data-price="{{ plan.monthly_price }}">
+                            {{ plan.name }} (₹{{ plan.monthly_price }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="payment_method" class="form-label">Payment Method</label>
+                    <select class="form-select" id="payment_method" name="payment_method" required>
+                        <option value="">-- Select Payment Method --</option>
+                        {% for method_type in payment_method_types %}
+                        <option value="{{ method_type }}"
+                                {% if subscription.payment_method == method_type %}selected{% endif %}>
+                            {{ method_type }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="start_date" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date"
+                           value="{{ subscription.start_date|datetime('%Y-%m-%d') }}" required>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="expiry_date" class="form-label">Expiry Date</label>
+                    <input type="date" class="form-control" id="expiry_date" name="expiry_date"
+                           value="{{ subscription.expiry_date|datetime('%Y-%m-%d') }}" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="amount" class="form-label">Amount</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="number" class="form-control" id="amount" name="amount"
+                               value="{{ subscription.amount }}" step="0.01" required>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="payment_status" class="form-label">Payment Status</label>
+                    <select class="form-select" id="payment_status" name="payment_status" required>
+                        {% for status in subscription_statuses %}
+                        <option value="{{ status.name }}"
+                                {% if subscription.payment_status == status.name %}selected{% endif %}>
+                            {{ status.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="payment_id" class="form-label">Payment ID</label>
+                <input type="text" class="form-control" id="payment_id" name="payment_id"
+                       value="{{ subscription.payment_id }}" required>
+            </div>
+
+            <div class="mb-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="update_brokers" name="update_brokers" checked>
+                    <label class="form-check-label" for="update_brokers">
+                        Update broker account statuses
+                    </label>
+                    <small class="form-text text-muted d-block">
+                        This will update the subscription status and expiry date for all broker accounts of this user.
+                    </small>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{{ url_for('admin_subscriptions') }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                <button type="submit" class="btn btn-primary">Update Subscription</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Related Broker Accounts -->
+<div class="card shadow">
+    <div class="card-header">
+        <h5 class="mb-0">Related Broker Accounts</h5>
+    </div>
+    <div class="card-body">
+        {% set broker_accounts = user.brokers %}
+        {% if broker_accounts %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Broker</th>
+                    <th>User ID</th>
+                    <th>Status</th>
+                    <th>Expiry</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for broker in broker_accounts %}
+                <tr>
+                    <td>{{ broker.broker_name }}</td>
+                    <td>{{ broker.user_id_broker }}</td>
+                    <td>
+                                <span class="badge bg-{{ 'success' if broker.subscription_status == 'Active' else 'warning' }}">
+                                    {{ broker.subscription_status }}
+                                </span>
+                    </td>
+                    <td>
+                        {% if broker.subscription_expiry %}
+                        {{ broker.subscription_expiry|datetime('%d %b, %Y') }}
+                        {% else %}
+                        N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('admin_view_broker', broker_id=broker.id) }}" class="btn btn-sm btn-info">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            This user doesn't have any broker accounts yet.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-update amount when plan changes
+        const planSelect = document.getElementById('plan_id');
+        const amountInput = document.getElementById('amount');
+
+        if (planSelect && amountInput) {
+            planSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption) {
+                    const price = selectedOption.getAttribute('data-price');
+                    if (price) {
+                        amountInput.value = price;
+                    }
+                }
+            });
+        }
+
+        // Auto-calculate expiry date based on start date and plan duration
+        const startDateInput = document.getElementById('start_date');
+        const expiryDateInput = document.getElementById('expiry_date');
+
+        if (startDateInput && expiryDateInput && planSelect) {
+            startDateInput.addEventListener('change', updateExpiryDate);
+            planSelect.addEventListener('change', updateExpiryDate);
+
+            function updateExpiryDate() {
+                const selectedOption = planSelect.options[planSelect.selectedIndex];
+                const planId = selectedOption.value;
+
+                if (planId && startDateInput.value) {
+                    // You would need to have the plan durations available
+                    // This is a simplified example - you might need to fetch this data
+                    const planDurations = {
+                        {% for plan in plans %}
+                            {{ plan.id }}: {{ plan.duration }},
+                        {% endfor %}
+                    };
+
+                    if (planDurations[planId]) {
+                        const startDate = new Date(startDateInput.value);
+                        const expiryDate = new Date(startDate);
+                        expiryDate.setDate(startDate.getDate() + planDurations[planId]);
+
+                        // Format date as YYYY-MM-DD
+                        const year = expiryDate.getFullYear();
+                        const month = String(expiryDate.getMonth() + 1).padStart(2, '0');
+                        const day = String(expiryDate.getDate()).padStart(2, '0');
+                        expiryDateInput.value = `${year}-${month}-${day}`;
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

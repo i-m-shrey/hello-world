@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn about SmartETF Algo - India's first rule-based, automated ETF investment system for long-term wealth building.">
+    <title>About Us - SmartETF Algo | Automated ETF Investment System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-blue: #1e40af;
+            --primary-green: #059669;
+            --accent-gold: #f59e0b;
+            --dark-bg: #0f172a;
+            --light-bg: #f8fafc;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 15px 0;
+        }
+
+        .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .navbar-brand:hover {
+            color: var(--primary-green);
+        }
+
+        .brand-logo {
+            height: 44px;
+            width: 44px;
+            border-radius: 50%;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+
+        .brand-title {
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: #0f172a;
+        }
+
+        .brand-subtitle {
+            font-size: 0.75rem;
+            color: #475569;
+            font-weight: 600;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #0ea5e9 50%, #06b6d4 75%, #10b981 100%);
+            color: white;
+            padding: 100px 0;
+            position: relative;
+            overflow: hidden;
+            min-height: 50vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%);
+            animation: floatingOrbs 8s ease-in-out infinite;
+        }
+
+        @keyframes floatingOrbs {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+            background: linear-gradient(135deg, #60a5fa, #34d399, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            opacity: 0.95;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .content-section {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .content-text {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            border-left: 4px solid var(--primary-green);
+            border-radius: 10px;
+            padding: 2rem;
+            margin: 2.5rem 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .highlight-box strong {
+            color: var(--primary-green);
+            font-size: 1.2rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .feature-card {
+            background: var(--light-bg);
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-color: var(--primary-blue);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--primary-blue);
+        }
+
+        .feature-text {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, var(--dark-bg), #1e293b);
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(45deg, var(--accent-gold), #f59e0b);
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(245, 158, 11, 0.5);
+            color: white;
+        }
+
+        .btn-secondary-custom {
+            background: transparent;
+            border: 2px solid white;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin-left: 1rem;
+        }
+
+        .btn-secondary-custom:hover {
+            background: white;
+            color: var(--primary-blue);
+            transform: translateY(-3px);
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            .section-title {
+                font-size: 2rem;
+            }
+            .btn-secondary-custom {
+                margin-left: 0;
+                margin-top: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="d-flex justify-content-between align-items-center">
+                <a href="/" class="navbar-brand">
+                    <img src="{{ url_for('static', filename='images/logo_smartetf.png') }}" alt="SmartETF Algo logo" class="brand-logo">
+                    <span class="brand-text">
+                        <span class="brand-title">SmartETF Algo</span>
+                        <span class="brand-subtitle">Automated ETF Investing</span>
+                    </span>
+                </a>
+                <div>
+                    <a href="/" class="btn btn-outline-primary">Home</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="hero-content container">
+            <h1 class="hero-title">About SmartETF Algo</h1>
+            <p class="hero-subtitle">India's First Rule-Based, Automated ETF Investment System for Long-Term Wealth Building</p>
+        </div>
+    </div>
+
+    <!-- Content Section -->
+    <div class="content-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <h2 class="section-title">What is SmartETF Algo?</h2>
+                    <p class="content-text">SmartETF Algo is a rule-based, automated ETF investment system designed to help investors build long-term wealth by removing emotions from investing. Our system uses predefined rules to identify optimal market entry points and execute ETF investments systematically.</p>
+
+                    <p class="content-text">Unlike traditional mutual fund investing or emotional stock picking, SmartETF Algo focuses on timing ETF entries during market corrections using a disciplined, data-driven approach. This automated ETF investing strategy has been backtested over 10 years of market data to ensure reliability.</p>
+
+                    <div class="highlight-box">
+                        <strong>💡 Built for long-term investors</strong> who want a transparent, rule-based approach to ETF investing without emotional decisions or high mutual fund fees.
+                    </div>
+
+                    <!-- Feature Grid -->
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">🤖</div>
+                            <h3 class="feature-title">Automated ETF Investing</h3>
+                            <p class="feature-text">Rule-based system removes emotional decisions and executes trades based on predefined market conditions.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">📊</div>
+                            <h3 class="feature-title">Data-Driven Strategy</h3>
+                            <p class="feature-text">10 years of backtesting across multiple market cycles validates our ETF investment approach.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🎯</div>
+                            <h3 class="feature-title">Long-Term Focus</h3>
+                            <p class="feature-text">Designed for investors building wealth over 5-15 years through systematic ETF investing.</p>
+                        </div>
+                    </div>
+
+                    <h2 class="section-title mt-5">Our Mission</h2>
+                    <p class="content-text">We believe long-term ETF investing should be systematic, transparent, and emotion-free. Our mission is to provide Indian investors with a simple, automated ETF investment system that removes the guesswork from market timing while maintaining complete control over their funds.</p>
+
+                    <h2 class="section-title mt-5">How We're Different</h2>
+                    <p class="content-text">SmartETF Algo operates on a simple principle: invest more when markets fall, invest less when markets rise. This rule-based ETF strategy is executed through your own broker account, ensuring you maintain complete ownership and control of your investments.</p>
+
+                    <p class="content-text">Our automated ETF investment system provides clear signals for ETF purchases based on predefined market correction thresholds. Every decision is transparent, traceable, and based on historical market patterns - not emotions or speculation.</p>
+
+                    <h2 class="section-title mt-5">Why ETF Investing?</h2>
+                    <p class="content-text">ETF investing offers several advantages over traditional mutual funds: lower expense ratios (0.05-0.5% vs 1-2.5%), better transparency, intraday trading flexibility, and no lock-in periods. Combined with our rule-based system, ETF investment becomes a powerful tool for long-term wealth creation.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="cta-section">
+        <div class="container">
+            <h2 class="mb-4">Ready to Start Your ETF Investment Journey?</h2>
+            <p class="mb-4" style="font-size: 1.2rem; opacity: 0.9;">Join investors who are building wealth through systematic, automated ETF investing</p>
+            <a href="/" class="btn-primary-custom">Explore SmartETF Algo</a>
+            <a href="/contact" class="btn-secondary-custom">Contact Us</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,177 @@
+{% extends "layout.html" %}
+
+{% block title %}Broker Connections - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+        <h2>Manage Broker Connections</h2>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Filter Brokers</h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('admin_brokers') }}">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="broker_filter" class="form-label">Broker</label>
+                    <select class="form-select" id="broker_filter" name="broker">
+                        <option value="">All Brokers</option>
+                        {% for broker in supported_brokers %}
+                            <option value="{{ broker.name }}" {% if request.args.get('broker') == broker.name %}selected{% endif %}>
+                                {{ broker.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="status_filter" class="form-label">Status</label>
+                    <select class="form-select" id="status_filter" name="status">
+                        <option value="">All Statuses</option>
+                        {% for status in subscription_statuses %}
+                            <option value="{{ status.name }}" {% if request.args.get('status') == status.name %}selected{% endif %}>
+                                {{ status.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">All Broker Connections</h5>
+        <a href="{{ url_for('admin_export_brokers') }}" class="btn btn-outline-primary">
+            <i class="fas fa-download me-1"></i> Export CSV
+        </a>
+    </div>
+    <div class="card-body">
+        {% if brokers %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Broker</th>
+                            <th>User ID</th>
+                            <th>Algo Investment</th>
+                            <th>Subscription</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for broker in brokers %}
+                        <tr>
+                            <td>{{ broker.user.username }}</td>
+                            <td>{{ broker.broker_name }}</td>
+                            <td>{{ broker.user_id_broker }}</td>
+                            <td>
+                                {% if broker.is_master %}
+                                    <span class="badge bg-primary">Master</span>
+                                {% elif broker.copy %}
+                                    <span class="badge bg-info">Copier ({{ broker.copy_multiplier }}x)</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Disabled</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if broker.plan %}
+                                    {{ broker.plan.name }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if broker.subscription_status == 'Active' %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">{{ broker.subscription_status or 'Inactive' }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('admin_view_broker', broker_id=broker.id) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('admin_edit_broker', broker_id=broker.id) }}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteBrokerModal{{ broker.id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Delete Modal -->
+                                <div class="modal fade" id="deleteBrokerModal{{ broker.id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirm Delete</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Are you sure you want to delete the broker connection for <strong>{{ broker.user.username }}</strong>?</p>
+                                                <p class="text-danger">This cannot be undone.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="{{ url_for('admin_delete_broker', broker_id=broker.id) }}" method="POST">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if pagination.pages > 1 %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item {% if pagination.page == 1 %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('admin_brokers', page=pagination.page-1, **request.args) }}" tabindex="-1">Previous</a>
+                    </li>
+
+                    {% for page_num in range(1, pagination.pages + 1) %}
+                        <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('admin_brokers', page=page_num, **request.args) }}">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                    {% endfor %}
+
+                    <li class="page-item {% if pagination.page == pagination.pages %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('admin_brokers', page=pagination.page+1, **request.args) }}">Next</a>
+                    </li>
+                </ul>
+            </nav>
+            {% endif %}
+
+        {% else %}
+            <div class="text-center py-4">
+                <p class="text-muted">No broker connections found</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

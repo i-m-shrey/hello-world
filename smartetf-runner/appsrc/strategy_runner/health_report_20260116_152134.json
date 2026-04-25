@@ -1,0 +1,66 @@
+{
+  "timestamp": "2026-01-16 15:21:09.739625",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 6,
+    "failed": [
+      {
+        "customer_id": "smartetf_user_10013",
+        "broker_name": "ZERODHA",
+        "reason": "no_amount_parsed"
+      }
+    ]
+  },
+  "low_balance_alerts": {
+    "threshold_percent": 20,
+    "alerts": [
+      {
+        "customer_id": "smartetf_user_10008",
+        "broker": "FINVASIA",
+        "balance": 0.0,
+        "threshold": 4000.0
+      },
+      {
+        "customer_id": "smartetf_user_10007",
+        "broker": "ZERODHA",
+        "balance": 0.0,
+        "threshold": 1700.0
+      }
+    ]
+  },
+  "session_check": {
+    "status": "PASS",
+    "total_clients": 7,
+    "active_sessions": 7,
+    "failed_sessions": 0,
+    "success_rate": 100.0,
+    "broker_breakdown": {
+      "FINVASIA": {
+        "active": 5,
+        "failed": 0
+      },
+      "ZERODHA": {
+        "active": 2,
+        "failed": 0
+      }
+    },
+    "failed_clients": [],
+    "password_rotations": [],
+    "timestamp": "2026-01-16 15:21:13.696961"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "PASS",
+    "test_url": "https://www.google.com",
+    "page_title": "Google",
+    "test_time_seconds": 4.853515863418579,
+    "timestamp": "2026-01-16 15:21:30.460762"
+  },
+  "overall_status": "HEALTHY",
+  "critical_issues": [],
+  "warnings": [],
+  "recommendations": []
+}

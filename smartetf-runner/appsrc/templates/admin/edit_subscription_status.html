@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Subscription Status - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+        <h2>Edit Subscription Status</h2>
+        <a href="{{ url_for('admin_subscription_statuses') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Statuses
+        </a>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header">
+        <h5 class="mb-0">Status Details</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('admin_edit_subscription_status', status_id=status.id) }}">
+            <div class="mb-3">
+                <label for="name" class="form-label">Status Name</label>
+                <input type="text" class="form-control" id="name" name="name" value="{{ status.name }}" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="3">{{ status.description }}</textarea>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{{ url_for('admin_subscription_statuses') }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

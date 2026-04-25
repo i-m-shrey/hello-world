@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+
+{% block title %}Referrers - Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h2 class="mb-0">Referrers</h2>
+    <p class="text-muted mb-0">Manage referrers and view commission stats.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary" href="{{ url_for('admin_dashboard') }}">Back</a>
+    <a class="btn btn-primary" href="{{ url_for('admin_create_referrer') }}">
+      <i class="fas fa-plus me-1"></i> Add Referrer
+    </a>
+    <a class="btn btn-outline-dark" href="{{ url_for('admin_commissions') }}">
+      <i class="fas fa-rupee-sign me-1"></i> View Commissions
+    </a>
+  </div>
+</div>
+
+<div class="card shadow">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Active</th>
+            <th>Clients</th>
+            <th>Pending Commission</th>
+            <th>Paid Commission</th>
+            <th style="width: 140px">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr>
+            <td>{{ row.referrer.name }}</td>
+            <td>{{ row.referrer.email or '-' }}</td>
+            <td>{{ row.referrer.mobile or '-' }}</td>
+            <td>
+              {% if row.referrer.is_active %}
+                <span class="badge bg-success">Yes</span>
+              {% else %}
+                <span class="badge bg-secondary">No</span>
+              {% endif %}
+            </td>
+            <td>{{ row.client_count }}</td>
+            <td>₹{{ "%.2f"|format(row.pending_total) }}</td>
+            <td>₹{{ "%.2f"|format(row.paid_total) }}</td>
+            <td>
+              <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin_edit_referrer', referrer_id=row.referrer.id) }}">Edit</a>
+            </td>
+          </tr>
+          {% endfor %}
+          {% if not rows %}
+          <tr>
+            <td colspan="8" class="text-muted">No referrers found.</td>
+          </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

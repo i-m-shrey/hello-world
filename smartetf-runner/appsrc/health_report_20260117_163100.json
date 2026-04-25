@@ -1,0 +1,50 @@
+{
+  "timestamp": "2026-01-17 16:30:41.348935",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 5,
+    "failed": []
+  },
+  "low_balance_alerts": {
+    "threshold_percent": 20,
+    "alerts": [
+      {
+        "customer_id": "smartetf_user_10008",
+        "broker": "FINVASIA",
+        "balance": 0.0,
+        "threshold": 4000.0
+      }
+    ]
+  },
+  "session_check": {
+    "status": "PASS",
+    "total_clients": 5,
+    "active_sessions": 5,
+    "failed_sessions": 0,
+    "success_rate": 100.0,
+    "broker_breakdown": {
+      "FINVASIA": {
+        "active": 5,
+        "failed": 0
+      }
+    },
+    "failed_clients": [],
+    "password_rotations": [],
+    "timestamp": "2026-01-17 16:30:43.302378"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "PASS",
+    "test_url": "https://www.google.com",
+    "page_title": "Google",
+    "test_time_seconds": 5.843762397766113,
+    "timestamp": "2026-01-17 16:30:56.248834"
+  },
+  "overall_status": "HEALTHY",
+  "critical_issues": [],
+  "warnings": [],
+  "recommendations": []
+}

@@ -1,0 +1,154 @@
+{% extends "layout.html" %}
+{% block title %}{{ campaign.name }} - Campaign{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <a href="{{ url_for('admin_campaigns') }}" class="btn btn-outline-secondary btn-sm me-3">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+    <div class="flex-grow-1">
+        <h2 class="mb-0">{{ campaign.name }}</h2>
+        <p class="text-muted mb-0">{{ campaign.description or 'No description' }}</p>
+    </div>
+    {% if campaign.is_active %}
+        <span class="badge bg-success fs-6">Active</span>
+    {% else %}
+        <span class="badge bg-secondary fs-6">Inactive</span>
+    {% endif %}
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card shadow text-center py-3">
+            <h3 class="mb-0 text-primary">{{ campaign.total_seats }}</h3>
+            <small class="text-muted">Total Seats</small>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card shadow text-center py-3">
+            <h3 class="mb-0 text-success">{{ campaign.seats_taken }}</h3>
+            <small class="text-muted">Registered</small>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card shadow text-center py-3">
+            <h3 class="mb-0 text-warning">{{ campaign.total_seats - campaign.seats_taken }}</h3>
+            <small class="text-muted">Seats Left</small>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card shadow text-center py-3">
+            <h3 class="mb-0 text-info">
+                {{ campaign.discount_value }}{% if campaign.discount_type == 'percentage' %}%{% else %} INR{% endif %}
+            </h3>
+            <small class="text-muted">Discount</small>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-body">
+                <div class="progress mb-2" style="height: 20px;">
+                    {% set pct = (campaign.seats_taken / campaign.total_seats * 100) if campaign.total_seats > 0 else 0 %}
+                    <div class="progress-bar bg-success" style="width: {{ pct }}%">{{ pct|round(1) }}%</div>
+                </div>
+                <small class="text-muted">{{ campaign.seats_taken }} of {{ campaign.total_seats }} seats filled</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-body">
+                <form action="{{ url_for('admin_send_campaign_alert', campaign_id=campaign.id) }}" method="POST">
+                    <button type="submit" class="btn btn-warning w-100" onclick="return confirm('Send alert to all registered users?')">
+                        <i class="fas fa-paper-plane me-1"></i>Send Seat Alert
+                    </button>
+                </form>
+                <small class="text-muted d-block mt-2 text-center">Notifies all registered users about remaining seats</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-body">
+                <div class="row small">
+                    <div class="col-md-3">
+                        <strong>Start Date:</strong> {{ campaign.start_date.strftime('%d %b %Y') if campaign.start_date else 'Not set' }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>End Date:</strong> {{ campaign.end_date.strftime('%d %b %Y') if campaign.end_date else 'Not set' }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Alert Thresholds:</strong> {{ campaign.alert_thresholds or 'None' }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Alerts Sent:</strong> {{ campaign.alerts_sent or 'None' }}
+                    </div>
+                </div>
+                <div class="row small mt-2">
+                    <div class="col-md-4">
+                        <strong>Offer Applies To:</strong> {{ campaign.display_offer_scope or 'Not set' }}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Email Validity Text:</strong> {{ campaign.display_validity_text or 'Not set' }}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Terms:</strong> {{ campaign.terms_text or 'Not set' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Registrations ({{ registrations|length }})</h5>
+    </div>
+    {% if registrations %}
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Discount Code</th>
+                    <th>Registered</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reg in registrations %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ reg.user.username }}</td>
+                    <td>{{ reg.user.email }}</td>
+                    <td><code>{{ reg.discount_code }}</code></td>
+                    <td>{{ reg.registered_at.strftime('%d %b %Y, %H:%M') }}</td>
+                    <td>
+                        {% if reg.is_used %}
+                            <span class="badge bg-success">Used</span>
+                            {% if reg.used_at %}
+                            <small class="text-muted d-block">{{ reg.used_at.strftime('%d %b %Y') }}</small>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body text-center py-4">
+        <p class="text-muted mb-0">No registrations yet.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

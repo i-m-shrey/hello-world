@@ -1,0 +1,63 @@
+{
+  "timestamp": "2025-12-31 13:23:52.698824",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 5,
+    "failed": []
+  },
+  "low_balance_alerts": {
+    "threshold_percent": 20,
+    "alerts": [
+      {
+        "customer_id": "smartetf_user_10006",
+        "broker": "FINVASIA",
+        "balance": 3529.05,
+        "threshold": 4000.0
+      }
+    ]
+  },
+  "session_check": {
+    "status": "PASS",
+    "total_clients": 6,
+    "active_sessions": 5,
+    "failed_sessions": 1,
+    "success_rate": 83.33333333333334,
+    "broker_breakdown": {
+      "FINVASIA": {
+        "active": 5,
+        "failed": 0
+      },
+      "DHAN": {
+        "active": 0,
+        "failed": 1
+      }
+    },
+    "failed_clients": [
+      {
+        "client_id": "smartetf_user_10007",
+        "broker": "DHAN",
+        "error": "Token renewal failed: DHAN API POST /v2/RenewToken failed: HTTP 400 | {'errorType': 'Input_Exception', 'errorCode': 'DH-905', 'errorMessage': 'Missing required fields, bad values for parameters etc.'}",
+        "timestamp": "2025-12-31 13:23:56.601439",
+        "email": "nitimajain91@gmail.com"
+      }
+    ],
+    "timestamp": "2025-12-31 13:23:56.602440"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "PASS",
+    "test_url": "https://www.google.com",
+    "page_title": "Google",
+    "test_time_seconds": 7.4626665115356445,
+    "timestamp": "2025-12-31 13:24:14.621670"
+  },
+  "overall_status": "HEALTHY",
+  "critical_issues": [],
+  "warnings": [
+    "1 client sessions failed"
+  ],
+  "recommendations": []
+}

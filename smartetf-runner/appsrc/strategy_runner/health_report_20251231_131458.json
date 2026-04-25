@@ -1,0 +1,63 @@
+{
+  "timestamp": "2025-12-31 13:14:32.556514",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 5,
+    "failed": []
+  },
+  "low_balance_alerts": {
+    "threshold_percent": 20,
+    "alerts": [
+      {
+        "customer_id": "smartetf_user_10006",
+        "broker": "FINVASIA",
+        "balance": 3529.05,
+        "threshold": 4000.0
+      }
+    ]
+  },
+  "session_check": {
+    "status": "PASS",
+    "total_clients": 6,
+    "active_sessions": 5,
+    "failed_sessions": 1,
+    "success_rate": 83.33333333333334,
+    "broker_breakdown": {
+      "FINVASIA": {
+        "active": 5,
+        "failed": 0
+      },
+      "DHAN": {
+        "active": 0,
+        "failed": 1
+      }
+    },
+    "failed_clients": [
+      {
+        "client_id": "smartetf_user_10007",
+        "broker": "DHAN",
+        "error": "Token renewal failed: DHAN API POST /v2/renewToken failed: HTTP 404 | {'timestamp': 1767167077197, 'status': 404, 'error': 'Not Found', 'path': '/v2/renewToken'}",
+        "timestamp": "2025-12-31 13:14:37.249888",
+        "email": "nitimajain91@gmail.com"
+      }
+    ],
+    "timestamp": "2025-12-31 13:14:37.252881"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "PASS",
+    "test_url": "https://www.google.com",
+    "page_title": "Google",
+    "test_time_seconds": 6.22869873046875,
+    "timestamp": "2025-12-31 13:14:53.867981"
+  },
+  "overall_status": "HEALTHY",
+  "critical_issues": [],
+  "warnings": [
+    "1 client sessions failed"
+  ],
+  "recommendations": []
+}

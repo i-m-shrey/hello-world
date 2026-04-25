@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+{% block title %}Recent Execution Runs{% endblock %}
+{% block content %}
+<div class="card shadow">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">Recent Execution Runs</h5>
+    <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin_scheduler_management') }}">Back to Scheduler</a>
+  </div>
+  <div class="card-body table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Started</th>
+          <th>Ended</th>
+          <th>Mode</th>
+          <th>Status</th>
+          <th>Clients</th>
+          <th>Orders</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in runs %}
+        <tr>
+          <td>{{ r.id }}</td>
+          <td>{{ r.started_at.strftime('%Y-%m-%d %H:%M:%S') if r.started_at else '' }}</td>
+          <td>{{ r.ended_at.strftime('%Y-%m-%d %H:%M:%S') if r.ended_at else '' }}</td>
+          <td>{{ r.mode }}</td>
+          <td>{{ r.status }}</td>
+          <td>{{ r.processed }}/{{ r.total_clients }} (pass {{ r.passed }}, fail {{ r.failed }})</td>
+          <td>{{ r.ok_orders }}/{{ r.total_orders }}</td>
+          <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin_run_events', run_id=r.id) }}">View</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-muted">No runs yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

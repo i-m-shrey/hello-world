@@ -1,0 +1,454 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2>Welcome, {{ user.username }}!</h2>
+        <p class="text-muted">Manage your ETF trading accounts and subscriptions.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Your Broker Accounts</h5>
+                {% if not max_brokers_reached %}
+                <a href="{{ url_for('add_broker') }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus me-1"></i> Add Broker
+                </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if broker_connections %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                        <tr>
+                            <th>Broker</th>
+                            <th>User ID</th>
+                            <th>Status</th>
+                            <th>Expiry Date</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for broker in broker_connections %}
+                        <tr>
+                            <td>{{ broker.broker_name }}</td>
+                            <td>{{ broker.user_id_broker }}</td>
+                            <td>
+                                {% if broker.subscription_status == 'Active' %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark">{{ broker.subscription_status or 'Inactive' }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if broker.subscription_expiry and broker.subscription_status == 'Active' %}
+                                {% set days_left = (broker.subscription_expiry.date() - now().date()).days %}
+                                {% if days_left >= 0 %}
+                                <span {% if days_left < 7 %}class="text-danger"{% endif %}>
+                                {{ days_left }} days
+                                </span>
+                                {% else %}
+                                <span class="text-danger">Expired</span>
+                                {% endif %}
+                                {% else %}
+                                <span class="text-muted">Not Applicable</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('view_broker', broker_id=broker.id) }}" class="btn btn-sm btn-info me-1" data-bs-toggle="tooltip" title="View broker details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <form method="post" action="{{ url_for('broker_test_order', broker_id=broker.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-warning me-1" data-bs-toggle="tooltip" title="Place a small test ETF order to verify execution" onclick="return confirm('This will place a small test buy order in your broker account. Continue?');">
+                                        <i class="fas fa-vial"></i>
+                                    </button>
+                                </form>
+                                <a href="{{ url_for('delete_broker', broker_id=broker.id) }}" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="Delete broker">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Broker Funds Snapshot -->
+                <div class="card mt-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0"><i class="fas fa-wallet me-2"></i> Broker Funds</h6>
+                        <small class="text-muted">Low-balance emails can be disabled in Notification Settings</small>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Broker</th>
+                                        <th class="text-end">Available Balance</th>
+                                        <th class="text-end">Last Checked</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for broker in broker_connections %}
+                                    <tr>
+                                        <td>{{ broker.broker_name }}</td>
+                                        <td class="text-end">{% if broker.available_balance is not none %}₹{{ '{:,.2f}'.format(broker.available_balance) }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                                        <td class="text-end">{% if broker.balance_checked_at %}{{ broker.balance_checked_at|datetime('%d %b, %Y %I:%M %p') }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-exchange-alt fa-3x text-muted mb-3"></i>
+                    <h5>No Broker Accounts Connected</h5>
+                    <p class="text-muted">Connect your first broker account to start trading.</p>
+                    {% if not max_brokers_reached %}
+                    <a href="{{ url_for('add_broker') }}" class="btn btn-primary mt-2">
+                        <i class="fas fa-plus me-1"></i> Add Broker Account
+                    </a>
+                    {% else %}
+                    <p class="text-warning mt-2">Maximum broker limit reached for your plan.</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- SIP Configuration Section -->
+        {% if current_subscription and broker_connections %}
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>SIP Configuration</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('update_sip_target') }}" id="sipForm">
+                    <div class="row align-items-end">
+                        <div class="col-md-6">
+                            <label for="monthly_sip_target" class="form-label">Monthly SIP Target</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="monthly_sip_target" 
+                                       name="monthly_sip_target" 
+                                       value="{{ current_subscription.monthly_sip_target or 8000 }}"
+                                       min="1000" 
+                                       max="{{ current_subscription.plan.max_sip_amount }}"
+                                       step="500"
+                                       placeholder="Enter monthly target (default ₹8,000)">
+                            </div>
+                            <small class="text-muted">Max allowed: ₹{{ '{:,}'.format(current_subscription.plan.max_sip_amount) }}</small>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Update Target
+                            </button>
+                        </div>
+                        <div class="col-md-2">
+                            {% if current_subscription.monthly_sip_target %}
+                            <div class="text-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-check-circle"></i><br>
+                                    Target Set
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if current_subscription.monthly_sip_target %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="alert alert-secondary mb-0" style="opacity: 0.6;">
+                                <div class="row text-center">
+                                    <div class="col-md-3">
+                                        <h6 class="mb-1">Current Target</h6>
+                                        <strong>₹{{ '{:,}'.format(current_subscription.monthly_sip_target) }}</strong>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <h6 class="mb-1">This Month Invested</h6>
+                                        <strong class="text-muted">₹{{ '{:,}'.format(month_invested|default(0)) }}</strong>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <h6 class="mb-1">Remaining</h6>
+                                        <strong class="text-muted">₹{{ '{:,}'.format(current_subscription.monthly_sip_target - (month_invested|default(0))) }}</strong>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <h6 class="mb-1">Progress</h6>
+                                        {% set progress = ((month_invested|default(0)) / current_subscription.monthly_sip_target * 100)|int %}
+                                        <strong class="text-muted">
+                                            {{ progress }}%
+                                        </strong>
+                                    </div>
+                                </div>
+                                <div class="progress mt-2" style="height: 8px;">
+                                    <div class="progress-bar {% if progress >= 100 %}bg-success{% elif progress >= 50 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                         role="progressbar" style="width: {{ progress }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if broker_connections %}
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0">Trading Activity</h5>
+            </div>
+            <div class="card-body">
+                {% if trading_activity %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Broker</th>
+                            <th>Symbol</th>
+                            <th>Type</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for activity in trading_activity %}
+                        <tr>
+                            <td>{{ activity.date }}</td>
+                            <td>{{ activity.broker }}</td>
+                            <td>{{ activity.symbol }}</td>
+                            <td>{{ activity.type }}</td>
+                            <td>{{ activity.quantity }}</td>
+                            <td>{{ activity.price }}</td>
+                            <td>
+                                <span class="badge bg-{{ activity.status_color }}">{{ activity.status }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <p class="text-muted">No trading activity recorded yet.</p>
+                    <p>Your ETF trading activity will appear here once you start trading.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Your Subscription</h5>
+            </div>
+            <div class="card-body">
+                {% if current_subscription and now() < current_subscription.expiry_date %}
+                <div class="text-center mb-3">
+                    <span class="badge bg-success fs-6 mb-2">Active</span>
+                    <h4>{{ current_subscription.plan_name }}</h4>
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between text-muted small mb-1">
+                        <span>Expires in {{ (current_subscription.expiry_date - now()).days }} days</span>
+                        <span>{{ current_subscription.expiry_date|datetime('%d %b, %Y') }}</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        {% set days_passed = (now() - current_subscription.start_date).days %}
+                        {% set total_days = (current_subscription.expiry_date - current_subscription.start_date).days %}
+                        {% set percentage = (days_passed / total_days * 100)|int %}
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ percentage }}%"></div>
+                    </div>
+                </div>
+
+                <h6 class="mt-4 mb-2">Plan Features</h6>
+                <ul class="list-unstyled">
+                    {% for feature in current_subscription.plan.features.split('\n') %}
+                    <li class="mb-1"><i class="fas fa-check text-success me-2"></i> {{ feature }}</li>
+                    {% endfor %}
+                </ul>
+
+                <div class="d-grid mt-4">
+                    <a href="{{ url_for('view_plans') }}" class="btn btn-outline-primary">View Plans</a>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-exclamation-circle fa-3x text-warning mb-3"></i>
+                    <h5>No Active Subscription</h5>
+                    <p class="text-muted">Subscribe to a plan to enable ETF trading.</p>
+                    <div class="d-grid mt-3">
+                        <a href="{{ url_for('view_plans') }}" class="btn btn-primary">Browse Plans</a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+
+        </div>
+        {% if upcoming_subscriptions %}
+        <div class="card shadow mt-3">
+            <div class="card-header">
+                <h6 class="mb-0">Upcoming Subscription</h6>
+            </div>
+            <div class="card-body">
+                {% for sub in upcoming_subscriptions %}
+                <p><strong>Plan:</strong> {{ sub.plan.name }}</p>
+                <p><strong>Starts:</strong> {{ sub.start_date.strftime('%d %b, %Y') }}</p>
+                <p><strong>Expires:</strong> {{ sub.expiry_date.strftime('%d %b, %Y') }}</p>
+                <p><strong>Status:</strong>
+                    {% if sub.payment_status == 'Active' %}
+                    <span class="badge bg-success">{{ sub.payment_status }}</span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark">{{ sub.payment_status }}</span>
+                    {% endif %}
+                </p>
+                <p><strong>Starts in:</strong> {{ sub.days_until_start }} days</p>
+                {% if not loop.last %}<hr>{% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Account Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-7 fw-bold">Connected Brokers:</div>
+                    <div class="col-5">{{ broker_connections|length or 0 }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-7 fw-bold">Account Status:</div>
+                    <div class="col-5">
+                        {% if current_subscription and now() < current_subscription.expiry_date %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark">Inactive</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-7 fw-bold">Trading:</div>
+                    <div class="col-5">
+                        {% if current_subscription and current_subscription.plan.has_copy_trading %}
+                        <span class="badge bg-primary">Enabled</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Disabled</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-7 fw-bold">Max Brokers:</div>
+                    <div class="col-5">
+                        {% if current_subscription %}
+                        {{ current_subscription.plan.max_brokers }}
+                        {% else %}
+                        0
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if not max_brokers_reached %}
+                    <a href="{{ url_for('add_broker') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-plus me-1"></i> Add Broker
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('view_plans') }}" class="btn btn-outline-success">
+                        <i class="fas fa-tags me-1"></i> View Plans
+                    </a>
+                    <a href="{{ url_for('profile') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-user-cog me-1"></i> Profile Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+        
+        // SIP Target Validation
+        const sipForm = document.getElementById('sipForm');
+        const sipInput = document.getElementById('monthly_sip_target');
+        
+        if (sipForm && sipInput) {
+            const maxAmount = parseInt(sipInput.getAttribute('max'));
+            
+            sipInput.addEventListener('input', function() {
+                const value = parseInt(this.value);
+                const submitBtn = sipForm.querySelector('button[type="submit"]');
+                
+                if (value > maxAmount) {
+                    this.classList.add('is-invalid');
+                    this.classList.remove('is-valid');
+                    submitBtn.disabled = true;
+                    
+                    // Show error message
+                    let errorMsg = this.parentNode.parentNode.querySelector('.invalid-feedback');
+                    if (!errorMsg) {
+                        errorMsg = document.createElement('div');
+                        errorMsg.className = 'invalid-feedback';
+                        this.parentNode.parentNode.appendChild(errorMsg);
+                    }
+                    errorMsg.textContent = `Amount exceeds plan limit of ₹${maxAmount.toLocaleString()}`;
+                } else if (value >= 1000) {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                    submitBtn.disabled = false;
+                    
+                    // Remove error message
+                    const errorMsg = this.parentNode.parentNode.querySelector('.invalid-feedback');
+                    if (errorMsg) {
+                        errorMsg.remove();
+                    }
+                } else {
+                    this.classList.remove('is-valid', 'is-invalid');
+                    submitBtn.disabled = value < 1000;
+                }
+            });
+            
+            // Form submission validation
+            sipForm.addEventListener('submit', function(e) {
+                const value = parseInt(sipInput.value);
+                if (value > maxAmount || value < 1000) {
+                    e.preventDefault();
+                    alert('Please enter a valid SIP amount between ₹1,000 and ₹' + maxAmount.toLocaleString());
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

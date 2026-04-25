@@ -1,0 +1,184 @@
+{% extends "layout.html" %}
+
+{% block title %}Add Broker - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+        <h2>Add New Broker</h2>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header">
+        <h5 class="mb-0">Broker Details</h5>
+    </div>
+    <div class="card-body">
+        {% if max_brokers_reached %}
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                You have reached the maximum number of brokers ({{ current_plan.max_brokers }}) allowed for your plan.
+                <a href="{{ url_for('view_plans') }}">Upgrade your plan</a> to add more brokers.
+            </div>
+        {% else %}
+            <form method="POST" action="/broker/add">
+                <div class="mb-4">
+                    <label for="broker_name" class="form-label">Select Broker</label>
+                    <select class="form-select" id="broker_name" name="broker_name" required>
+                        <option value="">-- Select Broker --</option>
+                        {% for broker in brokers %}
+                            <option value="{{ broker.name }}">{{ broker.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">Choose from our list of supported brokers.</small>
+                </div>
+
+                <div class="mb-4">
+                    <label for="user_id_broker" class="form-label">User ID / Client ID</label>
+                    <input type="text" class="form-control" id="user_id_broker" name="user_id_broker"
+                           placeholder="Enter your broker user ID or client ID" required>
+                    <small class="text-muted">This is the user ID or client ID you use to log in to your broker's platform.</small>
+                </div>
+
+                <div class="mb-4">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="password" name="password"
+                               placeholder="Enter your broker password" required>
+                        <button type="button" class="btn btn-outline-secondary toggle-password" data-target="#password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <small class="text-muted">Your credentials are securely encrypted.</small>
+                </div>
+
+                <!-- Dynamic broker-specific fields that show based on broker selection -->
+                {% for broker in brokers %}
+                <div class="broker-fields d-none" data-broker="{{ broker.name }}">
+                    <h5 class="mb-3">{{ broker.name }} Specific Details</h5>
+
+                    {% if broker.requires_totp %}
+                    <div class="mb-3">
+                        <label for="totp_secret" class="form-label">TOTP Secret</label>
+                        <input type="text" class="form-control" id="totp_secret" name="totp_secret"
+                               placeholder="Enter TOTP secret" {% if broker.requires_totp %}required{% endif %}>
+                        <small class="text-muted">The secret key for generating time-based one-time passwords.</small>
+                    </div>
+                    {% endif %}
+
+                    {% if broker.requires_api_key %}
+                    <div class="mb-3">
+                        <label for="api_key" class="form-label">API Key</label>
+                        <input type="text" class="form-control" id="api_key" name="api_key"
+                               placeholder="Enter API key" {% if broker.requires_api_key %}required{% endif %}>
+                        <small class="text-muted">API key provided by your broker.</small>
+                    </div>
+                    {% endif %}
+
+                    {% if broker.requires_api_secret %}
+                    <div class="mb-3">
+                        <label for="api_secret" class="form-label">API Secret</label>
+                        <input type="text" class="form-control" id="api_secret" name="api_secret"
+                               placeholder="Enter API secret" {% if broker.requires_api_secret %}required{% endif %}>
+                        <small class="text-muted">API secret provided by your broker.</small>
+                    </div>
+                    {% endif %}
+
+                    {% if broker.requires_vendor_code %}
+                    <div class="mb-3">
+                        <label for="vendor_code" class="form-label">Vendor Code</label>
+                        <input type="text" class="form-control" id="vendor_code" name="vendor_code"
+                               placeholder="Enter vendor code" {% if broker.requires_vendor_code %}required{% endif %}>
+                        <small class="text-muted">Vendor code for API access.</small>
+                    </div>
+                    {% endif %}
+
+                    {% if broker.requires_imei %}
+                    <div class="mb-3">
+                        <label for="imei" class="form-label">IMEI</label>
+                        <input type="text" class="form-control" id="imei" name="imei"
+                               placeholder="Enter IMEI" {% if broker.requires_imei %}required{% endif %}>
+                        <small class="text-muted">IMEI number for mobile authentication.</small>
+                    </div>
+                    {% endif %}
+
+                    {% if broker.requires_access_token %}
+                    <div class="mb-3">
+                        <label for="access_token" class="form-label">Access Token</label>
+                        <input type="text" class="form-control" id="access_token" name="access_token"
+                               placeholder="Enter access token" {% if broker.requires_access_token %}required{% endif %}>
+                        <small class="text-muted">Access token provided by your broker.</small>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <div class="alert alert-info mb-4">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Note:</strong> Your broker details will be securely stored and used only for trading purposes.
+                    Algo Investment settings will be configured automatically based on your subscription plan.
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Add Broker</button>
+                </div>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+{% block additional_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle password visibility
+        document.querySelectorAll('.toggle-password').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const passwordField = document.querySelector(targetId);
+
+                const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordField.setAttribute('type', type);
+
+                const icon = this.querySelector('i');
+                if (type === 'text') {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+        });
+
+        // Show fields for selected broker
+        const brokerSelect = document.getElementById('broker_name');
+
+        function showBrokerFields(brokerName) {
+            // Hide all broker fields
+            document.querySelectorAll('.broker-fields').forEach(function(field) {
+                field.classList.add('d-none');
+            });
+
+            // Show fields for selected broker
+            if (brokerName) {
+                const selectedFields = document.querySelector(`.broker-fields[data-broker="${brokerName}"]`);
+                if (selectedFields) {
+                    selectedFields.classList.remove('d-none');
+                }
+            }
+        }
+
+        brokerSelect.addEventListener('change', function() {
+            showBrokerFields(this.value);
+        });
+
+        // Initialize with currently selected broker
+        showBrokerFields(brokerSelect.value);
+    });
+</script>
+{% endblock %}
+{% endblock %}

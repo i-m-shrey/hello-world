@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+
+{% block title %}Client Dashboard - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="list-group">
+            <a href="{{ url_for('dashboard') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+            </a>
+            <a href="{{ url_for('view_plans') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'view_plans' %}active{% endif %}">
+                <i class="fas fa-tags me-2"></i> Subscription Plans
+            </a>
+            <a href="{{ url_for('add_broker') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'add_broker' %}active{% endif %}">
+                <i class="fas fa-plus me-2"></i> Add Broker
+            </a>
+            <a href="#" class="list-group-item list-group-item-action disabled">
+                <i class="fas fa-chart-line me-2"></i> Trading Analysis
+            </a>
+            <a href="#" class="list-group-item list-group-item-action disabled">
+                <i class="fas fa-user-cog me-2"></i> Account Settings
+            </a>
+            <a href="{{ url_for('logout') }}" class="list-group-item list-group-item-action text-danger">
+                <i class="fas fa-sign-out-alt me-2"></i> Logout
+            </a>
+        </div>
+        
+        {% if current_subscription and now() < current_subscription.expiry_date %}
+        <div class="card mt-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">{{ current_subscription.plan_name }}</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">Expires in {{ (current_subscription.expiry_date - now()).days }} days</p>
+                <div class="progress" style="height: 8px;">
+                    {% set days_passed = (now() - current_subscription.start_date).days %}
+                    {% set total_days = (current_subscription.expiry_date - current_subscription.start_date).days %}
+                    {% set percentage = (days_passed / total_days * 100)|int %}
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ percentage }}%"></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-9">
+        {% block client_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %}

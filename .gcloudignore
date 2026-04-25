@@ -1,0 +1,44 @@
+# Backend service - ignore runner files
+smartetf-runner/
+strategy_runner/
+
+# Development files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+old.env
+*.env.local
+
+# Logs and temp files
+logs/*.log
+*.log
+health_report_*.json
+
+# Test files
+test_*.py
+diagnose_*.py
+verify_*.py
+
+# Misc
+.git/
+.gitignore
+*.zip
+*.pdf
+.DS_Store

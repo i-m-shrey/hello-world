@@ -1,0 +1,239 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit User - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+        <h2>Edit User</h2>
+        <a href="{{ url_for('admin_view_user', user_id=user.id) }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-1"></i> Back to User Details
+        </a>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header">
+        <h5 class="mb-0">User Details</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('admin_edit_user', user_id=user.id) }}">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="customer_id" class="form-label">Customer ID</label>
+                        <input type="text" class="form-control" id="customer_id" name="customer_id" value="{{ user.customer_id }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="password" name="password" 
+                                   placeholder="Leave empty to keep current password">
+                            <button type="button" class="btn btn-outline-secondary toggle-password" data-target="#password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted">Leave empty to keep the current password</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Confirm Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" 
+                                  placeholder="Leave empty to keep current password">
+                            <button type="button" class="btn btn-outline-secondary toggle-password" data-target="#confirm_password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">Account Settings</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="is_admin" name="is_admin" 
+                                       {% if user.is_admin %}checked{% endif %}>
+                                <label class="form-check-label" for="is_admin">Administrator Account</label>
+                                <small class="form-text text-muted d-block">
+                                    Administrators have full access to manage all aspects of the system.
+                                </small>
+                            </div>
+                            
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="is_active" name="is_active" 
+                                       {% if user.is_active %}checked{% endif %}>
+                                <label class="form-check-label" for="is_active">Account Active</label>
+                                <small class="form-text text-muted d-block">
+                                    Inactive accounts cannot log in to the system.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Account Information</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-2">
+                                <div class="col-5 fw-bold">Created:</div>
+                                <div class="col-7">{{ user.created_at|datetime('%d %b, %Y') }}</div>
+                            </div>
+                            
+                            <div class="row mb-2">
+                                <div class="col-5 fw-bold">Last Login:</div>
+                                <div class="col-7">
+                                    {% if user.last_login %}
+                                        {{ user.last_login|datetime('%d %b, %Y %H:%M') }}
+                                    {% else %}
+                                        <span class="text-muted">Never</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-2">
+                                <div class="col-5 fw-bold">Brokers:</div>
+                                <div class="col-7">{{ broker_count }}</div>
+                            </div>
+                            
+                            <div class="row mb-2">
+                                <div class="col-5 fw-bold">Active Subscription:</div>
+                                <div class="col-7">
+                                    {% if has_active_subscription %}
+                                        <span class="badge bg-success">Yes</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">No</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {% if upcoming_subscriptions %}
+                            <hr class="my-3">
+                            <div class="row mb-2">
+                                <div class="col-12">
+                                    <h6 class="fw-bold mb-2">Upcoming Subscriptions</h6>
+                                </div>
+                            </div>
+                            {% for subscription in upcoming_subscriptions %}
+                            <div class="row mb-2">
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-light">
+                                        <div>
+                                            <strong>{{ subscription.plan.name }}</strong><br>
+                                            <small class="text-muted">
+                                                Starts: {{ subscription.start_date.strftime('%d %b, %Y') }} •
+                                                Expires: {{ subscription.expiry_date.strftime('%d %b, %Y') }}
+                                            </small>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="badge bg-primary">₹{{ subscription.amount }}</div><br>
+                                            <small class="text-success">
+                                                {% if subscription.days_until_start == 0 %}
+                                                    Starts today
+                                                {% elif subscription.days_until_start == 1 %}
+                                                    Starts tomorrow
+                                                {% else %}
+                                                    {{ subscription.days_until_start }} days to go
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                <a href="{{ url_for('admin_view_user', user_id=user.id) }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+    <!-- Within the account information card -->
+<table class="table table-borderless">
+    <tr>
+        <th style="width: 30%">Username:</th>
+        <td>{{ user.username }}</td>
+    </tr>
+    <tr>
+        <th>Email:</th>
+        <td>{{ user.email }}</td>
+    </tr>
+    <!-- Other user info rows... -->
+
+    <!-- Add this row to the existing table -->
+    <tr>
+        <th>Disclaimer:</th>
+        <td>
+            {% if user.disclaimer_accepted %}
+                <span class="badge bg-success">Accepted</span>
+            {% else %}
+                <span class="badge bg-warning">Not Accepted</span>
+            {% endif %}
+            <form method="POST" action="{{ url_for('admin_reset_user_disclaimer', user_id=user.id) }}" class="d-inline ms-2">
+                <button type="submit" class="btn btn-warning btn-sm" onclick="return confirm('Are you sure you want to reset the disclaimer acceptance?');">
+                    <i class="fas fa-redo me-1"></i> Reset
+                </button>
+            </form>
+        </td>
+    </tr>
+</table>
+</div>
+
+{% block additional_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle password visibility
+        document.querySelectorAll('.toggle-password').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const passwordField = document.querySelector(targetId);
+                
+                const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordField.setAttribute('type', type);
+                
+                const icon = this.querySelector('i');
+                if (type === 'text') {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+        });
+        
+        // Password validation
+        const passwordField = document.getElementById('password');
+        const confirmPasswordField = document.getElementById('confirm_password');
+        const form = document.querySelector('form');
+        
+        form.addEventListener('submit', function(event) {
+            if (passwordField.value && passwordField.value !== confirmPasswordField.value) {
+                event.preventDefault();
+                alert('Passwords do not match');
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

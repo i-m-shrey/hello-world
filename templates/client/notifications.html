@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block title %}Notification Settings{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col d-flex justify-content-between align-items-center">
+    <h2>Notification Settings</h2>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary"><i class="fas fa-arrow-left me-1"></i> Back to Dashboard</a>
+  </div>
+</div>
+
+<div class="card shadow">
+  <div class="card-header">
+    <h5 class="mb-0">Low Balance Alerts</h5>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('notifications') }}">
+      <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="low_balance_alerts_enabled" name="low_balance_alerts_enabled" {% if user.low_balance_alerts_enabled %}checked{% endif %}>
+        <label class="form-check-label" for="low_balance_alerts_enabled">
+          Email me when my available broker balance falls below <strong>{{ threshold or 20 }}%</strong> of my Monthly SIP target
+        </label>
+      </div>
+      <small class="text-muted">Threshold is set globally by admin and applies to all users. Balance is checked daily around 10:30 AM IST.</small>
+      <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

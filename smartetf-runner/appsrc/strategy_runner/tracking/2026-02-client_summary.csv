@@ -1,0 +1,23 @@
+date,customer_id,customer_name,execution_count,month_invested,monthly_target,progress_percent,remaining_budget,status
+2026-02-22,smartetf_user_10010,Jasneet Kaur Saluja ,1,735.16,20000.0,3.68,19264.84,LOW
+2026-02-22,smartetf_user_10017,Meenu dewani,1,367.58,20000.0,1.84,19632.42,LOW
+2026-02-22,smartetf_user_10001,Shrey Jain,1,805.86,25000.0,3.22,24194.14,LOW
+2026-02-22,smartetf_user_10013,smartetf_user_10013,1,0.0,8000.0,0.0,8000.0,LOW
+2026-02-22,smartetf_user_10019,RAJESH MENGHRANI ,1,70.7,10000.0,0.71,9929.3,LOW
+2026-02-22,smartetf_user_10006,Chandra Vikas Rathore,1,735.16,20000.0,3.68,19264.84,LOW
+2026-02-22,smartetf_user_10008,Mahesh dewani,1,735.16,20000.0,3.68,19264.84,LOW
+2026-02-22,smartetf_user_10016,Shrey Jain,1,35.35,8500.0,0.42,8464.65,LOW
+2026-02-22,smartetf_user_10015,Ashok dewani,1,35.35,8000.0,0.44,7964.65,LOW
+2026-02-22,smartetf_user_10005,Sanjeev jain ,1,2841.78,100000.0,2.84,97158.22,LOW
+2026-02-22,smartetf_user_10012,Ankit Gupta,1,0.0,8000.0,0.0,8000.0,LOW
+2026-02-23,smartetf_user_10010,Jasneet Kaur Saluja ,1,4253.42,20000.0,21.27,15746.58,LOW
+2026-02-23,smartetf_user_10017,Meenu dewani,1,3885.84,20000.0,19.43,16114.16,LOW
+2026-02-23,smartetf_user_10001,Shrey Jain,1,5166.83,25000.0,20.67,19833.17,LOW
+2026-02-23,smartetf_user_10013,smartetf_user_10013,1,0.0,8000.0,0.0,8000.0,LOW
+2026-02-23,smartetf_user_10019,RAJESH MENGHRANI ,1,17850.39,100000.0,17.85,82149.61,LOW
+2026-02-23,smartetf_user_10006,Chandra Vikas Rathore,1,4253.42,20000.0,21.27,15746.58,LOW
+2026-02-23,smartetf_user_10008,Mahesh dewani,1,4253.42,20000.0,21.27,15746.58,LOW
+2026-02-23,smartetf_user_10016,Shrey Jain,1,1484.71,8500.0,17.47,7015.29,LOW
+2026-02-23,smartetf_user_10015,Ashok dewani,1,1415.75,8000.0,17.7,6584.25,LOW
+2026-02-23,smartetf_user_10005,Sanjeev jain ,1,20621.47,100000.0,20.62,79378.53,LOW
+2026-02-23,smartetf_user_10012,Ankit Gupta,1,0.0,8000.0,0.0,8000.0,LOW

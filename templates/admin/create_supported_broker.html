@@ -1,0 +1,320 @@
+{% extends "layout.html" %}
+
+{% block title %}Add New Broker Type - Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Add New Broker Type</h2>
+    <a href="{{ url_for('admin_supported_brokers') }}" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left me-1"></i> Back to Broker Types
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Broker Details</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="name" class="form-label">Broker Name</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+                <small class="text-muted">This is the name that users will see when adding a broker.</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                <small class="text-muted">A brief description of this broker.</small>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Required Fields</label>
+                <div class="row">
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_client_id" name="requires_client_id">
+                            <label class="form-check-label" for="requires_client_id">Client ID</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_password" name="requires_password">
+                            <label class="form-check-label" for="requires_password">Password</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_totp" name="requires_totp">
+                            <label class="form-check-label" for="requires_totp">TOTP Secret</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_api_key" name="requires_api_key">
+                            <label class="form-check-label" for="requires_api_key">API Key</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_api_secret" name="requires_api_secret">
+                            <label class="form-check-label" for="requires_api_secret">API Secret</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_vendor_code" name="requires_vendor_code">
+                            <label class="form-check-label" for="requires_vendor_code">Vendor Code</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_imei" name="requires_imei">
+                            <label class="form-check-label" for="requires_imei">IMEI</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_mobile" name="requires_mobile">
+                            <label class="form-check-label" for="requires_mobile">Mobile</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_access_token" name="requires_access_token">
+                            <label class="form-check-label" for="requires_access_token">Access Token</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Onboarding Links</label>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Open Account URL</label>
+                        <input type="url" class="form-control" name="open_account_url" placeholder="https://...">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">API Activation URL (Customer Care)</label>
+                        <input type="url" class="form-control" name="api_activation_url" placeholder="https://...">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h5 class="mb-3">Field Help Configuration</h5>
+                <p class="text-muted">Add help text and images for each field type. Users will see these when they click "How to find?"</p>
+
+                <div class="card mb-3">
+                    <div class="card-header">API Key Help</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="help_text_api_key" class="form-label">Help Text</label>
+                            <textarea class="form-control" id="help_text_api_key" name="help_text_api_key" rows="2" placeholder="Explain how to find the API Key"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="help_image_api_key" class="form-label">Help Image (Upload)</label>
+                            <input type="file" class="form-control" id="help_image_api_key" name="help_image_api_key" accept="image/*">
+                            <small class="text-muted">Or enter URL manually:</small>
+                            <input type="text" class="form-control mt-1" name="help_image_api_key_url" placeholder="https://example.com/image.png">
+                        </div>
+                        <div class="mb-3">
+                            <label for="video_api_key_url" class="form-label">Video URL (YouTube/GDrive)</label>
+                            <input type="url" class="form-control" id="video_api_key_url" name="video_api_key_url" placeholder="https://youtu.be/...">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">API Secret Help</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="help_text_api_secret" class="form-label">Help Text</label>
+                            <textarea class="form-control" id="help_text_api_secret" name="help_text_api_secret" rows="2" placeholder="Explain how to find the API Secret"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="help_image_api_secret" class="form-label">Help Image (Upload)</label>
+                            <input type="file" class="form-control" id="help_image_api_secret" name="help_image_api_secret" accept="image/*">
+                            <small class="text-muted">Or enter URL:</small>
+                            <input type="text" class="form-control mt-1" name="help_image_api_secret_url" placeholder="https://...">
+                        </div>
+                        <div class="mb-3">
+                            <label for="video_api_secret_url" class="form-label">Video URL</label>
+                            <input type="url" class="form-control" id="video_api_secret_url" name="video_api_secret_url">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">Client ID Help</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="help_text_client_id" class="form-label">Help Text</label>
+                            <textarea class="form-control" id="help_text_client_id" name="help_text_client_id" rows="2" placeholder="Explain how to find the Client ID"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="help_image_client_id" class="form-label">Help Image (Upload)</label>
+                            <input type="file" class="form-control" id="help_image_client_id" name="help_image_client_id" accept="image/*">
+                            <small class="text-muted">Or enter URL:</small>
+                            <input type="text" class="form-control mt-1" name="help_image_client_id_url" placeholder="https://...">
+                        </div>
+                        <div class="mb-3">
+                            <label for="video_client_id_url" class="form-label">Video URL</label>
+                            <input type="url" class="form-control" id="video_client_id_url" name="video_client_id_url">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">Password/PIN Help</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="help_text_password" class="form-label">Help Text</label>
+                            <textarea class="form-control" id="help_text_password" name="help_text_password" rows="2" placeholder="Explain the password/PIN requirement"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="help_image_password" class="form-label">Help Image (Upload)</label>
+                            <input type="file" class="form-control" id="help_image_password" name="help_image_password" accept="image/*">
+                            <small class="text-muted">Or enter URL:</small>
+                            <input type="text" class="form-control mt-1" name="help_image_password_url" placeholder="https://...">
+                        </div>
+                        <div class="mb-3">
+                            <label for="video_password_url" class="form-label">Video URL</label>
+                            <input type="url" class="form-control" id="video_password_url" name="video_password_url">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">TOTP Help</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="help_text_totp" class="form-label">Help Text</label>
+                            <textarea class="form-control" id="help_text_totp" name="help_text_totp" rows="2" placeholder="Explain how to set up TOTP"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="help_image_totp" class="form-label">Help Image (Upload)</label>
+                            <input type="file" class="form-control" id="help_image_totp" name="help_image_totp" accept="image/*">
+                            <small class="text-muted">Or enter URL:</small>
+                            <input type="text" class="form-control mt-1" name="help_image_totp_url" placeholder="https://...">
+                        </div>
+                        <div class="mb-3">
+                            <label for="video_totp_url" class="form-label">Video URL</label>
+                            <input type="url" class="form-control" id="video_totp_url" name="video_totp_url">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">Vendor Code Help</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="help_text_vendor_code" class="form-label">Help Text</label>
+                            <textarea class="form-control" id="help_text_vendor_code" name="help_text_vendor_code" rows="2" placeholder="Explain how to find the Vendor Code"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="help_image_vendor_code" class="form-label">Help Image (Upload)</label>
+                            <input type="file" class="form-control" id="help_image_vendor_code" name="help_image_vendor_code" accept="image/*">
+                            <small class="text-muted">Or enter URL:</small>
+                            <input type="text" class="form-control mt-1" name="help_image_vendor_code_url" placeholder="https://...">
+                        </div>
+                        <div class="mb-3">
+                            <label for="video_vendor_code_url" class="form-label">Video URL</label>
+                            <input type="url" class="form-control" id="video_vendor_code_url" name="video_vendor_code_url">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">IMEI Help</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="help_text_imei" class="form-label">Help Text</label>
+                            <textarea class="form-control" id="help_text_imei" name="help_text_imei" rows="2" placeholder="Explain how to find the IMEI"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="help_image_imei" class="form-label">Help Image (Upload)</label>
+                            <input type="file" class="form-control" id="help_image_imei" name="help_image_imei" accept="image/*">
+                            <small class="text-muted">Or enter URL:</small>
+                            <input type="text" class="form-control mt-1" name="help_image_imei_url" placeholder="https://...">
+                        </div>
+                        <div class="mb-3">
+                            <label for="video_imei_url" class="form-label">Video URL</label>
+                            <input type="url" class="form-control" id="video_imei_url" name="video_imei_url">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">Mobile Help</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="help_text_mobile" class="form-label">Help Text</label>
+                            <textarea class="form-control" id="help_text_mobile" name="help_text_mobile" rows="2" placeholder="Explain mobile number requirement"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="help_image_mobile" class="form-label">Help Image (Upload)</label>
+                            <input type="file" class="form-control" id="help_image_mobile" name="help_image_mobile" accept="image/*">
+                            <small class="text-muted">Or enter URL:</small>
+                            <input type="text" class="form-control mt-1" name="help_image_mobile_url" placeholder="https://...">
+                        </div>
+                        <div class="mb-3">
+                            <label for="video_mobile_url" class="form-label">Video URL</label>
+                            <input type="url" class="form-control" id="video_mobile_url" name="video_mobile_url">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">Access Token Help</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="help_text_access_token" class="form-label">Help Text</label>
+                            <textarea class="form-control" id="help_text_access_token" name="help_text_access_token" rows="2" placeholder="Explain how to get Access Token"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="help_image_access_token" class="form-label">Help Image (Upload)</label>
+                            <input type="file" class="form-control" id="help_image_access_token" name="help_image_access_token" accept="image/*">
+                            <small class="text-muted">Or enter URL:</small>
+                            <input type="text" class="form-control mt-1" name="help_image_access_token_url" placeholder="https://...">
+                        </div>
+                        <div class="mb-3">
+                            <label for="video_access_token_url" class="form-label">Video URL</label>
+                            <input type="url" class="form-control" id="video_access_token_url" name="video_access_token_url">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                    <label class="form-check-label" for="is_active">Active</label>
+                    <small class="text-muted d-block">If unchecked, this broker will not be available to users.</small>
+                </div>
+            </div>
+
+            <!-- Static IP Whitelist Video -->
+            <div class="card mb-3 border-success">
+                <div class="card-header bg-success bg-opacity-10 text-success fw-semibold">
+                    <i class="fas fa-shield-alt me-1"></i> Static IP Whitelist Video
+                </div>
+                <div class="card-body">
+                    <div class="mb-0">
+                        <label for="video_static_ip_url" class="form-label">Video URL (YouTube / GDrive)</label>
+                        <input type="url" class="form-control" id="video_static_ip_url" name="video_static_ip_url"
+                               placeholder="https://youtu.be/... (how to whitelist static IP on this broker's portal)">
+                        <div class="form-text">Shown to clients on their dashboard after their static IP is assigned — broker-specific tutorial.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{{ url_for('admin_supported_brokers') }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                <button type="submit" class="btn btn-primary">Add Broker Type</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

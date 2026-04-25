@@ -1,0 +1,230 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Broker - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+        <h2>Edit Broker Connection</h2>
+        <a href="{{ url_for('admin_view_broker', broker_id=broker.id) }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Broker Details
+        </a>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header">
+        <h5 class="mb-0">Broker Details</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('admin_edit_broker', broker_id=broker.id) }}">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="user_id" class="form-label">User</label>
+                        <select class="form-select" id="user_id" name="user_id" disabled>
+                            <option value="{{ broker.user_id }}" selected>{{ broker.user.username }} ({{ broker.user.email }})</option>
+                        </select>
+                        <input type="hidden" name="user_id" value="{{ broker.user_id }}">
+                        <small class="text-muted">User cannot be changed for existing brokers</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="broker_name" class="form-label">Broker Type</label>
+                        <select class="form-select" id="broker_name" name="broker_name" disabled>
+                            <option value="{{ broker.broker_name }}" selected>{{ broker.broker_name }}</option>
+                        </select>
+                        <input type="hidden" name="broker_name" value="{{ broker.broker_name }}">
+                        <small class="text-muted">Broker type cannot be changed</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="user_id_broker" class="form-label">User ID / Client ID</label>
+                        <input type="text" class="form-control" id="user_id_broker" name="user_id_broker" 
+                               value="{{ broker.user_id_broker }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="password" name="password" 
+                                   placeholder="Leave empty to keep current password">
+                            <button type="button" class="btn btn-outline-secondary toggle-password" data-target="#password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted">Leave empty to keep the current password</small>
+                    </div>
+                    
+                    <!-- Broker-specific fields, show only relevant ones -->
+                    {% set broker_type = broker.broker_name %}
+                    {% set supported_broker = supported_brokers|selectattr('name', 'equalto', broker_type)|first %}
+                    
+                    {% if supported_broker.requires_totp %}
+                    <div class="mb-3">
+                        <label for="totp_secret" class="form-label">TOTP Secret</label>
+                        <input type="text" class="form-control" id="totp_secret" name="totp_secret" 
+                               value="{{ broker.totp_secret }}" {% if supported_broker.requires_totp %}required{% endif %}>
+                    </div>
+                    {% endif %}
+                    
+                    {% if supported_broker.requires_api_key %}
+                    <div class="mb-3">
+                        <label for="api_key" class="form-label">API Key</label>
+                        <input type="text" class="form-control" id="api_key" name="api_key" 
+                               value="{{ broker.api_key }}" {% if supported_broker.requires_api_key %}required{% endif %}>
+                    </div>
+                    {% endif %}
+                    
+                    {% if supported_broker.requires_api_secret %}
+                    <div class="mb-3">
+                        <label for="api_secret" class="form-label">API Secret</label>
+                        <input type="text" class="form-control" id="api_secret" name="api_secret" 
+                               value="{{ broker.api_secret }}" {% if supported_broker.requires_api_secret %}required{% endif %}>
+                    </div>
+                    {% endif %}
+                    
+                    {% if supported_broker.requires_vendor_code %}
+                    <div class="mb-3">
+                        <label for="vendor_code" class="form-label">Vendor Code</label>
+                        <input type="text" class="form-control" id="vendor_code" name="vendor_code" 
+                               value="{{ broker.vendor_code }}" {% if supported_broker.requires_vendor_code %}required{% endif %}>
+                    </div>
+                    {% endif %}
+                    
+                    {% if supported_broker.requires_imei %}
+                    <div class="mb-3">
+                        <label for="imei" class="form-label">IMEI</label>
+                        <input type="text" class="form-control" id="imei" name="imei" 
+                               value="{{ broker.imei }}" {% if supported_broker.requires_imei %}required{% endif %}>
+                    </div>
+                    {% endif %}
+                    
+                    {% if supported_broker.requires_access_token %}
+                    <div class="mb-3">
+                        <label for="access_token" class="form-label">Access Token</label>
+                        <input type="text" class="form-control" id="access_token" name="access_token" 
+                               value="{{ broker.access_token }}" {% if supported_broker.requires_access_token %}required{% endif %}>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">Algo Investment Settings</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="is_master" name="is_master" 
+                                       {% if broker.is_master %}checked{% endif %}>
+                                <label class="form-check-label" for="is_master">Master Account</label>
+                            </div>
+                            
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="copy" name="copy" 
+                                       {% if broker.copy %}checked{% endif %}>
+                                <label class="form-check-label" for="copy">Algo Investment Enabled</label>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="copy_multiplier" class="form-label">Copy Multiplier</label>
+                                <input type="number" class="form-control" id="copy_multiplier" name="copy_multiplier" 
+                                       value="{{ broker.copy_multiplier }}" step="0.1" min="0.1" max="10">
+                                <small class="text-muted">Value between 0.1 and 10. Example: 2.0 means trades will be copied at 2x the size.</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">Subscription Settings</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="plan_id" class="form-label">Plan</label>
+                                <select class="form-select" id="plan_id" name="plan_id">
+                                    <option value="">-- No Plan --</option>
+                                    {% for plan in plans %}
+                                        <option value="{{ plan.id }}" 
+                                                {% if broker.plan_id == plan.id %}selected{% endif %}>
+                                            {{ plan.name }} (₹{{ "%.2f"|format(plan.monthly_price or 0) }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="subscription_status" class="form-label">Status</label>
+                                <select class="form-select" id="subscription_status" name="subscription_status">
+                                    {% for status in subscription_statuses %}
+                                        <option value="{{ status.name }}" 
+                                                {% if broker.subscription_status == status.name %}selected{% endif %}>
+                                            {{ status.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="subscription_expiry" class="form-label">Expiry Date</label>
+                                <input type="date" class="form-control" id="subscription_expiry" name="subscription_expiry" 
+                                       value="{{ broker.subscription_expiry.strftime('%Y-%m-%d') if broker.subscription_expiry else '' }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                <a href="{{ url_for('admin_view_broker', broker_id=broker.id) }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% block additional_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle password visibility
+        document.querySelectorAll('.toggle-password').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const passwordField = document.querySelector(targetId);
+                
+                const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordField.setAttribute('type', type);
+                
+                const icon = this.querySelector('i');
+                if (type === 'text') {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+        });
+        
+        // Validate master account
+        const isMasterCheckbox = document.getElementById('is_master');
+        const copyCheckbox = document.getElementById('copy');
+        
+        isMasterCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                // If this is a master account, it should not copy
+                copyCheckbox.checked = false;
+            }
+        });
+        
+        copyCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                // If this is a copy account, it should not be master
+                isMasterCheckbox.checked = false;
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

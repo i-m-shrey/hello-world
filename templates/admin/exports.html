@@ -1,0 +1,139 @@
+{% extends "layout.html" %}
+
+{% block title %}Exports - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+        <h2>Data Exports</h2>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Broker Connections</h5>
+            </div>
+            <div class="card-body">
+                <p>Export all broker connections data to a CSV file. This includes broker details, Algo Investment settings, and subscription status.</p>
+                <form method="POST" action="{{ url_for('admin_export_brokers') }}">
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-download me-1"></i> Export Brokers
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Users</h5>
+            </div>
+            <div class="card-body">
+                <p>Export all user data to a CSV file. This includes user details, registration date, and last login information.</p>
+                <form method="POST" action="{{ url_for('admin_export_users') }}">
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-download me-1"></i> Export Users
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Subscriptions</h5>
+            </div>
+            <div class="card-body">
+                <p>Export all subscription data to a CSV file. This includes payment details, subscription dates, and plan information.</p>
+                <form method="POST" action="{{ url_for('admin_export_subscriptions') }}">
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-download me-1"></i> Export Subscriptions
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">Previous Exports</h5>
+    </div>
+    <div class="card-body">
+        {% if export_files %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>File Name</th>
+                            <th>Type</th>
+                            <th>Size</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for file in export_files %}
+                        <tr>
+                            <td>{{ file.name }}</td>
+                            <td>{{ file.type }}</td>
+                            <td>{{ file.size }}</td>
+                            <td>{{ file.created_at }}</td>
+                            <td>
+                                <a href="{{ url_for('admin_download_export', file_name=file.name) }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-danger"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteExportModal{{ loop.index }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+
+                                <!-- Delete Modal -->
+                                <div class="modal fade" id="deleteExportModal{{ loop.index }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirm Delete</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Are you sure you want to delete the file <strong>{{ file.name }}</strong>?</p>
+                                                <p class="text-danger">This cannot be undone.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="{{ url_for('admin_delete_export', file_name=file.name) }}" method="POST">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-4">
+                <p class="text-muted">No export files found</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,3 @@
+date,time,invested_amount,etf_count,etf_details
+2025-10-02,20:11:58,2479.3,3,"[{""SYMBOL"": ""MOGOLD"", ""USER_QTY"": 8, ""USER_AMOUNT"": 938.0}, {""SYMBOL"": ""METAL"", ""USER_QTY"": 98, ""USER_AMOUNT"": 994.7}, {""SYMBOL"": ""TNIDETF"", ""USER_QTY"": 6, ""USER_AMOUNT"": 546.5999999999999}]"
+2025-10-07,18:17:41,1214.8,1,"[{""SYMBOL"": ""MAHKTECH"", ""USER_QTY"": 40, ""USER_AMOUNT"": 1214.8}]"

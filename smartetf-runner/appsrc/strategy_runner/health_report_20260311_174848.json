@@ -1,0 +1,67 @@
+{
+  "timestamp": "2026-03-11 17:48:30.062143",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 8,
+    "failed": []
+  },
+  "low_balance_alerts": {
+    "threshold_percent": 20,
+    "alerts": [
+      {
+        "customer_id": "smartetf_user_10019",
+        "broker": "FINVASIA",
+        "balance": 527.15,
+        "threshold": 20000.0
+      }
+    ]
+  },
+  "session_check": {
+    "status": "PASS",
+    "total_clients": 9,
+    "active_sessions": 8,
+    "failed_sessions": 1,
+    "success_rate": 88.88888888888889,
+    "broker_breakdown": {
+      "FINVASIA": {
+        "active": 7,
+        "failed": 0
+      },
+      "ZERODHA": {
+        "active": 1,
+        "failed": 0
+      },
+      "Angle ": {
+        "active": 0,
+        "failed": 1
+      }
+    },
+    "failed_clients": [
+      {
+        "client_id": "smartetf_user_10023",
+        "broker": "Angle ",
+        "error": "Broker Angle  not yet supported",
+        "timestamp": "2026-03-11 17:48:33.540558",
+        "email": "b7puxzusc3i0@melbourne.edu.pl"
+      }
+    ],
+    "timestamp": "2026-03-11 17:48:33.540558"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "PASS",
+    "test_url": "https://www.google.com",
+    "page_title": "Google",
+    "test_time_seconds": 5.659565210342407,
+    "timestamp": "2026-03-11 17:48:47.333757"
+  },
+  "overall_status": "HEALTHY",
+  "critical_issues": [],
+  "warnings": [
+    "1 client sessions failed"
+  ],
+  "recommendations": []
+}

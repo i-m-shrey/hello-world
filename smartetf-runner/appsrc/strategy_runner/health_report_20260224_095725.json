@@ -1,0 +1,98 @@
+{
+  "timestamp": "2026-02-24 09:56:26.574902",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 1,
+    "failed": [
+      {
+        "customer_id": "smartetf_user_10001",
+        "broker_name": "FINVASIA",
+        "reason": "no_amount_parsed"
+      },
+      {
+        "customer_id": "smartetf_user_10005",
+        "broker_name": "FINVASIA",
+        "reason": "no_amount_parsed"
+      },
+      {
+        "customer_id": "smartetf_user_10006",
+        "broker_name": "FINVASIA",
+        "reason": "no_amount_parsed"
+      },
+      {
+        "customer_id": "smartetf_user_10008",
+        "broker_name": "FINVASIA",
+        "reason": "no_amount_parsed"
+      },
+      {
+        "customer_id": "smartetf_user_10010",
+        "broker_name": "FINVASIA",
+        "reason": "no_amount_parsed"
+      },
+      {
+        "customer_id": "smartetf_user_10017",
+        "broker_name": "FINVASIA",
+        "reason": "no_amount_parsed"
+      },
+      {
+        "customer_id": "smartetf_user_10019",
+        "broker_name": "FINVASIA",
+        "reason": "no_amount_parsed"
+      },
+      {
+        "customer_id": "smartetf_user_10015",
+        "broker_name": "ZERODHA",
+        "reason": "no_amount_parsed"
+      }
+    ]
+  },
+  "low_balance_alerts": {
+    "threshold_percent": 20,
+    "alerts": [
+      {
+        "customer_id": "smartetf_user_10016",
+        "broker": "DHAN",
+        "balance": 1.48,
+        "threshold": 1700.0
+      }
+    ]
+  },
+  "session_check": {
+    "status": "PASS",
+    "total_clients": 9,
+    "active_sessions": 9,
+    "failed_sessions": 0,
+    "success_rate": 100.0,
+    "broker_breakdown": {
+      "FINVASIA": {
+        "active": 7,
+        "failed": 0
+      },
+      "DHAN": {
+        "active": 1,
+        "failed": 0
+      },
+      "ZERODHA": {
+        "active": 1,
+        "failed": 0
+      }
+    },
+    "failed_clients": [],
+    "timestamp": "2026-02-24 09:57:06.469871"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "PASS",
+    "test_url": "https://www.google.com",
+    "page_title": "Google",
+    "test_time_seconds": 6.46178674697876,
+    "timestamp": "2026-02-24 09:57:21.549758"
+  },
+  "overall_status": "HEALTHY",
+  "critical_issues": [],
+  "warnings": [],
+  "recommendations": []
+}

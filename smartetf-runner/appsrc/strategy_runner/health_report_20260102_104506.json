@@ -1,0 +1,77 @@
+{
+  "timestamp": "2026-01-02 10:44:20.031845",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 6,
+    "failed": []
+  },
+  "low_balance_alerts": {
+    "threshold_percent": 20,
+    "alerts": [
+      {
+        "customer_id": "smartetf_user_10001",
+        "broker": "FINVASIA",
+        "balance": 189.07,
+        "threshold": 1600.0
+      },
+      {
+        "customer_id": "smartetf_user_10005",
+        "broker": "FINVASIA",
+        "balance": 10.36,
+        "threshold": 3200.0
+      },
+      {
+        "customer_id": "smartetf_user_10006",
+        "broker": "FINVASIA",
+        "balance": 2394.99,
+        "threshold": 4000.0
+      },
+      {
+        "customer_id": "smartetf_user_10010",
+        "broker": "FINVASIA",
+        "balance": 1531.24,
+        "threshold": 4000.0
+      },
+      {
+        "customer_id": "smartetf_user_10007",
+        "broker": "DHAN",
+        "balance": 500.0,
+        "threshold": 1700.0
+      }
+    ]
+  },
+  "session_check": {
+    "status": "PASS",
+    "total_clients": 6,
+    "active_sessions": 6,
+    "failed_sessions": 0,
+    "success_rate": 100.0,
+    "broker_breakdown": {
+      "FINVASIA": {
+        "active": 5,
+        "failed": 0
+      },
+      "DHAN": {
+        "active": 1,
+        "failed": 0
+      }
+    },
+    "failed_clients": [],
+    "timestamp": "2026-01-02 10:44:23.940557"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "PASS",
+    "test_url": "https://www.google.com",
+    "page_title": "Google",
+    "test_time_seconds": 6.525722980499268,
+    "timestamp": "2026-01-02 10:45:01.730688"
+  },
+  "overall_status": "HEALTHY",
+  "critical_issues": [],
+  "warnings": [],
+  "recommendations": []
+}

@@ -1,0 +1,3491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script type="text/javascript">
+  // This is a CodeSandbox injection script that's used to
+  // add navigation and inspector functionality to the preview
+  (function () {
+    // 1) Get the <script> tag that's currently running:
+    var me = document.currentScript;
+
+    // 2) Create the blocking‐style <script> to load:
+    var script = document.createElement("script");
+    script.src = "https://codesandbox.io/p/preview-protocol.js";
+
+    // By default a dynamically‐inserted <script> is async=true.
+    // Turn async off to make it behave like a normal blocking <script>:
+    script.async = false;
+    // (Do NOT set defer.)
+
+    // 3) Insert it immediately after the current <script>:
+    me.parentNode.insertBefore(script, me);
+  })();
+
+  const isIFramePreview = window.top !== window.self;
+
+  // Only run this script in editor context
+  if (isIFramePreview) {
+    // This script is used to enable Chrome DevTools functionality
+    (function () {
+      var script = document.createElement("script");
+      script.src =
+        "https://codesandbox.io/p/chrome-devtool/protocol/index.js";
+
+      script.onload = () => {
+        const devtoolProtocol = window.chobitsu;
+        if (devtoolProtocol) {
+          window.addEventListener("message", (event) => {
+            const { type, data } = event.data;
+
+            if (type === "FROM_DEVTOOL") {
+              devtoolProtocol.sendRawMessage(data);
+            }
+          });
+
+          devtoolProtocol.setOnMessage((data) => {
+            if (data.includes('"id":"tmp')) {
+              return;
+            }
+
+            window.parent.postMessage({ type: "TO_DEVTOOL", data }, "*");
+          });
+
+          devtoolProtocol.sendRawMessage(
+            `{"id":5,"method":"Runtime.enable","params":{}}`
+          );
+        }        
+      }
+
+      (document.head || document.documentElement).prepend(script);
+    })();
+  }
+
+  if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ === "undefined") {
+    let nextID = 0;
+    let hook = (__REACT_DEVTOOLS_GLOBAL_HOOK__ = {
+      renderers: new Map(),
+      supportsFiber: true,
+      inject: (renderer) => {
+        const id = nextID++;
+        hook.renderers.set(id, renderer);
+        return id;
+      },
+      onScheduleFiberRoot() {},
+      onCommitFiberRoot() {},
+      onCommitFiberUnmount() {},
+    });
+  }
+
+  document.currentScript.remove();
+</script>
+<script type="text/javascript">
+  // This is a CodeSandbox injection script that's used to
+  // add navigation and inspector functionality to the preview
+  (function () {
+    // 1) Get the <script> tag that's currently running:
+    var me = document.currentScript;
+
+    // 2) Create the blocking‐style <script> to load:
+    var script = document.createElement("script");
+    script.src = "https://codesandbox.io/p/preview-protocol.js";
+
+    // By default a dynamically‐inserted <script> is async=true.
+    // Turn async off to make it behave like a normal blocking <script>:
+    script.async = false;
+    // (Do NOT set defer.)
+
+    // 3) Insert it immediately after the current <script>:
+    me.parentNode.insertBefore(script, me);
+  })();
+
+  const isIFramePreview = window.top !== window.self;
+
+  // Only run this script in editor context
+  if (isIFramePreview) {
+    // This script is used to enable Chrome DevTools functionality
+    (function () {
+      var script = document.createElement("script");
+      script.src =
+        "https://codesandbox.io/p/chrome-devtool/protocol/index.js";
+
+      script.onload = () => {
+        const devtoolProtocol = window.chobitsu;
+        if (devtoolProtocol) {
+          window.addEventListener("message", (event) => {
+            const { type, data } = event.data;
+
+            if (type === "FROM_DEVTOOL") {
+              devtoolProtocol.sendRawMessage(data);
+            }
+          });
+
+          devtoolProtocol.setOnMessage((data) => {
+            if (data.includes('"id":"tmp')) {
+              return;
+            }
+
+            window.parent.postMessage({ type: "TO_DEVTOOL", data }, "*");
+          });
+
+          devtoolProtocol.sendRawMessage(
+            `{"id":5,"method":"Runtime.enable","params":{}}`
+          );
+        }        
+      }
+
+      (document.head || document.documentElement).prepend(script);
+    })();
+  }
+
+  if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ === "undefined") {
+    let nextID = 0;
+    let hook = (__REACT_DEVTOOLS_GLOBAL_HOOK__ = {
+      renderers: new Map(),
+      supportsFiber: true,
+      inject: (renderer) => {
+        const id = nextID++;
+        hook.renderers.set(id, renderer);
+        return id;
+      },
+      onScheduleFiberRoot() {},
+      onCommitFiberRoot() {},
+      onCommitFiberUnmount() {},
+    });
+  }
+
+  document.currentScript.remove();
+</script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartEtf Algo - Revolutionary ETF Investment Technology | Start from ₹3,000 Monthly</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --primary-blue: #1e40af;
+            --primary-green: #059669;
+            --accent-gold: #f59e0b;
+            --dark-bg: #0f172a;
+            --light-bg: #f8fafc;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* Sliding Section Animations */
+        .sliding-section {
+            opacity: 0;
+            transform: translateX(50px);
+            transition: all 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .sliding-section.slide-in {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .sliding-section:nth-child(even) {
+            transform: translateX(-50px);
+        }
+
+        .sliding-section:nth-child(even).slide-in {
+            transform: translateX(0);
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 15px 0;
+        }
+
+        .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            text-decoration: none;
+        }
+
+        .navbar-brand:hover {
+            color: var(--primary-green);
+        }
+
+        .nav-link {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin: 0 15px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-blue);
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(45deg, var(--primary-blue), var(--primary-green));
+            border: none;
+            padding: 10px 25px;
+            border-radius: 25px;
+            color: white;
+            font-weight: 600;
+            transition: transform 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            color: white;
+        }
+
+        /* Educational Disclaimer - FIXED POSITION */
+        .disclaimer {
+            background: rgba(6, 182, 212, 0.1);
+            border-left: 4px solid #0891b2;
+            padding: 1rem;
+            margin: 0;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            backdrop-filter: blur(10px);
+        }
+
+        .disclaimer-text {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Sliding Hero Carousel Styles */
+        .sliding-hero-carousel {
+            background: linear-gradient(135deg, #1a365d 0%, #2d3748 50%, #1a202c 100%);
+            color: white;
+            padding: 100px 0;
+            position: relative;
+            overflow: hidden;
+            min-height: 80vh;
+        }
+
+        .carousel-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Removed old carousel slide styles - using hero-section specific styles instead */
+
+        .slide-content {
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .slide-hook {
+            font-size: 1.3rem;
+            color: #fbbf24;
+            margin-bottom: 2rem;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .slide-title {
+            font-size: 3.8rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            background: linear-gradient(45deg, #60a5fa, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .slide-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 2.5rem;
+            opacity: 0.9;
+            color: #e2e8f0;
+        }
+
+        .slide-highlight {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #fbbf24;
+            margin: 2rem 0;
+            padding: 1rem;
+            background: rgba(251, 191, 36, 0.1);
+            border-radius: 10px;
+            border: 2px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .slide-proof {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .proof-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .proof-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .proof-item.highlight {
+            background: linear-gradient(135deg, #059669, #10b981);
+            border: 2px solid #34d399;
+        }
+
+        .proof-number {
+            display: block;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #60a5fa;
+            margin-bottom: 0.5rem;
+        }
+
+        .proof-item.highlight .proof-number {
+            color: white;
+        }
+
+        .proof-label {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        .behavioral-benefits {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 3rem 0;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .benefit-item:hover {
+            transform: translateX(10px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .benefit-item i {
+            font-size: 1.5rem;
+            color: #34d399;
+        }
+
+        .urgency-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .urgency-item {
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid rgba(239, 68, 68, 0.3);
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .urgency-item.highlight {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            border: 2px solid #fbbf24;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .urgency-number {
+            display: block;
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #ef4444;
+            margin-bottom: 0.5rem;
+        }
+
+        .urgency-item.highlight .urgency-number {
+            color: #1a202c;
+        }
+
+        .urgency-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .scarcity-note {
+            font-size: 1.3rem;
+            color: #ef4444;
+            font-weight: 600;
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .proof-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1.5rem;
+            margin: 3rem 0;
+        }
+
+        .proof-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem 1rem;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .proof-card.highlight {
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            border: 2px solid #60a5fa;
+        }
+
+        .proof-stat {
+            display: block;
+            font-size: 2rem;
+            font-weight: 900;
+            color: #60a5fa;
+            margin-bottom: 0.5rem;
+        }
+
+        .proof-card.highlight .proof-stat {
+            color: white;
+        }
+
+        .proof-desc {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Carousel Controls */
+        .hero-section .carousel-controls {
+            position: absolute;
+            bottom: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            z-index: 10;
+        }
+
+        .carousel-btn {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.15));
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            font-size: 1.3rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .carousel-btn:hover {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.25));
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            transform: scale(1.15);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .carousel-dots {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            transition: all 0.4s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+        }
+
+        .dot.active {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            transform: scale(1.4);
+            border: 2px solid rgba(251, 191, 36, 0.8);
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
+        }
+
+        .dot:hover {
+            background: rgba(255, 255, 255, 0.7);
+            transform: scale(1.2);
+            border: 2px solid rgba(255, 255, 255, 0.6);
+        }
+
+        /* Responsive Design for Carousel */
+        @media (max-width: 768px) {
+            .hero-section {
+                min-height: 90vh;
+                padding: 80px 0 140px 0;
+            }
+
+            .hero-section .carousel-container {
+                height: 800px;
+                padding-top: 15px;
+            }
+
+            .hero-section .carousel-slide {
+                height: 800px;
+                padding: 30px 0;
+            }
+
+            .hero-section .slide-hook {
+                font-size: 1.1rem;
+                padding: 1rem 1.2rem;
+                margin-bottom: 1.5rem;
+                max-width: 95%;
+            }
+
+            .hero-section .carousel-slide[data-slide="2"] .slide-hook {
+                font-size: 1rem;
+                padding: 0.9rem 1.1rem;
+                margin-bottom: 1.2rem;
+            }
+
+            .hero-section .carousel-slide[data-slide="1"] .slide-hook {
+                font-size: 1.05rem;
+                padding: 0.95rem 1.15rem;
+                margin-bottom: 1.3rem;
+            }
+
+            .hero-section .carousel-slide[data-slide="1"] .hero-stats {
+                margin: 2rem 0;
+            }
+
+            .hero-title {
+                font-size: 2.5rem !important;
+            }
+
+            .hero-subtitle {
+                font-size: 1.2rem !important;
+                max-width: 95%;
+            }
+
+            .hero-stats {
+                grid-template-columns: 1fr !important;
+                gap: 1.2rem !important;
+                max-width: 95%;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .hero-stat {
+                padding: 2rem 1.2rem !important;
+            }
+
+            .hero-stat-number {
+                font-size: 2.5rem !important;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+                max-width: 90%;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .carousel-controls {
+                bottom: -60px;
+                gap: 1rem;
+            }
+
+            .carousel-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+
+            .dot {
+                width: 15px;
+                height: 15px;
+            }
+
+            .btn-hero-primary, .btn-hero-secondary {
+                padding: 14px 30px !important;
+                font-size: 1.1rem !important;
+                width: 100%;
+                max-width: 300px;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-section {
+                min-height: 85vh;
+                padding: 60px 0 120px 0;
+            }
+
+            .hero-section .carousel-container {
+                height: 720px;
+                padding-top: 10px;
+            }
+
+            .hero-section .carousel-slide {
+                height: 720px;
+                padding: 20px 0;
+            }
+
+            .hero-section .slide-hook {
+                font-size: 1rem;
+                padding: 0.9rem 1rem;
+                margin-bottom: 1.2rem;
+                max-width: 98%;
+            }
+
+            .hero-section .carousel-slide[data-slide="2"] .slide-hook {
+                font-size: 0.9rem;
+                padding: 0.8rem 0.9rem;
+                margin-bottom: 1rem;
+            }
+
+            .hero-section .carousel-slide[data-slide="1"] .slide-hook {
+                font-size: 0.95rem;
+                padding: 0.85rem 0.95rem;
+                margin-bottom: 1.1rem;
+            }
+
+            .hero-section .carousel-slide[data-slide="1"] .hero-stats {
+                margin: 1.8rem 0;
+            }
+
+            .hero-section .carousel-slide[data-slide="1"] .hero-buttons {
+                margin-top: 1.8rem;
+            }
+
+            .hero-title {
+                font-size: 2rem !important;
+                line-height: 1.1;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem !important;
+                max-width: 98%;
+            }
+
+            .hero-stats {
+                gap: 1rem !important;
+                max-width: 98%;
+            }
+
+            .hero-stat {
+                padding: 1.5rem 1rem !important;
+            }
+
+            .hero-stat-number {
+                font-size: 2rem !important;
+            }
+
+            .hero-stat-title {
+                font-size: 1rem !important;
+            }
+
+            .hero-stat-desc {
+                font-size: 0.85rem !important;
+            }
+
+            .carousel-controls {
+                bottom: -50px;
+                gap: 0.8rem;
+            }
+
+            .carousel-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+
+            .dot {
+                width: 12px;
+                height: 12px;
+            }
+
+            .btn-hero-primary, .btn-hero-secondary {
+                padding: 12px 25px !important;
+                font-size: 1rem !important;
+                width: 100%;
+                max-width: 280px;
+            }
+        }
+
+        /* Hero Section - Stop Overpaying */
+        .hero-section {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #0ea5e9 50%, #06b6d4 75%, #10b981 100%);
+            color: white;
+            padding: 100px 0 180px 0;
+            position: relative;
+            overflow: hidden;
+            min-height: 100vh;
+        }
+
+        /* Carousel integration with hero section */
+        .hero-section .carousel-container {
+            position: relative;
+            width: 100%;
+            height: 900px;
+            padding-top: 20px;
+        }
+
+        .hero-section .carousel-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 900px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+            padding: 40px 0;
+        }
+
+        .hero-section .carousel-slide.active {
+            opacity: 1;
+            visibility: visible;
+            position: relative;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 226, 0.2) 0%, transparent 50%);
+            animation: floatingOrbs 8s ease-in-out infinite;
+        }
+
+        @keyframes floatingOrbs {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        /* Hero carousel slide hook styling */
+        .hero-section .slide-hook {
+            font-size: 1.4rem;
+            color: #fbbf24;
+            margin-bottom: 2rem;
+            font-weight: 600;
+            line-height: 1.4;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(251, 191, 36, 0.05) 100%);
+            padding: 1.5rem 2rem;
+            border-radius: 20px;
+            border: 2px solid rgba(251, 191, 36, 0.4);
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 10px 30px rgba(251, 191, 36, 0.2);
+            backdrop-filter: blur(10px);
+            animation: glowPulse 3s ease-in-out infinite;
+        }
+
+        /* Special handling for slide 2 with longer hook text */
+        .hero-section .carousel-slide[data-slide="2"] .slide-hook {
+            font-size: 1.2rem;
+            padding: 1.2rem 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Special handling for slide 1 with long content */
+        .hero-section .carousel-slide[data-slide="1"] .slide-hook {
+            font-size: 1.3rem;
+            padding: 1.3rem 1.9rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .hero-section .carousel-slide[data-slide="1"] .hero-stats {
+            margin: 2.2rem 0;
+        }
+
+        .hero-section .carousel-slide[data-slide="1"] .hero-buttons {
+            margin-top: 2.2rem;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { box-shadow: 0 10px 30px rgba(251, 191, 36, 0.2); }
+            50% { box-shadow: 0 15px 40px rgba(251, 191, 36, 0.4); }
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            background: linear-gradient(135deg, #60a5fa, #34d399, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(96, 165, 250, 0.3);
+            animation: titleGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes titleGlow {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.2); }
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 3rem;
+            opacity: 0.95;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin: 2.5rem 0;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-stat {
+            text-align: center;
+            padding: 3rem 2.5rem;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+            border-radius: 25px;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-stat::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .hero-stat:hover::before {
+            left: 100%;
+        }
+
+        .hero-stat:hover {
+            transform: translateY(-15px) scale(1.05);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.15) 100%);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .hero-stat-number {
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #fbbf24, #f59e0b, #d97706);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            display: block;
+            text-shadow: 0 0 30px rgba(251, 191, 36, 0.5);
+            animation: numberShine 2s ease-in-out infinite;
+            line-height: 1.1;
+        }
+
+        /* Special handling for emoji stat numbers */
+        .hero-section .carousel-slide[data-slide="2"] .hero-stat-number {
+            font-size: 3rem;
+            background: none;
+            -webkit-background-clip: unset;
+            -webkit-text-fill-color: unset;
+            background-clip: unset;
+            margin-bottom: 0.8rem;
+        }
+
+        @keyframes numberShine {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.2); }
+        }
+
+        .hero-stat.highlight {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.3) 0%, rgba(16, 185, 129, 0.2) 100%);
+            border: 3px solid rgba(34, 197, 94, 0.6);
+            animation: highlightPulse 2s ease-in-out infinite;
+        }
+
+        .hero-stat.highlight:hover {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.4) 0%, rgba(16, 185, 129, 0.3) 100%);
+            border: 3px solid rgba(34, 197, 94, 0.8);
+            box-shadow: 0 30px 60px rgba(34, 197, 94, 0.4);
+        }
+
+        .hero-stat.highlight .hero-stat-number {
+            background: linear-gradient(45deg, #22c55e, #10b981, #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 4rem;
+            animation: highlightNumberGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes highlightPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(34, 197, 94, 0.6); }
+        }
+
+        @keyframes highlightNumberGlow {
+            0%, 100% { filter: brightness(1) drop-shadow(0 0 10px rgba(34, 197, 94, 0.5)); }
+            50% { filter: brightness(1.3) drop-shadow(0 0 20px rgba(34, 197, 94, 0.8)); }
+        }
+
+        .hero-stat-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-stat-desc {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .hero-buttons {
+            margin-top: 2.5rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-hero-primary {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border-radius: 60px;
+            color: white;
+            transition: all 0.4s ease;
+            text-decoration: none;
+            box-shadow: 0 8px 25px rgba(251, 191, 36, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-hero-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-hero-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-hero-primary:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(251, 191, 36, 0.5);
+            color: white;
+        }
+
+        .btn-hero-secondary {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            padding: 16px 40px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border-radius: 60px;
+            color: white;
+            transition: all 0.4s ease;
+            text-decoration: none;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-hero-secondary:hover {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        /* Backtesting Results Section */
+        .backtesting-section {
+            padding: 100px 0 120px 0; /* Added bottom padding for fixed disclaimer */
+            background: white;
+        }
+
+        .section-title {
+            font-size: 2.8rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 4rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Expandable Backtesting Toggle */
+        .backtesting-toggle {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .toggle-button {
+            background: linear-gradient(45deg, var(--primary-blue), var(--primary-green));
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(30, 64, 175, 0.3);
+        }
+
+        .toggle-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(30, 64, 175, 0.4);
+        }
+
+        .toggle-button.active {
+            background: linear-gradient(45deg, var(--primary-green), var(--accent-gold));
+        }
+
+        /* Collapsible Content */
+        .backtesting-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+
+        .backtesting-content.show {
+            max-height: 5000px;
+        }
+
+        /* Wealth Comparison Cards */
+        .wealth-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin: 3rem 0;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .wealth-card {
+            background: white;
+            border-radius: 25px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .wealth-card.regular-sip {
+            border-color: #dc2626;
+        }
+
+        .wealth-card.smartetf {
+            border-color: var(--primary-green);
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        }
+
+        .wealth-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .wealth-amount {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .regular-amount {
+            color: #dc2626;
+        }
+
+        .smartetf-amount {
+            color: var(--primary-green);
+        }
+
+        .wealth-label {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .wealth-details {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Difference Highlight */
+        .difference-highlight {
+            text-align: center;
+            margin: 4rem 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            border-radius: 25px;
+            border: 3px solid var(--primary-green);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .difference-amount {
+            font-size: 4rem;
+            font-weight: 800;
+            color: var(--primary-green);
+            margin-bottom: 1rem;
+        }
+
+        .difference-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        /* Sector Performance Grid */
+        .sector-performance {
+            margin: 4rem 0;
+        }
+
+        .sector-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .sector-card {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sector-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-blue);
+        }
+
+        .sector-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--primary-green));
+        }
+
+        .sector-name {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .extra-wealth {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary-green);
+            margin-bottom: 1rem;
+        }
+
+        .opportunities {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Proof Section */
+        .proof-section {
+            padding: 100px 0 120px 0; /* Added bottom padding for fixed disclaimer */
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .proof-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--accent-gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+
+        /* PDF Link Section */
+        .pdf-section {
+            margin: 3rem 0;
+            text-align: center;
+        }
+
+        .pdf-link {
+            background: var(--accent-gold);
+            color: var(--text-primary);
+            padding: 15px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pdf-link:hover {
+            background: #f97316;
+            transform: translateY(-3px);
+            color: white;
+            box-shadow: 0 5px 20px rgba(245, 158, 11, 0.4);
+        }
+
+        /* Compliance Disclaimer */
+        .compliance-section {
+            background: rgba(220, 38, 38, 0.05);
+            border: 2px solid #dc2626;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 3rem 0;
+        }
+
+        .compliance-title {
+            color: #dc2626;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .compliance-text {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* Dynamic SIP Section */
+        .dynamic-sip-section {
+            padding: 100px 0 120px 0; /* Added bottom padding for fixed disclaimer */
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+        }
+
+        .dynamic-sip-section .section-title,
+        .dynamic-sip-section .section-subtitle {
+            color: white !important;
+        }
+
+        .sip-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        .sip-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2.5rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .sip-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
+        }
+
+        .sip-card-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .sip-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .problem-icon {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+        }
+
+        .solution-icon {
+            background: linear-gradient(135deg, var(--primary-green), #10b981);
+        }
+
+        .sip-example {
+            margin: 1.5rem 0;
+        }
+
+        .example-item {
+            padding: 0.8rem 1rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .traditional-example {
+            background: rgba(220, 38, 38, 0.2);
+            border-left: 3px solid #dc2626;
+        }
+
+        .smart-example {
+            background: rgba(5, 150, 105, 0.2);
+            border-left: 3px solid var(--primary-green);
+        }
+
+        .highlight-box {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .problem-highlight {
+            background: rgba(220, 38, 38, 0.2);
+            color: #fca5a5;
+        }
+
+        .solution-highlight {
+            background: rgba(5, 150, 105, 0.2);
+            color: #86efac;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            margin: 4rem 0;
+        }
+
+        .work-steps {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1.5rem;
+            margin: 3rem 0;
+        }
+
+        @media (max-width: 1200px) {
+            .work-steps {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .work-steps {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .work-step {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .work-step:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
+        }
+
+        .step-number {
+            background: var(--accent-gold);
+            color: var(--text-primary);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin: 0 auto 1.5rem;
+        }
+
+        .step-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+        }
+
+        .step-description {
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* Interactive Calculator */
+        .calculator-section {
+            padding: 100px 0 120px 0; /* Added bottom padding for fixed disclaimer */
+            background: var(--light-bg);
+        }
+
+        .calculator-card {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .calculator-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin: 2rem 0;
+            align-items: stretch;
+            min-height: 500px;
+        }
+
+        .calculator-left {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .calculator-right {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .input-group {
+            margin-bottom: 2rem;
+        }
+
+        .input-label {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: block;
+            color: var(--text-primary);
+        }
+
+        .slider-container {
+            position: relative;
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #e2e8f0;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            cursor: pointer;
+        }
+
+        .slider-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin-top: 0.5rem;
+        }
+
+        .results-display {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 2rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--primary-green);
+        }
+
+        .chart-container {
+            height: 400px;
+            margin: 2rem 0;
+            background: white;
+            border-radius: 15px;
+            padding: 1rem;
+        }
+
+        /* Pricing Section */
+        .pricing-section {
+            padding: 100px 0 120px 0; /* Added bottom padding for fixed disclaimer */
+            background: white;
+        }
+
+        .timeframe-buttons {
+            text-align: center;
+            margin: 2rem 0 3rem;
+        }
+
+        .timeframe-btn {
+            background: transparent;
+            border: 2px solid var(--primary-blue);
+            color: var(--primary-blue);
+            padding: 12px 24px;
+            margin: 0 0.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .timeframe-btn.active,
+        .timeframe-btn:hover {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .pricing-card {
+            background: var(--light-bg);
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-blue);
+        }
+
+        .pricing-card.popular {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-green) 100%);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .pricing-card.popular:hover {
+            transform: scale(1.05) translateY(-15px);
+            box-shadow: 0 25px 50px rgba(30, 64, 175, 0.3);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-gold);
+            color: var(--text-primary);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .pricing-plan-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .pricing-amount {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .pricing-duration {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.8;
+        }
+
+        .pricing-features {
+            list-style: none;
+            padding: 0;
+            margin: 2rem 0;
+        }
+
+        .pricing-features li {
+            padding: 0.8rem 0;
+            font-size: 1.1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .pricing-card:not(.popular) .pricing-features li {
+            border-bottom-color: #e2e8f0;
+        }
+
+        .pricing-cta {
+            background: var(--accent-gold);
+            color: var(--text-primary);
+            padding: 15px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 700;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-cta:hover {
+            background: #f97316;
+            transform: translateY(-3px);
+            color: white;
+        }
+
+        /* Testimonials Section */
+        .testimonials-section {
+            padding: 100px 0 120px 0; /* Added bottom padding for fixed disclaimer */
+            background: var(--light-bg);
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+            margin: 3rem 0;
+        }
+
+        .testimonial-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .testimonial-card:hover {
+            transform: translateY(-8px);
+        }
+
+        .testimonial-quote {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            font-style: italic;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+        }
+
+        .author-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-green));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-right: 1rem;
+        }
+
+        .stars {
+            color: #fbbf24;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        /* FAQ Section */
+        .faq-section {
+            padding: 100px 0 120px 0; /* Added bottom padding for fixed disclaimer */
+            background: white;
+        }
+
+        .faq-list {
+            margin: 3rem 0;
+        }
+
+        .faq-item {
+            background: var(--light-bg);
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .faq-question {
+            padding: 2rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .faq-question:hover {
+            background: #e2e8f0;
+        }
+
+        .faq-question::after {
+            content: '+';
+            font-size: 1.5rem;
+            font-weight: 700;
+            position: absolute;
+            right: 2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .faq-item.active .faq-question::after {
+            transform: rotate(45deg);
+        }
+
+        .faq-answer {
+            padding: 0 2rem 2rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .faq-item.active .faq-answer {
+            max-height: 200px;
+        }
+
+        /* Contact Section */
+        .contact-section {
+            padding: 100px 0 120px 0; /* Added bottom padding for fixed disclaimer */
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            margin: 3rem 0;
+        }
+
+        .contact-info h4 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+            font-size: 1.1rem;
+        }
+
+        .contact-item i {
+            font-size: 1.3rem;
+            margin-right: 1rem;
+            color: var(--accent-gold);
+        }
+
+        .contact-item a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .contact-item a:hover {
+            color: var(--accent-gold);
+        }
+
+        .onboarding-steps {
+            margin: 2rem 0;
+        }
+
+        .onboarding-step {
+            display: flex;
+            align-items: flex-start;
+            margin: 1.5rem 0;
+        }
+
+        .step-number-small {
+            background: var(--accent-gold);
+            color: var(--text-primary);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .step-content h6 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-content p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--dark-bg);
+            color: white;
+            padding: 3rem 0 6rem 0; /* Added bottom padding for fixed disclaimer */
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            margin-bottom: 1rem;
+            color: var(--accent-gold);
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-disclaimer {
+            background: rgba(220, 38, 38, 0.1);
+            border: 2px solid #dc2626;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            color: #fecaca;
+        }
+
+        .footer-disclaimer h5 {
+            color: #dc2626;
+            margin-bottom: 1rem;
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #374151;
+            color: #94a3b8;
+        }
+
+        /* Enhanced Mobile Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 15px;
+            }
+
+            .navbar-brand {
+                font-size: 1.5rem;
+            }
+
+            .nav-link {
+                font-size: 0.9rem;
+                padding: 8px 12px;
+            }
+
+            .disclaimer {
+                padding: 8px 0;
+                font-size: 0.85rem;
+            }
+
+            .disclaimer-text {
+                font-size: 0.85rem;
+                padding: 0 10px;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .wealth-comparison {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .sip-comparison {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .calculator-inputs {
+                grid-template-columns: 1fr;
+                min-height: auto;
+                gap: 2rem;
+            }
+            
+            .calculator-left, .calculator-right {
+                min-height: auto;
+                height: auto;
+                padding: 2rem 1.5rem;
+            }
+            
+            .section-title {
+                font-size: 2.2rem;
+                text-align: center;
+            }
+
+            .section-subtitle {
+                font-size: 1.1rem;
+                text-align: center;
+                padding: 0 10px;
+            }
+            
+            .sector-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .contact-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                max-width: 400px;
+                margin: 0 auto;
+            }
+
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .work-steps {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .proof-stats {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .backtesting-section {
+                padding: 80px 0;
+            }
+
+            .backtesting-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .sector-performance {
+                padding: 1.5rem;
+            }
+
+            .performance-value {
+                font-size: 1.8rem;
+            }
+
+            .btn {
+                padding: 12px 25px;
+                font-size: 1rem;
+            }
+
+            .form-control {
+                font-size: 16px; /* Prevents zoom on iOS */
+                padding: 12px 15px;
+            }
+
+            input[type="range"] {
+                width: 100%;
+                margin: 10px 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 10px;
+            }
+
+            .navbar-brand {
+                font-size: 1.3rem;
+            }
+
+            .disclaimer {
+                padding: 6px 0;
+            }
+
+            .disclaimer-text {
+                font-size: 0.8rem;
+                padding: 0 5px;
+            }
+
+            .section-title {
+                font-size: 1.8rem;
+            }
+
+            .section-subtitle {
+                font-size: 1rem;
+            }
+
+            .calculator-left, .calculator-right {
+                padding: 1.5rem 1rem;
+            }
+
+            .sector-performance {
+                padding: 1rem;
+            }
+
+            .performance-value {
+                font-size: 1.5rem;
+            }
+
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+
+            .pricing-card {
+                margin: 0 10px;
+            }
+
+            .work-step {
+                padding: 1.5rem;
+            }
+
+            .step-number {
+                font-size: 2rem;
+            }
+
+            .testimonial-card {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Touch-friendly improvements */
+        @media (max-width: 768px) {
+            .btn, .carousel-btn, .dot {
+                min-height: 44px; /* Apple's recommended touch target size */
+                min-width: 44px;
+            }
+
+            .nav-link {
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+            }
+
+            /* Improve text readability on mobile */
+            body {
+                -webkit-text-size-adjust: 100%;
+                -ms-text-size-adjust: 100%;
+            }
+
+            /* Prevent horizontal scroll */
+            .container-fluid {
+                overflow-x: hidden;
+            }
+
+            /* Smooth scrolling for mobile */
+            html {
+                scroll-behavior: smooth;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Optimize for mobile performance */
+            * {
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            /* Ensure proper scaling */
+            img {
+                max-width: 100%;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg">
+                <a class="navbar-brand" href="/">SmartEtf Algo</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#benefits">Benefits</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#backtesting">Backtesting Results</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#dynamic-sip">How It Works</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#calculator">Calculator</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#pricing">Pricing</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/register" class="btn btn-primary-custom">Start Investing</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Educational Disclaimer - FIXED POSITION -->
+    <div class="disclaimer container-fluid">
+        <div class="container">
+            <p class="disclaimer-text text-center"><strong>📚 Educational Technology Service:</strong> We provide trading signal technology and educational content, not personalized investment advice. Your money stays secure in your own broker account.</p>
+        </div>
+    </div>
+
+    <!-- Hero Section - Stop Overpaying -->
+    <section class="hero-section sliding-section" id="benefits">
+        <div class="container">
+            <div class="carousel-container">
+                <!-- Slide 1: Absolute Wealth Numbers -->
+                <div class="hero-content carousel-slide active" data-slide="1">
+                    <div class="slide-hook">💰 What if I told you that you could earn ₹21.77 lakhs extra over 15 years without investing a single rupee more?</div>
+                    <h1 class="hero-title">Earn ₹21.77 Lakhs Extra Wealth Over 15 Years</h1>
+                    <p class="hero-subtitle">₹12,117 Extra Per Month Without Any Additional Investment</p>
+                    
+                    <div class="hero-stats">
+                        <div class="hero-stat">
+                            <span class="hero-stat-number">₹18L</span>
+                            <div class="hero-stat-title">Total Investment</div>
+                            <div class="hero-stat-desc">Over 15 Years</div>
+                        </div>
+                        <div class="hero-stat">
+                            <span class="hero-stat-number">₹76.89L</span>
+                            <div class="hero-stat-title">Final Wealth</div>
+                            <div class="hero-stat-desc">SmartETF Strategy</div>
+                        </div>
+                        <div class="hero-stat highlight">
+                            <span class="hero-stat-number">+₹21.77L</span>
+                            <div class="hero-stat-title">Extra Money</div>
+                            <div class="hero-stat-desc">vs Regular SIP</div>
+                        </div>
+                    </div>
+                    
+                    <div class="hero-buttons">
+                        <a href="#calculator" class="btn-hero-primary">📊 See The Proof</a>
+                        <a href="#backtesting" class="btn-hero-secondary">📈 Download Full Report</a>
+                    </div>
+                </div>
+
+                <!-- Slide 2: Behavioral Finance Advantage -->
+                <div class="hero-content carousel-slide" data-slide="2">
+                    <div class="slide-hook">🧠 Every time the market crashes, regular SIP investors panic. Meanwhile, SmartETF users are automatically buying 4x more units at discounted prices.</div>
+                    <h1 class="hero-title">Sleep Peacefully During Market Crashes</h1>
+                    <p class="hero-subtitle">Automatically Turn Fear Into Fortune</p>
+                    
+                    <div class="hero-stats">
+                        <div class="hero-stat">
+                            <span class="hero-stat-number">😴</span>
+                            <div class="hero-stat-title">Sleep Peacefully</div>
+                            <div class="hero-stat-desc">During Market Crashes</div>
+                        </div>
+                        <div class="hero-stat">
+                            <span class="hero-stat-number">🛒</span>
+                            <div class="hero-stat-title">Auto-Buy Dips</div>
+                            <div class="hero-stat-desc">When Others Panic-Sell</div>
+                        </div>
+                        <div class="hero-stat highlight">
+                            <span class="hero-stat-number">🧠</span>
+                            <div class="hero-stat-title">Remove Emotion</div>
+                            <div class="hero-stat-desc">From Investment Decisions</div>
+                        </div>
+                    </div>
+                    
+                    <div class="hero-buttons">
+                        <a href="#calculator" class="btn-hero-primary">🛡️ See How It Works</a>
+                        <a href="#backtesting" class="btn-hero-secondary">📊 View Backtesting</a>
+                    </div>
+                </div>
+
+                <!-- Slide 3: Urgency and Scarcity -->
+                <div class="hero-content carousel-slide" data-slide="3">
+                    <div class="slide-hook">⚡ The next market crash is inevitable. Will you panic like everyone else, or will you let SmartETF automatically turn that crash into wealth?</div>
+                    <h1 class="hero-title">The Next Opportunity Could Be Next Month</h1>
+                    <p class="hero-subtitle">Market Crashes Happen Every 3-5 Years - Don't Miss The Next One</p>
+                    
+                    <div class="hero-stats">
+                        <div class="hero-stat">
+                            <span class="hero-stat-number">2008</span>
+                            <div class="hero-stat-title">Global Financial Crisis</div>
+                            <div class="hero-stat-desc">Huge Opportunity Missed</div>
+                        </div>
+                        <div class="hero-stat">
+                            <span class="hero-stat-number">2020</span>
+                            <div class="hero-stat-title">COVID Market Crash</div>
+                            <div class="hero-stat-desc">Another Missed Chance</div>
+                        </div>
+                        <div class="hero-stat highlight">
+                            <span class="hero-stat-number">2025?</span>
+                            <div class="hero-stat-title">Next Big Opportunity</div>
+                            <div class="hero-stat-desc">Don't Miss This One!</div>
+                        </div>
+                    </div>
+                    
+                    <div class="hero-buttons">
+                        <a href="#calculator" class="btn-hero-primary">⚡ Start Today</a>
+                        <a href="#backtesting" class="btn-hero-secondary">📈 See Historical Proof</a>
+                    </div>
+                </div>
+
+                <!-- Slide 4: Mathematical Proof -->
+                <div class="hero-content carousel-slide" data-slide="4">
+                    <div class="slide-hook">📊 We backtested this across 15 years and 8 different sectors. Auto sector users earned ₹4.25 lakhs extra. That's enough to buy a car!</div>
+                    <h1 class="hero-title">Backed By 15 Years of Real Market Data</h1>
+                    <p class="hero-subtitle">Not Theory - Actual Historical Performance</p>
+                    
+                    <div class="hero-stats">
+                        <div class="hero-stat">
+                            <span class="hero-stat-number">15+</span>
+                            <div class="hero-stat-title">Years Backtested</div>
+                            <div class="hero-stat-desc">Real Market Data</div>
+                        </div>
+                        <div class="hero-stat">
+                            <span class="hero-stat-number">8</span>
+                            <div class="hero-stat-title">Sectors Analyzed</div>
+                            <div class="hero-stat-desc">Complete Coverage</div>
+                        </div>
+                        <div class="hero-stat highlight">
+                            <span class="hero-stat-number">4,200+</span>
+                            <div class="hero-stat-title">Opportunities Captured</div>
+                            <div class="hero-stat-desc">100% Real NSE Data</div>
+                        </div>
+                    </div>
+                    
+                    <div class="hero-buttons">
+                        <a href="#calculator" class="btn-hero-primary">📈 See All Results</a>
+                        <a href="#backtesting" class="btn-hero-secondary">📄 Download Report</a>
+                    </div>
+                </div>
+
+                <!-- Carousel Controls -->
+                <div class="carousel-controls">
+                    <button class="carousel-btn prev" onclick="changeSlide(-1)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="carousel-dots">
+                        <span class="dot active" onclick="currentSlide(1)"></span>
+                        <span class="dot" onclick="currentSlide(2)"></span>
+                        <span class="dot" onclick="currentSlide(3)"></span>
+                        <span class="dot" onclick="currentSlide(4)"></span>
+                    </div>
+                    <button class="carousel-btn next" onclick="changeSlide(1)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Real Backtesting Results Section -->
+    <section class="backtesting-section sliding-section" id="backtesting">
+        <div class="container">
+            <h2 class="section-title">Real Backtesting Results (2014-2024)</h2>
+            <p class="section-subtitle">10 years of rigorous backtesting across multiple market cycles - see the proof of systematic dip-buying advantage</p>
+            
+            <div class="backtesting-toggle">
+                <button class="toggle-button" onclick="toggleBacktesting()">
+                    <i class="fas fa-chart-line"></i> 📈 See Backtesting Results
+                </button>
+            </div>
+
+            <div class="backtesting-content" id="backtestingContent">
+                <!-- Wealth Comparison -->
+                <div class="wealth-comparison">
+                    <div class="wealth-card regular-sip">
+                        <div class="wealth-amount regular-amount">₹55.12 L</div>
+                        <div class="wealth-label">Regular Monthly SIP</div>
+                        <div class="wealth-details">
+                            Traditional SIP of ₹10,000/month<br>
+                            Fixed investment on 1st of every month<br>
+                            Total Investment: ₹18 Lakhs over 15 years
+                        </div>
+                    </div>
+                    
+                    <div class="wealth-card smartetf">
+                        <div class="wealth-amount smartetf-amount">₹76.89 L</div>
+                        <div class="wealth-label">SmartETF Strategy</div>
+                        <div class="wealth-details">
+                            Intelligent dip-buying algorithm<br>
+                            Buys 4x more during market crashes<br>
+                            Same Total Investment: ₹18 Lakhs over 15 years
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Difference Highlight -->
+                <div class="difference-highlight">
+                    <div class="difference-amount">+₹21.77 Lakhs</div>
+                    <div class="difference-text">Extra Wealth with SmartETF Strategy</div>
+                    <p style="margin-top: 15px; font-size: 1.1rem;">That's enough to buy a luxury car, fund multiple children's education, or secure your complete retirement!</p>
+                </div>
+                
+                <!-- Sector Performance -->
+                <div class="sector-performance">
+                    <h3 class="section-title" style="font-size: 2.2rem;">Sector-Wise Performance Advantage</h3>
+                    
+                    <div class="sector-grid">
+                        <div class="sector-card">
+                            <div class="sector-name">🚗 Auto Sector</div>
+                            <div class="extra-wealth">+₹4.25 L</div>
+                            <div class="opportunities">468 crash opportunities captured</div>
+                        </div>
+                        
+                        <div class="sector-card">
+                            <div class="sector-name">🏭 Metal Sector</div>
+                            <div class="extra-wealth">+₹3.85 L</div>
+                            <div class="opportunities">600 volatility events utilized</div>
+                        </div>
+                        
+                        <div class="sector-card">
+                            <div class="sector-name">📈 Nifty Broad Market</div>
+                            <div class="extra-wealth">+₹3.52 L</div>
+                            <div class="opportunities">325 market corrections captured</div>
+                        </div>
+                        
+                        <div class="sector-card">
+                            <div class="sector-name">🏛️ Banking Sector</div>
+                            <div class="extra-wealth">+₹3.12 L</div>
+                            <div class="opportunities">520 dip-buying opportunities</div>
+                        </div>
+                        
+                        <div class="sector-card">
+                            <div class="sector-name">🏦 Financial Services</div>
+                            <div class="extra-wealth">+₹2.73 L</div>
+                            <div class="opportunities">381 correction opportunities</div>
+                        </div>
+                        
+                        <div class="sector-card">
+                            <div class="sector-name">🛒 Consumer Goods (FMCG)</div>
+                            <div class="extra-wealth">+₹2.25 L</div>
+                            <div class="opportunities">354 price drops captured</div>
+                        </div>
+                        
+                        <div class="sector-card">
+                            <div class="sector-name">💻 IT Sector</div>
+                            <div class="extra-wealth">+₹1.25 L</div>
+                            <div class="opportunities">452 correction opportunities</div>
+                        </div>
+                        
+                        <div class="sector-card">
+                            <div class="sector-name">💊 Pharma Sector</div>
+                            <div class="extra-wealth">+₹0.80 L</div>
+                            <div class="opportunities">491 volatility events utilized</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Proof Section inside collapsible -->
+                <div class="proof-section" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-radius: 25px; margin: 4rem 0;">
+                    <div class="container">
+                        <h3 class="section-title" style="color: white; font-size: 2.2rem;">Institutional-Grade Research</h3>
+                        <p style="font-size: 1.3rem; opacity: 0.9; margin-bottom: 30px;">
+                            10 years of rigorous backtesting across multiple market cycles
+                        </p>
+                        
+                        <div class="proof-stats">
+                            <div class="stat-item">
+                                <div class="stat-number">15+</div>
+                                <div class="stat-label">Sectors Analyzed</div>
+                            </div>
+                            
+                            <div class="stat-item">
+                                <div class="stat-number">4,200+</div>
+                                <div class="stat-label">Dip-Buying Opportunities</div>
+                            </div>
+                            
+                            <div class="stat-item">
+                                <div class="stat-number">10</div>
+                                <div class="stat-label">Years of Market Data</div>
+                            </div>
+                            
+                            <div class="stat-item">
+                                <div class="stat-number">100%</div>
+                                <div class="stat-label">Real Historical Data</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PDF Download Section -->
+                <div class="pdf-section">
+                    <h4>Want Detailed Analysis?</h4>
+                    <p class="mb-3">Download our comprehensive backtesting report with charts, graphs, and complete trade-by-trade analysis</p>
+                    <a href="./SmartETF_Complete_Professional_Report.pdf" class="pdf-link" download>
+                        <i class="fas fa-file-pdf"></i>
+                        Download Complete Analysis Report (PDF)
+                    </a>
+                </div>
+
+                <!-- Compliance Section -->
+                <div class="compliance-section">
+                    <h5 class="compliance-title">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Important Investment Disclaimers & Payment Processing Compliance</strong>
+                    </h5>
+                    <p class="compliance-text">
+                        <strong>Past Performance Warning:</strong> The backtesting results shown above are based on historical data from 2014-2024 and do not guarantee future performance. All investments are subject to market risks and you may lose money.
+                        <br><br>
+                        <strong>Educational Purpose:</strong> This analysis is provided for educational purposes only and should not be considered as personalized investment advice. We provide trading signal technology, not investment recommendations.
+                        <br><br>
+                        <strong>Your Responsibility:</strong> All investment decisions are entirely your responsibility. Your money remains in your own broker account at all times. Consult a qualified financial advisor before making investment decisions.
+                        <br><br>
+                        <strong>Service Nature:</strong> We provide technology services and educational content. You maintain complete control of your funds and broker account.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dynamic SIP Section -->
+    <section class="dynamic-sip-section sliding-section" id="dynamic-sip">
+        <div class="container">
+            <h2 class="section-title">Dynamic SIP: The Smart Way to Invest</h2>
+            <p class="section-subtitle">See the difference between traditional fixed SIPs and our intelligent dynamic approach</p>
+            
+            <div class="sip-comparison">
+                <div class="sip-card">
+                    <h3 class="sip-card-title">
+                        <div class="sip-icon problem-icon">
+                            <i class="fas fa-calendar-times"></i>
+                        </div>
+                        Traditional Fixed SIP Problem
+                    </h3>
+                    
+                    <div class="sip-example">
+                        <div class="example-item traditional-example">
+                            ❌ ₹10,000 on 1st Jan (Market high: Nifty 18,000)
+                        </div>
+                        <div class="example-item traditional-example">
+                            ❌ ₹10,000 on 1st Feb (Market high: Nifty 17,800)
+                        </div>
+                        <div class="example-item traditional-example">
+                            ✓ ₹10,000 on 1st Mar (Market dip: Nifty 16,500)
+                        </div>
+                        <div class="example-item traditional-example">
+                            ❌ ₹10,000 on 1st Apr (Market high: Nifty 18,200)
+                        </div>
+                    </div>
+                    
+                    <div class="highlight-box problem-highlight">
+                        Problem: You buy the same amount regardless of market conditions!
+                    </div>
+                </div>
+
+                <div class="sip-card">
+                    <h3 class="sip-card-title">
+                        <div class="sip-icon solution-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        Smart Dynamic SIP Solution
+                    </h3>
+                    
+                    <div class="sip-example">
+                        <div class="example-item smart-example">
+                            ⚡ ₹3,000 when Nifty at 18,000 (market high)
+                        </div>
+                        <div class="example-item smart-example">
+                            ⚡ ₹4,000 when Nifty at 17,800 (still high)
+                        </div>
+                        <div class="example-item smart-example">
+                            💰 ₹30,000 when Nifty drops to 16,500 (8% dip)
+                        </div>
+                        <div class="example-item smart-example">
+                            ⚡ ₹3,000 when Nifty back to 18,200
+                        </div>
+                    </div>
+                    
+                    <div class="highlight-box solution-highlight">
+                        Advantage: You buy MORE when markets are DOWN!
+                    </div>
+                </div>
+            </div>
+
+            <div class="how-it-works">
+                <h3 class="text-center text-white mb-4">How Our Technology Works</h3>
+                <div class="work-steps">
+                    <div class="work-step">
+                        <div class="step-number">1</div>
+                        <h5 class="step-title">Open Finvasia Account</h5>
+                        <p class="step-description">Free account with API access and low charges</p>
+                    </div>
+                    <div class="work-step">
+                        <div class="step-number">2</div>
+                        <h5 class="step-title">Choose Your Plan</h5>
+                        <p class="step-description">Select plan that suits your investment needs</p>
+                    </div>
+                    <div class="work-step">
+                        <div class="step-number">3</div>
+                        <h5 class="step-title">Market Monitoring</h5>
+                        <p class="step-description">24/7 tracking of indices and ETF prices</p>
+                    </div>
+                    <div class="work-step">
+                        <div class="step-number">4</div>
+                        <h5 class="step-title">Signal Generation</h5>
+                        <p class="step-description">Algorithm calculates optimal investment amounts</p>
+                    </div>
+                    <div class="work-step">
+                        <div class="step-number">5</div>
+                        <h5 class="step-title">Automated Execution</h5>
+                        <p class="step-description">Instant signals sent to your broker account</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Calculator -->
+    <section class="calculator-section sliding-section" id="calculator">
+        <div class="container">
+            <h2 class="section-title">Calculate Your Exact Savings</h2>
+            <p class="section-subtitle">See how much you can save and earn with SmartEtf Algo vs traditional mutual funds</p>
+            
+            <div class="calculator-card">
+                <h3 class="text-center mb-4">🧮 Interactive Savings Calculator</h3>
+                
+                <div class="calculator-inputs">
+                    <div class="calculator-left">
+                        <div class="input-group">
+                            <label class="input-label">Monthly Investment Amount</label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="monthlyAmount" min="3000" max="50000" step="1000" value="10000">
+                                <div class="d-flex justify-content-between mt-2">
+                                    <span>₹3,000</span>
+                                    <span class="slider-value" id="monthlyAmountValue">₹10,000</span>
+                                    <span>₹50,000</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label class="input-label">Investment Period (Years)</label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="investmentPeriod" min="1" max="20" step="1" value="15">
+                                <div class="d-flex justify-content-between mt-2">
+                                    <span>1 year</span>
+                                    <span class="slider-value" id="periodValue">15 years</span>
+                                    <span>20 years</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label class="input-label">Expected Annual Return (%)</label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="returnRate" min="8" max="25" step="1" value="18">
+                                <div class="d-flex justify-content-between mt-2">
+                                    <span>8%</span>
+                                    <span class="slider-value" id="returnValue">18%</span>
+                                    <span>25%</span>
+                                </div>
+                            </div>
+                            <small class="text-muted">SmartETF Algo historical average: 18%</small>
+                        </div>
+                        
+                        <div style="flex-grow: 1;"></div>
+                    </div>
+                    
+                    <div class="results-display calculator-right">
+                        <h4 class="text-center mb-3">Your Potential Results</h4>
+                        
+                        <div class="result-item">
+                            <span>Total Investment:</span>
+                            <span id="totalInvestment">₹18,00,000</span>
+                        </div>
+                        
+                        <div class="result-item">
+                            <span>ETF Annual Fees (0.5%):</span>
+                            <span id="smartETFFees" style="color: var(--primary-green);">₹9,000</span>
+                        </div>
+                        
+                        <div class="result-item">
+                            <span>Traditional SIP Final Value:</span>
+                            <span id="traditionalValue">₹55,12,000</span>
+                        </div>
+                        
+                        <div class="result-item">
+                            <span>SmartETF Final Value:</span>
+                            <span id="smartETFValue">₹76,89,000</span>
+                        </div>
+                        
+                        <div class="result-item" style="background: linear-gradient(135deg, #dcfce7, #bbf7d0); padding: 1rem; border-radius: 10px;">
+                            <span><strong>🎯 Your Extra Wealth:</strong></span>
+                            <span id="totalAdvantage" style="font-size: 1.3rem;">₹21,77,000</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+                
+                <div class="compliance-section">
+                    <p class="compliance-text"><strong>⚠️ Important:</strong> Past performance doesn't guarantee future results. These are educational projections based on historical data. Consult a qualified financial advisor before investing.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing-section sliding-section" id="pricing">
+        <div class="container">
+            <h2 class="section-title">Our Pricing</h2>
+            <p class="section-subtitle">Transparent fee structure with no hidden charges</p>
+            
+            <div class="timeframe-buttons">
+                <button class="timeframe-btn active" data-timeframe="monthly">Monthly</button>
+                <button class="timeframe-btn" data-timeframe="quarterly">Quarterly</button>
+                <button class="timeframe-btn" data-timeframe="half_yearly">Half-Yearly</button>
+                <button class="timeframe-btn" data-timeframe="annually">Annually</button>
+            </div>
+            
+            <div class="pricing-grid" id="pricingGrid">
+                <!-- Pricing cards will be dynamically loaded here -->
+            </div>
+            
+            <!-- Important Note -->
+            <div class="mt-12 bg-white rounded-xl shadow-lg border-l-4 border-l-blue-600 p-6">
+                <h3 class="text-xl font-bold text-blue-600 mb-4 flex items-center gap-2">
+                    <i class="fas fa-info-circle"></i>
+                    How Dynamic SIP Works - Important Information
+                </h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-semibold text-gray-800 mb-3">🎯 Smart Dip-Buying Strategy</h4>
+                        <p class="text-gray-600 text-sm leading-relaxed">
+                            Unlike regular SIPs that invest fixed amounts monthly, our algorithm buys only during market dips. Orders are executed through your <strong>Finvasia broker account</strong> when opportunities arise.
+                        </p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-800 mb-3">📅 Flexible Investment Timing</h4>
+                        <p class="text-gray-600 text-sm leading-relaxed">
+                            <strong>Example:</strong> ₹10,000 monthly SIP might invest only ₹5,000 for two months, then ₹20,000 when a major dip occurs. This timing flexibility maximizes your buying power.
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
+                    <h4 class="font-semibold text-green-700 mb-2">💡 Smart Fund Management</h4>
+                    <p class="text-green-600 text-sm">
+                        <strong>Pro Tip:</strong> You don't need to keep all funds in your broker account. Add funds as needed based on market signals, and earn FD interest on unused amounts. Check your Finvasia account regularly for order updates.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials-section sliding-section" id="testimonials">
+        <div class="container">
+            <h2 class="section-title">What Our Clients Say</h2>
+            <p class="section-subtitle">Join satisfied investors who are already saving thousands in fees</p>
+            
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="stars">⭐ ⭐ ⭐ ⭐ ⭐</div>
+                    <p class="testimonial-quote">"The SmartEtf Algo has transformed my investment strategy. I'm no longer worried about timing the market because the algorithm does it for me. Seeing my portfolio grow steadily has given me peace of mind."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">RK</div>
+                        <div class="author-info">
+                            <h5>Rahul K.</h5>
+                            <p>Investor since 2021</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="stars">⭐ ⭐ ⭐ ⭐ ⭐</div>
+                    <p class="testimonial-quote">"I've tried various investment approaches over the years, but SmartEtf Algo's systematic approach to buying during market dips has consistently outperformed my previous investments."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">AP</div>
+                        <div class="author-info">
+                            <h5>Anita P.</h5>
+                            <p>Investor since 2022</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="stars">⭐ ⭐ ⭐ ⭐</div>
+                    <p class="testimonial-quote">"As someone who doesn't have time to monitor markets daily, SmartEtf Algo has been the perfect solution. My investment has grown steadily even during volatile market periods."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">VJ</div>
+                        <div class="author-info">
+                            <h5>Vikram J.</h5>
+                            <p>Investor since 2022</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section sliding-section" id="faq">
+        <div class="container">
+            <h2 class="section-title">Frequently Asked Questions</h2>
+            <p class="section-subtitle">Get answers to common questions about our Smart ETF investment strategy</p>
+            
+            <div class="faq-list">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        How does the SmartEtf Algo select which ETFs to buy?
+                    </div>
+                    <div class="faq-answer">
+                        <p>Our algorithm analyzes all 250+ ETFs listed on NSE using proprietary criteria that include historical performance, volatility metrics, liquidity, expense ratios, and tracking efficiency. We apply additional filters to identify ETFs with the best potential for long-term growth.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        What is the minimum investment amount?
+                    </div>
+                    <div class="faq-answer">
+                        <p>Our service is accessible with a minimum monthly investment of ₹3,000 to ₹5,000. We believe in making algorithmic investing available to a wide range of investors.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Do I need SEBI certification for this service?
+                    </div>
+                    <div class="faq-answer">
+                        <p>No SEBI certification is required. We don't handle client money - you maintain complete control of your broker account. You can add or withdraw money whenever you want. We only provide trading signal technology.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        How often will the algorithm make purchases?
+                    </div>
+                    <div class="faq-answer">
+                        <p>Unlike traditional SIPs that buy on fixed dates, our algorithm only purchases when market segments fall below their established average decline thresholds. This means purchases occur strategically during market dips rather than on a predetermined schedule.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        How will I know when purchases are made?
+                    </div>
+                    <div class="faq-answer">
+                        <p>You will receive real-time notifications whenever the algorithm executes a trade. Additionally, you'll have access to a dashboard showing all transactions and detailed monthly reports summarizing your investment performance.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Is there a lock-in period?
+                    </div>
+                    <div class="faq-answer">
+                        <p>No, there is no lock-in period. However, we recommend a minimum investment horizon of 3-5 years to fully benefit from the power of compounding and our strategic "buy the dip" approach.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section sliding-section" id="contact">
+        <div class="container">
+            <h2 class="section-title text-white">Ready to Start Smart Investing?</h2>
+            <p class="section-subtitle text-white">Start your minimum investment from ₹3,000-₹5,000 monthly</p>
+            
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <h4>Contact Information</h4>
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <span>+91-7597583636 <small>(Call timing: 10 AM – 5 PM)</small></span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <a href="/cdn-cgi/l/email-protection#e1928c809395849587808d868ea1868c80888dcf828e8c"><span class="__cf_email__" data-cfemail="6f1c020e1d1b0a1b090e0308002f08020e0603410c0002">[email&#160;protected]</span></a>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-globe"></i>
+                        <span>www.smartetfalgo.com</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fab fa-facebook"></i>
+                        <a href="https://www.facebook.com/profile.php?id=61575997851893" target="_blank">Facebook</a>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fab fa-instagram"></i>
+                        <a href="https://www.instagram.com/smartetfalgo/profilecard/?igsh=MXRhOXcwZzdiNHRoMA==" target="_blank">Instagram</a>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-file-alt"></i>
+                        <a href="https://docs.google.com/forms/d/e/1FAIpQLSel6qW8PuJKmL6WtiUpJe5sVFD-iUfZXosxtWN0DNR5MpR-Zw/viewform" target="_blank">Google Form</a>
+                    </div>
+                </div>
+                
+                <div class="onboarding-steps">
+                    <h4>What Happens Next?</h4>
+                    <div class="onboarding-step">
+                        <div class="step-number-small">1</div>
+                        <div class="step-content">
+                            <h6>Submit Your Information</h6>
+                            <p>Complete our Google Form with your contact details and investment goals</p>
+                        </div>
+                    </div>
+                    <div class="onboarding-step">
+                        <div class="step-number-small">2</div>
+                        <div class="step-content">
+                            <h6>Consultation Call</h6>
+                            <p>Our expert will contact you to discuss your investment needs and explain our algorithm</p>
+                        </div>
+                    </div>
+                    <div class="onboarding-step">
+                        <div class="step-number-small">3</div>
+                        <div class="step-content">
+                            <h6>Account Setup</h6>
+                            <p>Open your Finvasia account and complete the onboarding process</p>
+                        </div>
+                    </div>
+                    <div class="onboarding-step">
+                        <div class="step-number-small">4</div>
+                        <div class="step-content">
+                            <h6>Start Investing</h6>
+                            <p>Begin your journey of algorithm-powered ETF investing</p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <a href="/register" class="btn-hero-primary">Get Started Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-disclaimer">
+                <h5><i class="fas fa-exclamation-triangle me-2"></i>Important Investment Disclaimers</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="mb-0">
+                            <li><strong>Educational Platform:</strong> All content is for educational purposes only</li>
+                            <li><strong>Technology Service:</strong> We provide trading signal technology, not investment advice</li>
+                            <li><strong>Market Risks:</strong> All investments subject to market risks; you may lose money</li>
+                            <li><strong>Your Control:</strong> You maintain complete control of your broker account and funds</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="mb-0">
+                            <li><strong>Past Performance:</strong> Historical data doesn't guarantee future results</li>
+                            <li><strong>Calculation Disclaimer:</strong> All calculations are educational estimates</li>
+                            <li><strong>Professional Advice:</strong> Consult a qualified financial advisor</li>
+                            <li><strong>Your Responsibility:</strong> All investment decisions are your responsibility</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>SmartEtf Algo</h4>
+                    <p>Revolutionary ETF investment technology that saves you thousands in fees while optimizing your returns through intelligent market timing.</p>
+                    <p><strong>🎯 Start from just ₹7,000 monthly</strong></p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Key Benefits</h4>
+                    <ul class="footer-links">
+                        <li>💰 Save 50-80% on fees vs mutual funds</li>
+                        <li>📈 Target 15-20% annual returns</li>
+                        <li>🤖 Fully automated strategy</li>
+                        <li>🔒 Your money, your control</li>
+                        <li>⚡ Real-time market analysis</li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Legal & Compliance</h4>
+                    <ul class="footer-links">
+                        <li><a href="/terms-of-service">Terms of Service</a></li>
+                        <li><a href="/privacy-policy">Privacy Policy</a></li>
+                        <li><a href="/risk-disclosure">Risk Disclosure</a></li>
+                        <li><a href="/refund-policy">Refund Policy</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <ul class="footer-links">
+                        <li>📞 +91-7597583636</li>
+                        <li>✉️ <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d8abb5b9aaacbdacbeb9b4bfb798bfb5b9b1b4f6bbb7b5">[email&#160;protected]</a></li>
+                        <li>🌐 www.smartetfalgo.com</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2024 SmartEtf Algo. All Rights Reserved.</p>
+                <p><strong>⚠️ Investment Disclaimer:</strong> Mutual fund & ETF investments are subject to market risks. This is a technology service providing trading signals - not investment advice. Your money remains in your own broker account. Consult a qualified financial advisor.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Backtesting toggle functionality
+        function toggleBacktesting() {
+            const content = document.getElementById('backtestingContent');
+            const button = document.querySelector('.toggle-button');
+            
+            if (content.classList.contains('show')) {
+                content.classList.remove('show');
+                button.innerHTML = '<i class="fas fa-chart-line"></i> 📈 See Backtesting Results';
+                button.classList.remove('active');
+            } else {
+                content.classList.add('show');
+                button.innerHTML = '<i class="fas fa-eye-slash"></i> 🙈 Hide Results';
+                button.classList.add('active');
+            }
+        }
+
+        // Sliding animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('slide-in');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.sliding-section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // Calculator functionality with ₹5,000 default
+        function updateCalculator() {
+            const monthlyAmount = parseInt(document.getElementById('monthlyAmount').value);
+            const years = parseInt(document.getElementById('investmentPeriod').value);
+            const returnRate = parseInt(document.getElementById('returnRate').value) / 100;
+            
+            // Update display values
+            document.getElementById('monthlyAmountValue').textContent = '₹' + monthlyAmount.toLocaleString();
+            document.getElementById('periodValue').textContent = years + (years === 1 ? ' year' : ' years');
+            document.getElementById('returnValue').textContent = (returnRate * 100) + '%';
+            
+            // Calculate values
+            const totalInvestment = monthlyAmount * 12 * years;
+            const smartETFFees = totalInvestment * 0.005; // 0.5% annual fee
+            
+            // SIP calculations with different return rates
+            const traditionalValue = calculateSIP(monthlyAmount, 0.1663, years); // 16.63% for traditional
+            const smartETFValue = calculateSIP(monthlyAmount, returnRate, years); // User selected rate
+            const totalAdvantage = smartETFValue - traditionalValue;
+            
+            // Update displays
+            document.getElementById('totalInvestment').textContent = '₹' + (totalInvestment / 100000).toFixed(2) + 'L';
+            document.getElementById('smartETFFees').textContent = '₹' + smartETFFees.toLocaleString();
+            document.getElementById('traditionalValue').textContent = '₹' + (traditionalValue / 100000).toFixed(2) + 'L';
+            document.getElementById('smartETFValue').textContent = '₹' + (smartETFValue / 100000).toFixed(2) + 'L';
+            document.getElementById('totalAdvantage').textContent = '₹' + (totalAdvantage / 100000).toFixed(2) + 'L';
+            
+            updateChart(traditionalValue, smartETFValue, totalInvestment);
+        }
+
+        function calculateSIP(monthlyAmount, annualRate, years) {
+            const monthlyRate = annualRate / 12;
+            const months = years * 12;
+            if (monthlyRate === 0) return monthlyAmount * months;
+            return monthlyAmount * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate);
+        }
+
+        function updateChart(traditionalValue, smartetfValue, investment) {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            
+            if (window.chart) {
+                window.chart.destroy();
+            }
+            
+            try {
+                window.chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Total Investment', 'Traditional SIP', 'SmartETF Strategy'],
+                        datasets: [{
+                            label: 'Amount (₹)',
+                            data: [investment, traditionalValue, smartetfValue],
+                            backgroundColor: [
+                                '#64748b',
+                                '#dc2626',
+                                '#059669'
+                            ],
+                            borderColor: [
+                                '#475569',
+                                '#b91c1c',
+                                '#047857'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Investment Comparison Results'
+                            },
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '₹' + (value / 100000).toFixed(1) + 'L';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.log('Chart.js not available, skipping chart update');
+            }
+        }
+
+        // Event listeners
+        document.getElementById('monthlyAmount').addEventListener('input', updateCalculator);
+        document.getElementById('investmentPeriod').addEventListener('input', updateCalculator);
+        document.getElementById('returnRate').addEventListener('input', updateCalculator);
+
+        // Initialize calculator
+        updateCalculator();
+
+        // Hero stats interactive effects
+        document.querySelectorAll('.hero-stat').forEach(stat => {
+            stat.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-15px) scale(1.05)';
+            });
+            
+            stat.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // FAQ functionality
+        document.querySelectorAll('.faq-item').forEach(item => {
+            const question = item.querySelector('.faq-question');
+            question.addEventListener('click', () => {
+                item.classList.toggle('active');
+            });
+        });
+
+        // Pricing functionality - EXACTLY LIKE PREVIOUS IMPLEMENTATION
+        let allPlansData = [];
+        let activeTimeframe = 'monthly';
+
+        function getPriceForTimeframe(plan, timeframe) {
+            switch (timeframe) {
+                case 'monthly':
+                    return { price: plan.monthly_price || 0, duration: 'Per Month' };
+                case 'quarterly':
+                    return { price: plan.quarterly_price || 0, duration: 'Per Quarter' };
+                case 'half_yearly':
+                    return { price: plan.half_yearly_price || 0, duration: 'Per Half-Year' };
+                case 'annually':
+                    return { price: plan.annually_price || 0, duration: 'Per Year' };
+                default:
+                    return { price: plan.monthly_price || 0, duration: 'Per Month' };
+            }
+        }
+
+        function renderPlans(timeframe) {
+            const pricingGrid = document.getElementById('pricingGrid');
+            pricingGrid.innerHTML = '';
+
+            // Use data from API or fallback
+            const plans = allPlansData.length > 0 ? allPlansData : [];
+
+            plans.forEach((plan, index) => {
+                const isPopular = index === 1; // Middle plan is popular
+                const priceInfo = getPriceForTimeframe(plan, timeframe);
+                
+                const card = document.createElement('div');
+                card.className = `pricing-card ${isPopular ? 'popular' : ''}`;
+                
+                // Split features by comma and create list items
+                const featuresList = plan.features ? 
+                    plan.features.split(',').map(f => `<li><i class="fas fa-check me-2"></i>${f.trim()}</li>`).join('') :
+                    '<li>Features not available</li>';
+                
+                card.innerHTML = `
+                    ${isPopular ? '<div class="popular-badge">POPULAR</div>' : ''}
+                    <h4 class="pricing-plan-name">${plan.name || 'Unnamed Plan'}</h4>
+                    <div class="pricing-amount">₹${priceInfo.price.toLocaleString()}</div>
+                    <div class="pricing-duration">${priceInfo.duration}</div>
+                    <div class="text-muted mb-3" style="color: #f59e0b; font-weight: 600;">Monthly SIP up to ₹${(plan.max_sip_amount || 0).toLocaleString()}</div>
+                    <ul class="pricing-features">
+                        ${featuresList}
+                    </ul>
+                    <a href="/register" class="pricing-cta">Get Started</a>
+                `;
+                
+                pricingGrid.appendChild(card);
+            });
+        }
+
+        // Timeframe button handlers
+        document.querySelectorAll('.timeframe-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.timeframe-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeTimeframe = btn.getAttribute('data-timeframe');
+                renderPlans(activeTimeframe);
+            });
+        });
+
+        // Load pricing data from database - EXACTLY LIKE PREVIOUS IMPLEMENTATION
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch("/api/plans")
+                .then(response => {
+                    console.log('API Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(plans => {
+                    console.log('Loaded plans from database:', plans);
+                    if (plans && plans.length > 0) {
+                        allPlansData = plans;
+                        renderPlans(activeTimeframe);
+                    } else {
+                        console.log('No plans returned from database');
+                        // Create fallback display if needed
+                        document.getElementById('pricingGrid').innerHTML = '<p class="text-center">Plans not available at the moment. Please try again later.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading plans from database:', error);
+                    // Create fallback display
+                    document.getElementById('pricingGrid').innerHTML = '<p class="text-center text-danger">Unable to load plans. Please refresh the page or try again later.</p>';
+                });
+        });
+
+        // Hero Carousel functionality
+        let currentSlideIndex = 0;
+        let autoSlideInterval;
+
+        function showSlide(index) {
+            const slides = document.querySelectorAll('.hero-section .carousel-slide');
+            const dots = document.querySelectorAll('.hero-section .dot');
+            
+            // Hide all slides completely
+            slides.forEach((slide, i) => {
+                slide.classList.remove('active');
+                slide.style.opacity = '0';
+                slide.style.visibility = 'hidden';
+                slide.style.position = 'absolute';
+                slide.style.top = '0';
+                slide.style.left = '0';
+                slide.style.zIndex = '1';
+            });
+            
+            // Remove active class from all dots
+            dots.forEach(dot => dot.classList.remove('active'));
+            
+            // Show the current slide
+            if (slides[index]) {
+                slides[index].classList.add('active');
+                slides[index].style.opacity = '1';
+                slides[index].style.visibility = 'visible';
+                slides[index].style.position = 'relative';
+                slides[index].style.zIndex = '2';
+            }
+            
+            // Activate current dot
+            if (dots[index]) dots[index].classList.add('active');
+        }
+
+        function changeSlide(direction) {
+            const slides = document.querySelectorAll('.hero-section .carousel-slide');
+            currentSlideIndex += direction;
+            
+            if (currentSlideIndex >= slides.length) currentSlideIndex = 0;
+            else if (currentSlideIndex < 0) currentSlideIndex = slides.length - 1;
+            
+            showSlide(currentSlideIndex);
+            resetAutoSlide();
+        }
+
+        function currentSlide(index) {
+            currentSlideIndex = index - 1;
+            showSlide(currentSlideIndex);
+            resetAutoSlide();
+        }
+
+        function startAutoSlide() {
+            autoSlideInterval = setInterval(() => changeSlide(1), 5000);
+        }
+
+        // Touch gesture support for mobile carousel
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        function handleTouchStart(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        }
+        
+        function handleTouchEnd(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipeGesture();
+        }
+        
+        function handleSwipeGesture() {
+            const swipeThreshold = 50;
+            const swipeDistance = touchEndX - touchStartX;
+            
+            if (Math.abs(swipeDistance) > swipeThreshold) {
+                if (swipeDistance > 0) {
+                    // Swipe right - previous slide
+                    changeSlide(-1);
+                } else {
+                    // Swipe left - next slide
+                    changeSlide(1);
+                }
+            }
+        }
+
+        function resetAutoSlide() {
+            clearInterval(autoSlideInterval);
+            startAutoSlide();
+        }
+
+        // Initialize carousel
+        setTimeout(() => {
+            const slides = document.querySelectorAll('.hero-section .carousel-slide');
+            if (slides.length > 0) {
+                // Ensure only first slide is visible initially
+                slides.forEach((slide, index) => {
+                    if (index === 0) {
+                        slide.classList.add('active');
+                        slide.style.opacity = '1';
+                        slide.style.visibility = 'visible';
+                        slide.style.position = 'relative';
+                        slide.style.zIndex = '2';
+                    } else {
+                        slide.classList.remove('active');
+                        slide.style.opacity = '0';
+                        slide.style.visibility = 'hidden';
+                        slide.style.position = 'absolute';
+                        slide.style.top = '0';
+                        slide.style.left = '0';
+                        slide.style.zIndex = '1';
+                    }
+                });
+                
+                showSlide(0);
+                startAutoSlide();
+                
+                const carousel = document.querySelector('.hero-section');
+                if (carousel) {
+                    carousel.addEventListener('mouseenter', () => clearInterval(autoSlideInterval));
+                    carousel.addEventListener('mouseleave', () => startAutoSlide());
+                    
+                    // Add touch gesture support
+                    carousel.addEventListener('touchstart', handleTouchStart, { passive: true });
+                    carousel.addEventListener('touchend', handleTouchEnd, { passive: true });
+                }
+            }
+        }, 100);
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

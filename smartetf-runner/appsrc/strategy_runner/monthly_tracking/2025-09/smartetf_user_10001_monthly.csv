@@ -1,0 +1,2 @@
+date,time,invested_amount,etf_count,etf_details
+2025-09-10,16:45:52,1148.0900000000001,3,"[{""SYMBOL"": ""GOLDSHARE"", ""USER_QTY"": 3, ""USER_AMOUNT"": 277.20000000000005}, {""SYMBOL"": ""AUTOIETF"", ""USER_QTY"": 9, ""USER_AMOUNT"": 248.49}, {""SYMBOL"": ""AXISILVER"", ""USER_QTY"": 5, ""USER_AMOUNT"": 622.4}]"

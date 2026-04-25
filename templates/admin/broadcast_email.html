@@ -1,0 +1,291 @@
+{% extends "layout.html" %}
+{% block title %}Broadcast Email - Admin{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary btn-sm me-3">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h2 class="mb-0">Broadcast Email</h2>
+                <p class="text-muted mb-0">Send updates to all users, or target specific users with include/exclude lists.</p>
+            </div>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label class="form-label">Subject <span class="text-danger">*</span></label>
+                            <input type="text" name="subject" class="form-control" placeholder="e.g. New Feature Update" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Format</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_html" id="is_html" checked>
+                                <label class="form-check-label" for="is_html">Send as HTML</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="use_branding" id="use_branding" checked>
+                                <label class="form-check-label" for="use_branding">Use branded template</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="include_admins" id="include_admins">
+                                <label class="form-check-label" for="include_admins">Include admins</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Preheader (optional)</label>
+                            <input type="text" name="preheader" class="form-control" placeholder="Short summary shown in inbox preview">
+                        </div>
+
+                        <!-- Image / GIF — URL or Upload -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Image / GIF (optional)</label>
+
+                            <!-- Toggle tabs -->
+                            <div class="btn-group w-100 mb-2" role="group" id="img-mode-group">
+                                <button type="button" class="btn btn-sm btn-outline-secondary active" id="tab-url" onclick="switchImageMode('url')">
+                                    <i class="fas fa-link me-1"></i>Paste URL
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="tab-upload" onclick="switchImageMode('upload')">
+                                    <i class="fas fa-upload me-1"></i>Upload File
+                                </button>
+                            </div>
+
+                            <!-- URL mode -->
+                            <div id="img-url-panel">
+                                <input type="url" name="image_url" id="image_url_input" class="form-control"
+                                       placeholder="https://example.com/image.gif"
+                                       oninput="previewFromUrl(this.value)">
+                            </div>
+
+                            <!-- Upload mode -->
+                            <div id="img-upload-panel" style="display:none;">
+                                <div id="drop-zone"
+                                     class="border border-2 border-dashed rounded p-3 text-center"
+                                     style="border-color:#ced4da!important;cursor:pointer;transition:border-color .2s,background .2s;"
+                                     onclick="document.getElementById('image_file_input').click()"
+                                     ondragover="dzOver(event)" ondragleave="dzLeave(event)" ondrop="dzDrop(event)">
+                                    <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                                    <div class="text-muted small">Click to browse or drag &amp; drop</div>
+                                    <div class="text-muted" style="font-size:.75rem;">JPG, PNG, GIF, WebP &mdash; max 5 MB</div>
+                                </div>
+                                <input type="file" name="image_file" id="image_file_input"
+                                       accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+                                       class="d-none" onchange="previewFromFile(this)">
+                                <div id="upload-filename" class="text-muted small mt-1" style="display:none;"></div>
+                            </div>
+
+                            <!-- Live preview -->
+                            <div id="img-preview-wrap" class="mt-2" style="display:none;">
+                                <img id="img-preview" src="" alt="Preview"
+                                     style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid #dee2e6;">
+                                <button type="button" class="btn btn-sm btn-outline-danger ms-2 mt-1" onclick="clearImage()">
+                                    <i class="fas fa-times"></i> Remove
+                                </button>
+                            </div>
+
+                            <small class="text-muted">Shown above the body when branding is enabled.</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email Body <span class="text-danger">*</span></label>
+                        <textarea name="body" class="form-control" rows="8" placeholder="Write your message here" required></textarea>
+                        <small class="text-muted">HTML supported when enabled.</small>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Include Only (optional)</label>
+                            <div class="input-group mb-2">
+                                <input type="text" id="include-input" class="form-control" placeholder="Type name or email" list="user-suggestions">
+                                <button class="btn btn-outline-primary" type="button" onclick="addToken('include')">Add</button>
+                            </div>
+                            <textarea name="include_list" id="include-list" class="form-control" rows="4" placeholder="Emails or names/usernames, one per line or comma-separated"></textarea>
+                            <small class="text-muted">If filled, email will be sent only to these users.</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Exclude (optional)</label>
+                            <div class="input-group mb-2">
+                                <input type="text" id="exclude-input" class="form-control" placeholder="Type name or email" list="user-suggestions">
+                                <button class="btn btn-outline-primary" type="button" onclick="addToken('exclude')">Add</button>
+                            </div>
+                            <textarea name="exclude_list" id="exclude-list" class="form-control" rows="4" placeholder="Emails or names/usernames to exclude"></textarea>
+                            <small class="text-muted">These users will be removed from the recipient list.</small>
+                        </div>
+                    </div>
+
+                    <datalist id="user-suggestions"></datalist>
+
+                    <div class="alert alert-info border-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Emails are sent using the configured SMTP sender (<code>ADMIN_EMAIL</code>). To use a different domain in the future (e.g. Zoho), just update SMTP credentials in your environment.
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-1"></i>Send Email
+                        </button>
+                        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ── Image mode toggle ─────────────────────────────── */
+function switchImageMode(mode) {
+    const urlPanel    = document.getElementById('img-url-panel');
+    const uploadPanel = document.getElementById('img-upload-panel');
+    const tabUrl      = document.getElementById('tab-url');
+    const tabUpload   = document.getElementById('tab-upload');
+
+    if (mode === 'url') {
+        urlPanel.style.display    = '';
+        uploadPanel.style.display = 'none';
+        tabUrl.classList.add('active');
+        tabUpload.classList.remove('active');
+        // Clear file input so it isn't sent
+        document.getElementById('image_file_input').value = '';
+        // If URL box has a value restore preview
+        previewFromUrl(document.getElementById('image_url_input').value);
+    } else {
+        urlPanel.style.display    = 'none';
+        uploadPanel.style.display = '';
+        tabUrl.classList.remove('active');
+        tabUpload.classList.add('active');
+        // Clear URL input so it isn't sent
+        document.getElementById('image_url_input').value = '';
+        hidePreview();
+    }
+}
+
+/* ── URL preview ───────────────────────────────────── */
+let urlPreviewTimer = null;
+function previewFromUrl(url) {
+    clearTimeout(urlPreviewTimer);
+    if (!url) { hidePreview(); return; }
+    urlPreviewTimer = setTimeout(function() {
+        const img = document.getElementById('img-preview');
+        img.onload  = function() { showPreview(url); };
+        img.onerror = function() { hidePreview(); };
+        img.src = url;
+    }, 400);
+}
+
+/* ── File preview ──────────────────────────────────── */
+function previewFromFile(input) {
+    if (!input.files || !input.files[0]) { hidePreview(); return; }
+    const file = input.files[0];
+    if (file.size > 5 * 1024 * 1024) {
+        alert('File is larger than 5 MB. Please choose a smaller image.');
+        input.value = '';
+        hidePreview();
+        return;
+    }
+    const fn = document.getElementById('upload-filename');
+    fn.textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+    fn.style.display = '';
+    const reader = new FileReader();
+    reader.onload = function(e) { showPreview(e.target.result); };
+    reader.readAsDataURL(file);
+}
+
+function showPreview(src) {
+    const wrap = document.getElementById('img-preview-wrap');
+    document.getElementById('img-preview').src = src;
+    wrap.style.display = '';
+}
+function hidePreview() {
+    document.getElementById('img-preview-wrap').style.display = 'none';
+}
+
+/* ── Clear image ───────────────────────────────────── */
+function clearImage() {
+    document.getElementById('image_url_input').value   = '';
+    document.getElementById('image_file_input').value  = '';
+    document.getElementById('upload-filename').style.display = 'none';
+    hidePreview();
+}
+
+/* ── Drag & Drop ───────────────────────────────────── */
+function dzOver(e) {
+    e.preventDefault();
+    document.getElementById('drop-zone').style.background = '#f0f4ff';
+    document.getElementById('drop-zone').style.borderColor = '#6D28D9';
+}
+function dzLeave(e) {
+    document.getElementById('drop-zone').style.background = '';
+    document.getElementById('drop-zone').style.borderColor = '';
+}
+function dzDrop(e) {
+    e.preventDefault();
+    dzLeave(e);
+    const dt = e.dataTransfer;
+    if (dt && dt.files && dt.files[0]) {
+        const input = document.getElementById('image_file_input');
+        // Replace file input files via DataTransfer
+        const transfer = new DataTransfer();
+        transfer.items.add(dt.files[0]);
+        input.files = transfer.files;
+        previewFromFile(input);
+    }
+}
+
+/* ── Autocomplete / token helpers ──────────────────── */
+let suggestionTimer = null;
+function fetchSuggestions(query) {
+    if (!query || query.length < 2) return;
+    fetch(`/admin/user-suggestions?q=${encodeURIComponent(query)}`)
+        .then(r => r.json())
+        .then(data => {
+            const datalist = document.getElementById('user-suggestions');
+            datalist.innerHTML = '';
+            data.forEach(u => {
+                const option = document.createElement('option');
+                option.value = u.email;
+                option.label = `${u.full_name} (${u.username}) - ${u.email}`;
+                datalist.appendChild(option);
+            });
+        });
+}
+function handleInput(e) {
+    const value = e.target.value;
+    clearTimeout(suggestionTimer);
+    suggestionTimer = setTimeout(() => fetchSuggestions(value), 200);
+}
+function addToken(type) {
+    const input = document.getElementById(`${type}-input`);
+    const list  = document.getElementById(`${type}-list`);
+    const value = input.value.trim();
+    if (!value) return;
+    const existing = list.value ? list.value.split(/\n|,/).map(v => v.trim()).filter(Boolean) : [];
+    if (!existing.includes(value)) existing.push(value);
+    list.value   = existing.join('\n');
+    input.value  = '';
+}
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('include-input').addEventListener('input', handleInput);
+    document.getElementById('exclude-input').addEventListener('input', handleInput);
+
+    // Auto-flush any typed-but-not-added text into the textarea before submit
+    document.querySelector('form').addEventListener('submit', function() {
+        if (document.getElementById('include-input').value.trim()) {
+            addToken('include');
+        }
+        if (document.getElementById('exclude-input').value.trim()) {
+            addToken('exclude');
+        }
+    });
+});
+</script>
+{% endblock %}

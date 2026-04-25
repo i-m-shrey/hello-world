@@ -1,0 +1,98 @@
+{% extends "layout.html" %}
+
+{% block title %}Manage Broker Types - Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Manage Broker Types</h2>
+    <a href="{{ url_for('admin_create_supported_broker') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> Add New Broker Type
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Supported Brokers</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Required Fields</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for broker in supported_brokers %}
+                    <tr>
+                        <td>{{ broker.name }}</td>
+                        <td>{{ broker.description }}</td>
+                        <td>
+                            {% if broker.requires_totp %}<span class="badge bg-info me-1">TOTP</span>{% endif %}
+                            {% if broker.requires_api_key %}<span class="badge bg-info me-1">API Key</span>{% endif %}
+                            {% if broker.requires_api_secret %}<span class="badge bg-info me-1">API Secret</span>{% endif %}
+                            {% if broker.requires_vendor_code %}<span class="badge bg-info me-1">Vendor Code</span>{% endif %}
+                            {% if broker.requires_imei %}<span class="badge bg-info me-1">IMEI</span>{% endif %}
+                            {% if broker.requires_access_token %}<span class="badge bg-info me-1">Access Token</span>{% endif %}
+                        </td>
+                        <td>
+                            {% if broker.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin_edit_supported_broker', broker_id=broker.id) }}" class="btn btn-sm btn-primary me-1">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-danger"
+                                    onclick="confirmDeleteBroker('{{ broker.name }}', {{ broker.id }})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteBrokerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete broker type <span id="brokerNameToDelete"></span>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteBrokerForm" method="POST" action="">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    function confirmDeleteBroker(brokerName, brokerId) {
+        document.getElementById('brokerNameToDelete').textContent = brokerName;
+        document.getElementById('deleteBrokerForm').action = "{{ url_for('admin_delete_supported_broker', broker_id=0) }}".replace('0', brokerId);
+
+        const modal = new bootstrap.Modal(document.getElementById('deleteBrokerModal'));
+        modal.show();
+    }
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,150 @@
+{% extends "layout.html" %}
+
+{% block title %}View Subscription - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+  <h2 class="mt-4">Subscription Details</h2>
+
+  <!-- Subscription Info -->
+  <div class="card mb-4">
+    <div class="card-header bg-light fw-bold">Subscription Information</div>
+    <div class="card-body">
+      <p><strong>Subscription ID:</strong> {{ subscription.id }}</p>
+      <p><strong>User:</strong> <a href="{{ url_for('admin_view_user', user_id=user.id) }}">{{ user.username }}</a></p>
+      <p><strong>Plan:</strong> {{ subscription.plan_name }}</p>
+      <p><strong>Amount:</strong> ₹{{ subscription.amount }}</p>
+      <p><strong>Start Date:</strong> {{ subscription.start_date.strftime('%d %b, %Y') }}</p>
+      <p><strong>Expiry Date:</strong> {{ subscription.expiry_date.strftime('%d %b, %Y') }}</p>
+      <p><strong>Duration:</strong> {{ (subscription.expiry_date - subscription.start_date).days }} days</p>
+      <p><strong>Status:</strong>
+        {% if subscription.payment_status == 'Cancelled' %}
+        <span class="badge bg-danger">Cancelled</span>
+        {% elif subscription.is_queued %}
+        <span class="badge bg-warning text-dark">Queued</span>
+        {% else %}
+        <span class="badge bg-success">Active</span>
+        {% endif %}
+      </p>
+      <p><strong>Payment Method:</strong> {{ subscription.payment_method }}</p>
+      <p><strong>Payment ID:</strong> {{ subscription.payment_id }}</p>
+      <p><strong>Created At:</strong> {{ subscription.created_at.strftime('%d %b, %Y %H:%M') }}</p>
+    </div>
+  </div>
+
+  <!-- Subscription Actions -->
+  {% if subscription.payment_status != 'Cancelled' %}
+  <div class="card mb-4">
+    <div class="card-header fw-bold">Subscription Status</div>
+    <div class="card-body">
+      <p><strong>Expires in:</strong>
+        <span class="fw-bold">
+    {{ (subscription.expiry_date.date() - now().date()).days }} days
+  </span>
+      </p>
+
+      <div class="d-flex gap-2">
+        <form method="POST" action="{{ url_for('admin_renew_subscription', subscription_id=subscription.id) }}">
+          <input type="hidden" name="plan_id" value="{{ subscription.plan_id }}">
+          <input type="hidden" name="billing_cycle" value="{{ subscription.billing_cycle if subscription.billing_cycle else 'monthly' }}">
+          <button type="submit" class="btn btn-warning">🔁 Renew</button>
+        </form>
+
+        <form method="POST" action="{{ url_for('admin_cancel_subscription', subscription_id=subscription.id) }}">
+          <button type="submit" class="btn btn-danger">⛔ Cancel Subscription</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="card mb-4">
+    <div class="card-header fw-bold">Subscription Status</div>
+    <div class="card-body">
+      <p class="text-muted"><strong>This subscription has been cancelled.</strong></p>
+      <div class="d-flex gap-2">
+        <form method="POST" action="{{ url_for('admin_renew_subscription', subscription_id=subscription.id) }}">
+          <input type="hidden" name="plan_id" value="{{ subscription.plan_id }}">
+          <input type="hidden" name="billing_cycle" value="{{ subscription.billing_cycle if subscription.billing_cycle else 'monthly' }}">
+          <button type="submit" class="btn btn-warning">🔁 Renew</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Associated Brokers -->
+  <div class="card mb-4">
+    <div class="card-header fw-bold">Associated Brokers</div>
+    <div class="card-body">
+      {% if associated_brokers %}
+      <ul class="list-group">
+        {% for broker in associated_brokers %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {{ broker.broker_name }} ({{ broker.user_id_broker }})
+          <a href="{{ url_for('admin_view_broker', broker_id=broker.id) }}" class="btn btn-sm btn-outline-primary">View</a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-muted">No broker connections found.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- All Subscriptions -->
+  {% if all_subscriptions %}
+  <div class="card shadow mb-4">
+    <div class="card-header bg-primary text-white fw-bold">All Subscriptions for {{ user.username }}</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped mb-0">
+          <thead class="table-light">
+          <tr>
+            <th>Plan</th>
+            <th>Start</th>
+            <th>Expiry</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for sub in all_subscriptions %}
+          <tr>
+            <td>{{ sub.plan_name }}</td>
+            <td>{{ sub.start_date.strftime('%d %b, %Y') }}</td>
+            <td>{{ sub.expiry_date.strftime('%d %b, %Y') }}</td>
+            <td>₹{{ sub.amount }}</td>
+            <td>
+              {% if sub.payment_status == 'Cancelled' %}
+              <span class="badge bg-danger">Cancelled</span>
+              {% elif sub.is_queued %}
+              <span class="badge bg-warning text-dark">Queued</span>
+              {% elif sub.id == subscription.id %}
+              <span class="badge bg-success">Active</span>
+              {% else %}
+              <span class="badge bg-secondary">Expired</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="d-flex gap-2">
+                <a href="{{ url_for('admin_edit_subscription', subscription_id=sub.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                {% if sub.payment_status != 'Cancelled' %}
+                <form method="POST" action="{{ url_for('admin_cancel_subscription', subscription_id=sub.id) }}">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,520 @@
+{% extends "layout.html" %}
+
+{% block title %}Register - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="row">
+<div class="col-md-6 offset-md-3">
+<div class="card shadow">
+<div class="card-header">
+<h4 class="mb-0">Register</h4>
+</div>
+<div class="card-body">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show">
+                                {{ message }}
+                                <button class="btn-close" data-bs-dismiss="alert" type="button"></button>
+</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form id="registerForm" method="POST">
+<div class="mb-3">
+<label class="form-label" for="username">Username</label>
+<input class="form-control" id="username" name="username" required="" type="text"/>
+<div class="mb-1" id="username-feedback" style="font-size: 0.9rem;"></div>
+</div>
+<div class="mb-3">
+<label class="form-label" for="email">Email</label>
+<input class="form-control" id="email" name="email" required="" type="email"/>
+    <div class="mb-1" id="email-feedback" style="font-size: 0.9rem;"></div>
+<small class="text-muted">Your email must be unique and will be used for account verification.</small>
+</div>
+
+<div class="mb-3">
+<label class="form-label" for="full_name">Full Name</label>
+<input class="form-control" id="full_name" name="full_name" required="" type="text"/>
+</div>
+<div class="mb-3">
+<label class="form-label" for="address">Address</label>
+<textarea class="form-control" id="address" name="address" required="" rows="2"></textarea>
+</div>
+<div class="mb-3">
+<label class="form-label" for="state">State</label>
+<select class="form-select" id="state" name="state" required="">
+<option value="">Select State</option>
+</select>
+</div>
+<div class="mb-3">
+<label class="form-label" for="city">City</label>
+<select class="form-select" id="city" name="city" required="">
+<option value="">Select City</option>
+</select>
+</div>
+<div class="mb-3">
+<label class="form-label" for="pin">PIN Code</label>
+<input class="form-control" id="pin" maxlength="6" name="pin" required="" type="text"/>
+<small class="text-muted">Enter a 6-digit PIN code.</small>
+</div>
+<div class="mb-3">
+<label class="form-label" for="mobile">Mobile Number</label>
+<div class="input-group">
+<span class="input-group-text">+91</span>
+<input class="form-control" id="mobile" maxlength="10" name="mobile" placeholder="10-digit mobile number" required="" type="tel"/>
+</div>
+<div class="mb-1" id="mobile-feedback" style="font-size: 0.9rem;"></div>
+<small class="text-muted">Enter a 10-digit mobile number without country code.</small>
+</div>
+<div class="mb-3">
+<label class="form-label" for="password">Password</label>
+<div class="input-group">
+<input class="form-control" id="password" name="password" required="" type="password"/>
+<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password')">
+<i class="fas fa-eye" id="password-icon"></i>
+</button>
+</div>
+</div>
+<div class="mb-3">
+<label class="form-label" for="confirm_password">Confirm Password</label>
+<div class="input-group">
+<input class="form-control" id="confirm_password" name="confirm_password" required="" type="password"/>
+<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirm_password')">
+<i class="fas fa-eye" id="confirm_password-icon"></i>
+</button>
+</div>
+</div>
+<div class="mb-3 form-check">
+<input class="form-check-input" id="terms_agree" name="terms_agree" required="" type="checkbox"/>
+<label class="form-check-label" for="terms_agree">
+                            I agree to the <a class="text-decoration-none" href="#">Terms &amp; Conditions</a> and <a class="text-decoration-none" href="#">Privacy Policy</a>
+</label>
+</div>
+<div class="d-grid">
+<button class="btn btn-primary" id="registerButton" type="submit">Register</button>
+</div>
+</form>
+<div class="mt-3 text-center">
+<small>Already have an account? <a href="{{ url_for('login') }}">Login</a></small>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+{% block scripts %}
+<script>
+// Indian States and Cities Data
+const statesAndCities = {
+    "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Nellore", "Kurnool", "Tirupati", "Rajahmundry", "Kadapa", "Kakinada", "Anantapur"],
+    "Arunachal Pradesh": ["Itanagar", "Naharlagun", "Pasighat", "Tawang", "Ziro", "Bomdila"],
+    "Assam": ["Guwahati", "Silchar", "Dibrugarh", "Jorhat", "Nagaon", "Tinsukia", "Tezpur", "Bongaigaon"],
+    "Bihar": ["Patna", "Gaya", "Bhagalpur", "Muzaffarpur", "Darbhanga", "Purnia", "Arrah", "Bihar Sharif"],
+    "Chhattisgarh": ["Raipur", "Bhilai", "Bilaspur", "Korba", "Durg", "Rajnandgaon", "Jagdalpur", "Raigarh"],
+    "Goa": ["Panaji", "Margao", "Vasco da Gama", "Mapusa", "Ponda"],
+    "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Jamnagar", "Junagadh", "Gandhinagar", "Anand", "Mehsana"],
+    "Haryana": ["Faridabad", "Gurgaon", "Panipat", "Ambala", "Yamunanagar", "Rohtak", "Hisar", "Karnal", "Sonipat", "Panchkula"],
+    "Himachal Pradesh": ["Shimla", "Mandi", "Solan", "Dharamshala", "Kullu", "Manali", "Palampur", "Baddi"],
+    "Jharkhand": ["Ranchi", "Jamshedpur", "Dhanbad", "Bokaro", "Deoghar", "Hazaribagh", "Giridih", "Ramgarh"],
+    "Karnataka": ["Bengaluru", "Mysuru", "Mangaluru", "Hubli", "Belagavi", "Davanagere", "Ballari", "Vijayapura", "Shivamogga", "Tumakuru"],
+    "Kerala": ["Thiruvananthapuram", "Kochi", "Kozhikode", "Thrissur", "Kollam", "Palakkad", "Alappuzha", "Kannur", "Kottayam", "Malappuram"],
+    "Madhya Pradesh": ["Indore", "Bhopal", "Jabalpur", "Gwalior", "Ujjain", "Sagar", "Dewas", "Satna", "Ratlam", "Rewa"],
+    "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Thane", "Nashik", "Aurangabad", "Solapur", "Kolhapur", "Amravati", "Navi Mumbai", "Sangli"],
+    "Manipur": ["Imphal", "Thoubal", "Bishnupur", "Churachandpur"],
+    "Meghalaya": ["Shillong", "Tura", "Nongstoin", "Jowai"],
+    "Mizoram": ["Aizawl", "Lunglei", "Saiha", "Champhai"],
+    "Nagaland": ["Kohima", "Dimapur", "Mokokchung", "Tuensang"],
+    "Odisha": ["Bhubaneswar", "Cuttack", "Rourkela", "Berhampur", "Sambalpur", "Puri", "Balasore", "Bhadrak"],
+    "Punjab": ["Ludhiana", "Amritsar", "Jalandhar", "Patiala", "Bathinda", "Mohali", "Pathankot", "Hoshiarpur", "Moga"],
+    "Rajasthan": ["Jaipur", "Jodhpur", "Kota", "Bikaner", "Ajmer", "Udaipur", "Bhilwara", "Alwar", "Sikar", "Bharatpur"],
+    "Sikkim": ["Gangtok", "Namchi", "Gyalshing", "Mangan"],
+    "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem", "Tirunelveli", "Tiruppur", "Vellore", "Erode", "Thoothukudi"],
+    "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Khammam", "Karimnagar", "Ramagundam", "Mahbubnagar", "Nalgonda"],
+    "Tripura": ["Agartala", "Udaipur", "Dharmanagar", "Kailashahar"],
+    "Uttar Pradesh": ["Lucknow", "Kanpur", "Ghaziabad", "Agra", "Varanasi", "Meerut", "Allahabad", "Bareilly", "Aligarh", "Moradabad", "Noida"],
+    "Uttarakhand": ["Dehradun", "Haridwar", "Roorkee", "Haldwani", "Rudrapur", "Rishikesh", "Nainital"],
+    "West Bengal": ["Kolkata", "Howrah", "Durgapur", "Asansol", "Siliguri", "Bardhaman", "Kharagpur", "Haldia"],
+    "Andaman and Nicobar Islands": ["Port Blair"],
+    "Chandigarh": ["Chandigarh"],
+    "Dadra and Nagar Haveli and Daman and Diu": ["Silvassa", "Daman", "Diu"],
+    "Delhi": ["New Delhi", "Delhi"],
+    "Jammu and Kashmir": ["Srinagar", "Jammu", "Anantnag", "Baramulla", "Udhampur"],
+    "Ladakh": ["Leh", "Kargil"],
+    "Lakshadweep": ["Kavaratti"],
+    "Puducherry": ["Puducherry", "Karaikal", "Mahe", "Yanam"]
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    const registerForm = document.getElementById('registerForm');
+    const registerButton = document.getElementById('registerButton');
+    const passwordField = document.getElementById('password');
+    const confirmField = document.getElementById('confirm_password');
+    const mobileField = document.getElementById('mobile');
+    const pinField = document.getElementById('pin');
+    const emailField = document.getElementById('email');
+    const usernameField = document.getElementById('username');
+    const stateSelect = document.getElementById('state');
+    const citySelect = document.getElementById('city');
+    
+    const feedbackEmail = document.getElementById('email-feedback');
+    const feedbackUsername = document.getElementById('username-feedback');
+    const feedbackMobile = document.getElementById('mobile-feedback');
+
+    // Populate states dropdown
+    Object.keys(statesAndCities).sort().forEach(state => {
+        const option = document.createElement('option');
+        option.value = state;
+        option.textContent = state;
+        stateSelect.appendChild(option);
+    });
+
+    // Update cities when state changes
+    stateSelect.addEventListener('change', function() {
+        const selectedState = this.value;
+        citySelect.innerHTML = '<option value="">Select City</option>';
+        
+        if (selectedState && statesAndCities[selectedState]) {
+            statesAndCities[selectedState].forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                citySelect.appendChild(option);
+            });
+        }
+    });
+
+    // Cache to store last checked values and results - PREVENTS RE-CHECKING
+    let checkedCache = {
+        email: { value: '', result: null },
+        username: { value: '', result: null },
+        mobile: { value: '', result: null }
+    };
+
+    // Abort controllers
+    let abortControllers = {
+        email: null,
+        username: null,
+        mobile: null
+    };
+
+    // Timers
+    let timers = {
+        email: null,
+        username: null,
+        mobile: null
+    };
+
+    // Mobile validation - numbers only
+    mobileField.addEventListener('input', function(e) {
+        this.value = this.value.replace(/\D/g, '');
+        
+        const mobile = this.value;
+        
+        // Cancel previous request
+        if (abortControllers.mobile) {
+            abortControllers.mobile.abort();
+            abortControllers.mobile = null;
+        }
+        
+        // Clear timer
+        if (timers.mobile) {
+            clearTimeout(timers.mobile);
+            timers.mobile = null;
+        }
+        
+        // Check format
+        if (mobile.length === 0) {
+            feedbackMobile.textContent = "";
+            return;
+        }
+        
+        if (mobile.length > 0 && mobile[0] < '6') {
+            feedbackMobile.textContent = "❌ Mobile must start with 6, 7, 8, or 9";
+            feedbackMobile.style.color = "red";
+            checkedCache.mobile = { value: mobile, result: false };
+            return;
+        }
+        
+        if (mobile.length < 10) {
+            feedbackMobile.textContent = "";
+            return;
+        }
+        
+        // If we already checked this exact value, show cached result immediately
+        if (checkedCache.mobile.value === mobile && checkedCache.mobile.result !== null) {
+            if (checkedCache.mobile.result === true) {
+                feedbackMobile.textContent = "✅ Mobile available";
+                feedbackMobile.style.color = "green";
+            } else {
+                feedbackMobile.textContent = "❌ Mobile already in use";
+                feedbackMobile.style.color = "red";
+            }
+            return;
+        }
+        
+        // Check availability when 10 digits entered
+        if (mobile.length === 10) {
+            checkAvailability('mobile', mobile, '/api/check_mobile', feedbackMobile);
+        }
+    });
+
+    // PIN validation - numbers only
+    pinField.addEventListener('input', function(e) {
+        this.value = this.value.replace(/\D/g, '');
+    });
+
+    // Generic availability check function with caching
+    function checkAvailability(field, value, endpoint, feedbackElement) {
+        // If we already have this result cached, use it immediately
+        if (checkedCache[field].value === value && checkedCache[field].result !== null) {
+            if (checkedCache[field].result === true) {
+                feedbackElement.textContent = `✅ ${field.charAt(0).toUpperCase() + field.slice(1)} available`;
+                feedbackElement.style.color = "green";
+            } else {
+                feedbackElement.textContent = `❌ ${field.charAt(0).toUpperCase() + field.slice(1)} already in use`;
+                feedbackElement.style.color = "red";
+            }
+            return;
+        }
+
+        // Cancel previous request
+        if (abortControllers[field]) {
+            abortControllers[field].abort();
+            abortControllers[field] = null;
+        }
+
+        // Clear previous timer
+        if (timers[field]) {
+            clearTimeout(timers[field]);
+        }
+
+        // Validate minimum length
+        const minLength = field === 'email' ? 5 : (field === 'mobile' ? 10 : 3);
+        if (value.length < minLength) {
+            feedbackElement.textContent = "";
+            return;
+        }
+
+        // Email format check
+        if (field === 'email' && !value.includes("@")) {
+            feedbackElement.textContent = "";
+            return;
+        }
+
+        // Mobile format check
+        if (field === 'mobile' && value[0] < '6') {
+            feedbackElement.textContent = "❌ Mobile must start with 6, 7, 8, or 9";
+            feedbackElement.style.color = "red";
+            checkedCache[field] = { value: value, result: false };
+            return;
+        }
+
+        // Show checking status
+        feedbackElement.textContent = "🔄 Checking availability...";
+        feedbackElement.style.color = "#666";
+
+        // Debounce timer
+        timers[field] = setTimeout(async () => {
+            try {
+                const controller = new AbortController();
+                abortControllers[field] = controller;
+
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ [field]: value }),
+                    signal: controller.signal
+                });
+
+                const data = await response.json();
+
+                // Check if value still matches
+                const currentValue = document.getElementById(field).value;
+                if (currentValue !== value) {
+                    return; // Value changed, ignore result
+                }
+
+                abortControllers[field] = null;
+                timers[field] = null;
+
+                if (data.exists) {
+                    feedbackElement.textContent = `❌ ${field.charAt(0).toUpperCase() + field.slice(1)} already in use`;
+                    feedbackElement.style.color = "red";
+                    checkedCache[field] = { value: value, result: false };
+                } else {
+                    feedbackElement.textContent = `✅ ${field.charAt(0).toUpperCase() + field.slice(1)} available`;
+                    feedbackElement.style.color = "green";
+                    checkedCache[field] = { value: value, result: true };
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    return; // Request was cancelled
+                }
+                console.error('Error:', error);
+                feedbackElement.textContent = "";
+                abortControllers[field] = null;
+                timers[field] = null;
+            }
+        }, 500);
+    }
+
+    // Email check
+    emailField.addEventListener('input', function() {
+        const email = this.value.trim();
+        
+        // Cancel previous request and timer
+        if (abortControllers.email) {
+            abortControllers.email.abort();
+            abortControllers.email = null;
+        }
+        
+        if (timers.email) {
+            clearTimeout(timers.email);
+            timers.email = null;
+        }
+        
+        // Check length and format before showing anything
+        if (email.length < 5 || !email.includes("@")) {
+            feedbackEmail.textContent = "";
+            return;
+        }
+        
+        checkAvailability("email", email, "/api/check_email", feedbackEmail);
+    });
+
+    // Username check
+    usernameField.addEventListener('input', function() {
+        const username = this.value.trim();
+        
+        // Cancel previous request and timer
+        if (abortControllers.username) {
+            abortControllers.username.abort();
+            abortControllers.username = null;
+        }
+        
+        if (timers.username) {
+            clearTimeout(timers.username);
+            timers.username = null;
+        }
+        
+        // Check length before showing anything
+        if (username.length < 3) {
+            feedbackUsername.textContent = "";
+            return;
+        }
+        
+        checkAvailability("username", username, "/api/check_username", feedbackUsername);
+    });
+
+    // Form submit validation
+    registerForm.addEventListener('submit', function(e) {
+        // Check if any checks are still pending
+        if (timers.username || timers.email || timers.mobile) {
+            e.preventDefault();
+            alert('Please wait while we verify your information.');
+            return false;
+        }
+
+        if (checkedCache.username.result === false) {
+            e.preventDefault();
+            alert('Username is already taken. Please choose a different username.');
+            usernameField.focus();
+            return false;
+        }
+        
+        if (checkedCache.username.result === null && usernameField.value.trim().length >= 3) {
+            e.preventDefault();
+            alert('Please wait while we check username availability.');
+            return false;
+        }
+
+        if (checkedCache.email.result === false) {
+            e.preventDefault();
+            alert('Email is already in use. Please use a different email.');
+            emailField.focus();
+            return false;
+        }
+        
+        if (checkedCache.email.result === null && emailField.value.trim().length >= 5) {
+            e.preventDefault();
+            alert('Please wait while we check email availability.');
+            return false;
+        }
+
+        if (checkedCache.mobile.result === false) {
+            e.preventDefault();
+            alert('Mobile number is already registered. Please use a different mobile number.');
+            mobileField.focus();
+            return false;
+        }
+        
+        if (checkedCache.mobile.result === null && mobileField.value.length === 10) {
+            e.preventDefault();
+            alert('Please wait while we check mobile availability.');
+            return false;
+        }
+
+        const mobile = mobileField.value;
+        if (mobile.length !== 10 || !/^[0-9]{10}$/.test(mobile)) {
+            e.preventDefault();
+            alert('Please enter a valid 10-digit mobile number');
+            mobileField.focus();
+            return false;
+        }
+        
+        if (mobile[0] < '6') {
+            e.preventDefault();
+            alert('Mobile number must start with 6, 7, 8, or 9');
+            mobileField.focus();
+            return false;
+        }
+
+        const pin = pinField.value;
+        if (pin.length !== 6 || !/^[0-9]{6}$/.test(pin)) {
+            e.preventDefault();
+            alert('Please enter a valid 6-digit PIN code');
+            pinField.focus();
+            return false;
+        }
+
+        if (passwordField.value !== confirmField.value) {
+            e.preventDefault();
+            alert('Passwords do not match');
+            confirmField.focus();
+            return false;
+        }
+
+        if (passwordField.value.length < 8) {
+            e.preventDefault();
+            alert('Password must be at least 8 characters');
+            passwordField.focus();
+            return false;
+        }
+
+        registerButton.disabled = true;
+        registerButton.textContent = 'Registering...';
+        
+        return true;
+    });
+});
+
+// Toggle password visibility
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const icon = document.getElementById(fieldId + '-icon');
+    
+    if (field.type === 'password') {
+        field.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        field.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+</script>
+{% endblock %}
+{% endblock %}

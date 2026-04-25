@@ -1,0 +1,377 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Broker Type - Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Edit Broker Type: {{ broker.name }}</h2>
+    <a href="{{ url_for('admin_supported_brokers') }}" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left me-1"></i> Back to Broker Types
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Broker Details</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="name" class="form-label">Broker Name</label>
+                <input type="text" class="form-control" id="name" name="name" value="{{ broker.name }}" required>
+                <small class="text-muted">This is the name that users will see when adding a broker.</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="3">{{ broker.description }}</textarea>
+                <small class="text-muted">A brief description of this broker.</small>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Required Fields</label>
+                <div class="row">
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_client_id" name="requires_client_id"
+                                   {% if broker.requires_client_id %}checked{% endif %}>
+                            <label class="form-check-label" for="requires_client_id">Client ID</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_password" name="requires_password"
+                                   {% if broker.requires_password %}checked{% endif %}>
+                            <label class="form-check-label" for="requires_password">Password</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_totp" name="requires_totp"
+                                   {% if broker.requires_totp %}checked{% endif %}>
+                            <label class="form-check-label" for="requires_totp">TOTP Secret</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_api_key" name="requires_api_key"
+                                   {% if broker.requires_api_key %}checked{% endif %}>
+                            <label class="form-check-label" for="requires_api_key">API Key</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_api_secret" name="requires_api_secret"
+                                   {% if broker.requires_api_secret %}checked{% endif %}>
+                            <label class="form-check-label" for="requires_api_secret">API Secret</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_vendor_code" name="requires_vendor_code"
+                                   {% if broker.requires_vendor_code %}checked{% endif %}>
+                            <label class="form-check-label" for="requires_vendor_code">Vendor Code</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_imei" name="requires_imei"
+                                   {% if broker.requires_imei %}checked{% endif %}>
+                            <label class="form-check-label" for="requires_imei">IMEI</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_mobile" name="requires_mobile"
+                                   {% if broker.requires_mobile %}checked{% endif %}>
+                            <label class="form-check-label" for="requires_mobile">Mobile</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_access_token" name="requires_access_token"
+                                   {% if broker.requires_access_token %}checked{% endif %}>
+                            <label class="form-check-label" for="requires_access_token">Access Token</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Onboarding Links</label>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Open Account URL</label>
+                        <input type="url" class="form-control" name="open_account_url" value="{{ broker.open_account_url or '' }}" placeholder="https://...">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">API Activation URL (Customer Care)</label>
+                        <input type="url" class="form-control" name="api_activation_url" value="{{ broker.api_activation_url or '' }}" placeholder="https://...">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h5 class="mb-3">Field Help Configuration</h5>
+                <p class="text-muted">Add help text and images for each field type. Users will see these when they click "How to find?"</p>
+
+                <div class="card mb-3">
+                    <div class="card-header">API Key Help</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="help_text_api_key" class="form-label">Help Text</label>
+                            <textarea class="form-control" id="help_text_api_key" name="help_text_api_key" rows="2">{{ broker.help_text_api_key or '' }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="help_image_api_key" class="form-label">Help Image</label>
+                            {% if broker.help_image_api_key %}
+                            <div class="mb-2">
+                                <img src="{{ broker.help_image_api_key }}" class="img-thumbnail" style="max-width: 200px;">
+                                <p class="small text-muted">Current: {{ broker.help_image_api_key }}</p>
+                            </div>
+                            {% endif %}
+                            <input type="file" class="form-control" id="help_image_api_key" name="help_image_api_key" accept="image/*">
+                            <small class="text-muted">Or enter URL manually:</small>
+                            <input type="text" class="form-control mt-1" name="help_image_api_key_url" placeholder="https://example.com/image.png">
+                        </div>
+                        <div class="mb-3">
+                            <label for="video_api_key_url" class="form-label">Video URL</label>
+                            <input type="url" class="form-control" id="video_api_key_url" name="video_api_key_url" value="{{ broker.video_api_key_url or '' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">API Secret Help</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="help_text_api_secret" class="form-label">Help Text</label>
+                            <textarea class="form-control" id="help_text_api_secret" name="help_text_api_secret" rows="2">{{ broker.help_text_api_secret or '' }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="help_image_api_secret" class="form-label">Help Image</label>
+                            {% if broker.help_image_api_secret %}
+                            <div class="mb-2">
+                                <img src="{{ broker.help_image_api_secret }}" class="img-thumbnail" style="max-width: 200px;">
+                            </div>
+                            {% endif %}
+                            <input type="file" class="form-control" id="help_image_api_secret" name="help_image_api_secret" accept="image/*">
+                            <small class="text-muted">Or enter URL:</small>
+                            <input type="text" class="form-control mt-1" name="help_image_api_secret_url" placeholder="https://...">
+                        </div>
+                        <div class="mb-3">
+                            <label for="video_api_secret_url" class="form-label">Video URL</label>
+                            <input type="url" class="form-control" id="video_api_secret_url" name="video_api_secret_url" value="{{ broker.video_api_secret_url or '' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">Client ID Help</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="help_text_client_id" class="form-label">Help Text</label>
+                            <textarea class="form-control" id="help_text_client_id" name="help_text_client_id" rows="2">{{ broker.help_text_client_id or '' }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="help_image_client_id" class="form-label">Help Image</label>
+                            {% if broker.help_image_client_id %}
+                            <div class="mb-2">
+                                <img src="{{ broker.help_image_client_id }}" class="img-thumbnail" style="max-width: 200px;">
+                            </div>
+                            {% endif %}
+                            <input type="file" class="form-control" id="help_image_client_id" name="help_image_client_id" accept="image/*">
+                            <small class="text-muted">Or enter URL:</small>
+                            <input type="text" class="form-control mt-1" name="help_image_client_id_url" placeholder="https://...">
+                        </div>
+                        <div class="mb-3">
+                            <label for="video_client_id_url" class="form-label">Video URL</label>
+                            <input type="url" class="form-control" id="video_client_id_url" name="video_client_id_url" value="{{ broker.video_client_id_url or '' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">Password/PIN Help</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="help_text_password" class="form-label">Help Text</label>
+                            <textarea class="form-control" id="help_text_password" name="help_text_password" rows="2">{{ broker.help_text_password or '' }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="help_image_password" class="form-label">Help Image</label>
+                            {% if broker.help_image_password %}
+                            <div class="mb-2">
+                                <img src="{{ broker.help_image_password }}" class="img-thumbnail" style="max-width: 200px;">
+                            </div>
+                            {% endif %}
+                            <input type="file" class="form-control" id="help_image_password" name="help_image_password" accept="image/*">
+                            <small class="text-muted">Or enter URL:</small>
+                            <input type="text" class="form-control mt-1" name="help_image_password_url" placeholder="https://...">
+                        </div>
+                        <div class="mb-3">
+                            <label for="video_password_url" class="form-label">Video URL</label>
+                            <input type="url" class="form-control" id="video_password_url" name="video_password_url" value="{{ broker.video_password_url or '' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">TOTP Help</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="help_text_totp" class="form-label">Help Text</label>
+                            <textarea class="form-control" id="help_text_totp" name="help_text_totp" rows="2">{{ broker.help_text_totp or '' }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="help_image_totp" class="form-label">Help Image</label>
+                            {% if broker.help_image_totp %}
+                            <div class="mb-2">
+                                <img src="{{ broker.help_image_totp }}" class="img-thumbnail" style="max-width: 200px;">
+                            </div>
+                            {% endif %}
+                            <input type="file" class="form-control" id="help_image_totp" name="help_image_totp" accept="image/*">
+                            <small class="text-muted">Or enter URL:</small>
+                            <input type="text" class="form-control mt-1" name="help_image_totp_url" placeholder="https://...">
+                        </div>
+                        <div class="mb-3">
+                            <label for="video_totp_url" class="form-label">Video URL</label>
+                            <input type="url" class="form-control" id="video_totp_url" name="video_totp_url" value="{{ broker.video_totp_url or '' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">Vendor Code Help</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="help_text_vendor_code" class="form-label">Help Text</label>
+                            <textarea class="form-control" id="help_text_vendor_code" name="help_text_vendor_code" rows="2">{{ broker.help_text_vendor_code or '' }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="help_image_vendor_code" class="form-label">Help Image</label>
+                            {% if broker.help_image_vendor_code %}
+                            <div class="mb-2">
+                                <img src="{{ broker.help_image_vendor_code }}" class="img-thumbnail" style="max-width: 200px;">
+                            </div>
+                            {% endif %}
+                            <input type="file" class="form-control" id="help_image_vendor_code" name="help_image_vendor_code" accept="image/*">
+                            <small class="text-muted">Or enter URL:</small>
+                            <input type="text" class="form-control mt-1" name="help_image_vendor_code_url" placeholder="https://...">
+                        </div>
+                        <div class="mb-3">
+                            <label for="video_vendor_code_url" class="form-label">Video URL</label>
+                            <input type="url" class="form-control" id="video_vendor_code_url" name="video_vendor_code_url" value="{{ broker.video_vendor_code_url or '' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">IMEI Help</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="help_text_imei" class="form-label">Help Text</label>
+                            <textarea class="form-control" id="help_text_imei" name="help_text_imei" rows="2">{{ broker.help_text_imei or '' }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="help_image_imei" class="form-label">Help Image</label>
+                            {% if broker.help_image_imei %}
+                            <div class="mb-2">
+                                <img src="{{ broker.help_image_imei }}" class="img-thumbnail" style="max-width: 200px;">
+                            </div>
+                            {% endif %}
+                            <input type="file" class="form-control" id="help_image_imei" name="help_image_imei" accept="image/*">
+                            <small class="text-muted">Or enter URL:</small>
+                            <input type="text" class="form-control mt-1" name="help_image_imei_url" placeholder="https://...">
+                        </div>
+                        <div class="mb-3">
+                            <label for="video_imei_url" class="form-label">Video URL</label>
+                            <input type="url" class="form-control" id="video_imei_url" name="video_imei_url" value="{{ broker.video_imei_url or '' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">Mobile Help</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="help_text_mobile" class="form-label">Help Text</label>
+                            <textarea class="form-control" id="help_text_mobile" name="help_text_mobile" rows="2">{{ broker.help_text_mobile or '' }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="help_image_mobile" class="form-label">Help Image</label>
+                            {% if broker.help_image_mobile %}
+                            <div class="mb-2">
+                                <img src="{{ broker.help_image_mobile }}" class="img-thumbnail" style="max-width: 200px;">
+                            </div>
+                            {% endif %}
+                            <input type="file" class="form-control" id="help_image_mobile" name="help_image_mobile" accept="image/*">
+                            <small class="text-muted">Or enter URL:</small>
+                            <input type="text" class="form-control mt-1" name="help_image_mobile_url" placeholder="https://...">
+                        </div>
+                        <div class="mb-3">
+                            <label for="video_mobile_url" class="form-label">Video URL</label>
+                            <input type="url" class="form-control" id="video_mobile_url" name="video_mobile_url" value="{{ broker.video_mobile_url or '' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">Access Token Help</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="help_text_access_token" class="form-label">Help Text</label>
+                            <textarea class="form-control" id="help_text_access_token" name="help_text_access_token" rows="2">{{ broker.help_text_access_token or '' }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="help_image_access_token" class="form-label">Help Image</label>
+                            {% if broker.help_image_access_token %}
+                            <div class="mb-2">
+                                <img src="{{ broker.help_image_access_token }}" class="img-thumbnail" style="max-width: 200px;">
+                            </div>
+                            {% endif %}
+                            <input type="file" class="form-control" id="help_image_access_token" name="help_image_access_token" accept="image/*">
+                            <small class="text-muted">Or enter URL:</small>
+                            <input type="text" class="form-control mt-1" name="help_image_access_token_url" placeholder="https://...">
+                        </div>
+                        <div class="mb-3">
+                            <label for="video_access_token_url" class="form-label">Video URL</label>
+                            <input type="url" class="form-control" id="video_access_token_url" name="video_access_token_url" value="{{ broker.video_access_token_url or '' }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
+                           {% if broker.is_active %}checked{% endif %}>
+                    <label class="form-check-label" for="is_active">Active</label>
+                    <small class="text-muted d-block">If unchecked, this broker will not be available to users.</small>
+                </div>
+            </div>
+
+            <!-- Static IP Whitelist Video -->
+            <div class="card mb-3 border-success">
+                <div class="card-header bg-success bg-opacity-10 text-success fw-semibold">
+                    <i class="fas fa-shield-alt me-1"></i> Static IP Whitelist Video
+                </div>
+                <div class="card-body">
+                    <div class="mb-0">
+                        <label for="video_static_ip_url" class="form-label">Video URL (YouTube / GDrive)</label>
+                        <input type="url" class="form-control" id="video_static_ip_url" name="video_static_ip_url"
+                               value="{{ broker.video_static_ip_url or '' }}"
+                               placeholder="https://youtu.be/... (how to whitelist static IP on this broker's portal)">
+                        <div class="form-text">Shown to clients on their dashboard after their static IP is assigned — broker-specific tutorial.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{{ url_for('admin_supported_brokers') }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                <button type="submit" class="btn btn-primary">Update Broker Type</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

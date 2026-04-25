@@ -1,0 +1,162 @@
+{% extends "layout.html" %}
+
+{% block title %}Add Broker (Admin){% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col d-flex justify-content-between align-items-center">
+    <h2>Add Broker for {{ user.username }}</h2>
+    <a href="{{ url_for('admin_view_user', user_id=user.id) }}" class="btn btn-outline-primary">
+      <i class="fas fa-arrow-left me-1"></i> Back to User
+    </a>
+  </div>
+</div>
+
+<div class="card shadow">
+  <div class="card-header">
+    <h5 class="mb-0">Broker Details</h5>
+  </div>
+  <div class="card-body">
+    {% if max_brokers_reached %}
+      <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        Broker limit reached ({{ max_brokers_allowed }}). You cannot add more brokers for this user.
+      </div>
+    {% elif not current_plan %}
+      <div class="alert alert-warning">
+        <i class="fas fa-info-circle me-2"></i>
+        This user has no active subscription. Please add/activate a subscription first.
+      </div>
+    {% else %}
+    <form method="POST" action="{{ url_for('admin_create_user_broker', user_id=user.id) }}">
+      <div class="mb-4">
+        <label class="form-label">Select Broker</label>
+        <select class="form-select" id="broker_name" name="broker_name" required>
+          <option value="">-- Select Broker --</option>
+          {% for b in brokers %}
+            <option value="{{ b.name }}">{{ b.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">User ID / Client ID</label>
+        <input type="text" class="form-control" name="user_id_broker" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <div class="input-group">
+          <input type="password" class="form-control" id="password" name="password" required>
+          <button type="button" class="btn btn-outline-secondary toggle-password" data-target="#password"><i class="fas fa-eye"></i></button>
+        </div>
+      </div>
+
+      {# Dynamic fields per broker #}
+      {% for b in brokers %}
+      <div class="broker-fields d-none" data-broker="{{ b.name }}">
+        <h6 class="text-muted mb-2">{{ b.name }} specific</h6>
+        {% if b.requires_totp %}
+        <div class="mb-3">
+          <label class="form-label">TOTP Secret</label>
+          <div class="input-group">
+            <input type="password" class="form-control" id="totp_secret_{{ b.name|replace(' ', '_')|lower }}" name="totp_secret" {% if b.requires_totp %}required{% endif %}>
+            <button type="button" class="btn btn-outline-secondary toggle-password" data-target="#totp_secret_{{ b.name|replace(' ', '_')|lower }}"><i class="fas fa-eye"></i></button>
+          </div>
+        </div>
+        {% endif %}
+        {% if b.requires_api_key %}
+        <div class="mb-3">
+          <label class="form-label">API Key</label>
+          <div class="input-group">
+            <input type="password" class="form-control" id="api_key_{{ b.name|replace(' ', '_')|lower }}" name="api_key" {% if b.requires_api_key %}required{% endif %}>
+            <button type="button" class="btn btn-outline-secondary toggle-password" data-target="#api_key_{{ b.name|replace(' ', '_')|lower }}"><i class="fas fa-eye"></i></button>
+          </div>
+        </div>
+        {% endif %}
+        {% if b.requires_api_secret %}
+        <div class="mb-3">
+          <label class="form-label">API Secret</label>
+          <div class="input-group">
+            <input type="password" class="form-control" id="api_secret_{{ b.name|replace(' ', '_')|lower }}" name="api_secret" {% if b.requires_api_secret %}required{% endif %}>
+            <button type="button" class="btn btn-outline-secondary toggle-password" data-target="#api_secret_{{ b.name|replace(' ', '_')|lower }}"><i class="fas fa-eye"></i></button>
+          </div>
+        </div>
+        {% endif %}
+        {% if b.requires_vendor_code %}
+        <div class="mb-3">
+          <label class="form-label">Vendor Code</label>
+          <div class="input-group">
+            <input type="password" class="form-control" id="vendor_code_{{ b.name|replace(' ', '_')|lower }}" name="vendor_code" {% if b.requires_vendor_code %}required{% endif %}>
+            <button type="button" class="btn btn-outline-secondary toggle-password" data-target="#vendor_code_{{ b.name|replace(' ', '_')|lower }}"><i class="fas fa-eye"></i></button>
+          </div>
+        </div>
+        {% endif %}
+        {% if b.requires_imei %}
+        <div class="mb-3">
+          <label class="form-label">IMEI</label>
+          <div class="input-group">
+            <input type="password" class="form-control" id="imei_{{ b.name|replace(' ', '_')|lower }}" name="imei" {% if b.requires_imei %}required{% endif %}>
+            <button type="button" class="btn btn-outline-secondary toggle-password" data-target="#imei_{{ b.name|replace(' ', '_')|lower }}"><i class="fas fa-eye"></i></button>
+          </div>
+        </div>
+        {% endif %}
+        {% if b.requires_access_token %}
+        <div class="mb-3">
+          <label class="form-label">Access Token</label>
+          <div class="input-group">
+            <input type="password" class="form-control" id="access_token_{{ b.name|replace(' ', '_')|lower }}" name="access_token" {% if b.requires_access_token %}required{% endif %}>
+            <button type="button" class="btn btn-outline-secondary toggle-password" data-target="#access_token_{{ b.name|replace(' ', '_')|lower }}"><i class="fas fa-eye"></i></button>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      <div class="mb-3">
+        <label class="form-label">Broker Username (optional)</label>
+        <input type="text" class="form-control" name="username" placeholder="For HDFC/MStock if needed">
+      </div>
+
+      <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        Algo Investment and subscription fields will be configured automatically from the user's active plan.
+      </div>
+
+      <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+        <a href="{{ url_for('admin_view_user', user_id=user.id) }}" class="btn btn-outline-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary">Add Broker</button>
+      </div>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+{% block additional_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function(){
+    const select = document.getElementById('broker_name');
+    function showFields(name){
+      document.querySelectorAll('.broker-fields').forEach(el => el.classList.add('d-none'));
+      if(!name) return;
+      const el = document.querySelector('.broker-fields[data-broker="'+name+'"]');
+      if(el) el.classList.remove('d-none');
+    }
+    select.addEventListener('change', e => showFields(e.target.value));
+    showFields(select.value);
+
+    document.querySelectorAll('.toggle-password').forEach(function(button){
+      button.addEventListener('click', function(){
+        const targetId = this.getAttribute('data-target');
+        const input = document.querySelector(targetId);
+        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+        input.setAttribute('type', type);
+        const icon = this.querySelector('i');
+        if (type === 'text') { icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+        else { icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+      });
+    });
+  });
+</script>
+{% endblock %}
+{% endblock %}

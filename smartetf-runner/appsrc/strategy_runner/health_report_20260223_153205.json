@@ -1,0 +1,190 @@
+{
+  "timestamp": "2026-02-23 15:30:45.163988",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 8,
+    "failed": [
+      {
+        "customer_id": "smartetf_user_10015",
+        "broker_name": "ZERODHA",
+        "reason": "no_amount_parsed"
+      }
+    ]
+  },
+  "low_balance_alerts": {
+    "threshold_percent": 20,
+    "alerts": [
+      {
+        "customer_id": "smartetf_user_10001",
+        "broker": "FINVASIA",
+        "balance": 3652.52,
+        "threshold": 5000.0
+      },
+      {
+        "customer_id": "smartetf_user_10016",
+        "broker": "DHAN",
+        "balance": 1.48,
+        "threshold": 1700.0
+      }
+    ]
+  },
+  "session_check": {
+    "status": "PASS",
+    "total_clients": 9,
+    "active_sessions": 7,
+    "failed_sessions": 2,
+    "success_rate": 77.77777777777779,
+    "broker_breakdown": {
+      "FINVASIA": {
+        "active": 5,
+        "failed": 2
+      },
+      "DHAN": {
+        "active": 1,
+        "failed": 0
+      },
+      "ZERODHA": {
+        "active": 1,
+        "failed": 0
+      }
+    },
+    "failed_clients": [
+      {
+        "client_id": "smartetf_user_10005",
+        "broker": "FINVASIA",
+        "error": "Login failed for FN107927: No response from API",
+        "timestamp": "2026-02-23 15:30:48.998904",
+        "email": "mahaviramkt@gmail.com"
+      },
+      {
+        "client_id": "smartetf_user_10008",
+        "broker": "FINVASIA",
+        "error": "Login failed for FN118751: No response from API",
+        "timestamp": "2026-02-23 15:30:49.251868",
+        "email": "mkmk2011@gmail.com"
+      }
+    ],
+    "timestamp": "2026-02-23 15:31:29.363699"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "PASS",
+    "test_url": "https://www.google.com",
+    "page_title": "Google",
+    "test_time_seconds": 5.732076406478882,
+    "timestamp": "2026-02-23 15:32:02.657687"
+  },
+  "overall_status": "CRITICAL",
+  "critical_issues": [
+    "Low session success rate: 77.8%"
+  ],
+  "warnings": [
+    "2 client sessions failed"
+  ],
+  "recommendations": [],
+  "password_resets": [
+    {
+      "customer_id": "smartetf_user_10005",
+      "broker_id": 6,
+      "old_password": "Sanjeev@647",
+      "new_password": "Sanjeev@743",
+      "success": true,
+      "error": null,
+      "verified": true,
+      "balance": 29730.76,
+      "verify_error": null,
+      "updated_client": {
+        "customer_id": "smartetf_user_10005",
+        "username": "Sanjeev",
+        "email": "mahaviramkt@gmail.com",
+        "mobile": "9811139032",
+        "user_id": 20,
+        "broker_id": 6,
+        "broker_name": "FINVASIA",
+        "user_id_broker": "FN107927",
+        "password": "Sanjeev@743",
+        "totp_secret": "RUAX4ZEAY3BR7257H224M7D77JYWBRVF",
+        "vendor_code": "FN107927_U",
+        "api_secret": "55c4333dd336027112a55a458c18d8ed",
+        "imei": "abc1234",
+        "api_key": "",
+        "secret_key": null,
+        "token_id": null,
+        "session_token": null,
+        "access_token": "",
+        "username_broker": "",
+        "is_master": false,
+        "copy": true,
+        "copy_multiplier": 1.0,
+        "subscription_id": 9,
+        "subscription_status": "Active",
+        "subscription_expiry": "2026-09-29 00:00:00",
+        "days_until_expiry": 218,
+        "payment_status": "Active",
+        "billing_cycle": "annually",
+        "monthly_sip_target": 100000.0,
+        "sip_target_updated_at": "2026-01-20 11:54:26.804154",
+        "plan_id": 10,
+        "plan_name": "Premium",
+        "max_sip_amount": 200000,
+        "has_copy_trading": true,
+        "max_brokers": 1,
+        "created_at": "2025-10-03 03:31:58.457621",
+        "last_updated": "2025-11-25 09:33:22.847570"
+      }
+    },
+    {
+      "customer_id": "smartetf_user_10008",
+      "broker_id": 10,
+      "old_password": "Mahesh@647",
+      "new_password": "Mkmk2011@743",
+      "success": true,
+      "error": null,
+      "verified": true,
+      "balance": 9143.0,
+      "verify_error": null,
+      "updated_client": {
+        "customer_id": "smartetf_user_10008",
+        "username": "MKMK2011",
+        "email": "mkmk2011@gmail.com",
+        "mobile": "9079529135",
+        "user_id": 25,
+        "broker_id": 10,
+        "broker_name": "FINVASIA",
+        "user_id_broker": "FN118751",
+        "password": "Mkmk2011@743",
+        "totp_secret": "4424D5VF7YK556DN5W7DUS424VTCCT4I",
+        "vendor_code": "FN118751_U",
+        "api_secret": "2deaf35e80ec991a5bfdcd9f5f5a277b",
+        "imei": "abc1234",
+        "api_key": "",
+        "secret_key": null,
+        "token_id": null,
+        "session_token": null,
+        "access_token": "",
+        "username_broker": "",
+        "is_master": false,
+        "copy": true,
+        "copy_multiplier": 1.0,
+        "subscription_id": 15,
+        "subscription_status": "Active",
+        "subscription_expiry": "2026-10-13 00:00:00",
+        "days_until_expiry": 232,
+        "payment_status": "Active",
+        "billing_cycle": "annually",
+        "monthly_sip_target": 20000.0,
+        "sip_target_updated_at": "2025-10-13 06:45:24.740808",
+        "plan_id": 1,
+        "plan_name": "Basic",
+        "max_sip_amount": 20000,
+        "has_copy_trading": true,
+        "max_brokers": 1,
+        "created_at": "2025-10-13 06:38:24.947252",
+        "last_updated": "2025-11-25 09:33:37.888181"
+      }
+    }
+  ]
+}

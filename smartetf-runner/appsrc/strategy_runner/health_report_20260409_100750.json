@@ -1,0 +1,46 @@
+{
+  "timestamp": "2026-04-09 10:07:27.431678",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 1,
+    "failed": []
+  },
+  "low_balance_alerts": {
+    "threshold_percent": 20,
+    "alerts": [
+      {
+        "customer_id": "smartetf_user_10001",
+        "broker": "FINVASIA",
+        "balance": 47.8,
+        "threshold": 5000.0
+      }
+    ]
+  },
+  "session_check": {
+    "status": "PASS",
+    "total_clients": 1,
+    "active_sessions": 1,
+    "failed_sessions": 0,
+    "success_rate": 100.0,
+    "broker_breakdown": {
+      "FINVASIA": {
+        "active": 1,
+        "failed": 0
+      }
+    },
+    "failed_clients": [],
+    "timestamp": "2026-04-09 10:07:42.122265"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "N/A",
+    "note": "Selenium removed \u2014 pure API login"
+  },
+  "overall_status": "HEALTHY",
+  "critical_issues": [],
+  "warnings": [],
+  "recommendations": []
+}

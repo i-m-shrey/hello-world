@@ -1,0 +1,191 @@
+{
+  "timestamp": "2026-04-01 14:04:41.500630",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 2,
+    "failed": []
+  },
+  "low_balance_alerts": {
+    "threshold_percent": 20,
+    "alerts": [
+      {
+        "customer_id": "smartetf_user_10015",
+        "broker": "ZERODHA",
+        "balance": 59.1,
+        "threshold": 1600.0
+      },
+      {
+        "customer_id": "smartetf_user_10023",
+        "broker": "Groww",
+        "balance": 0.0,
+        "threshold": 1600.0
+      }
+    ]
+  },
+  "session_check": {
+    "status": "PASS",
+    "total_clients": 9,
+    "active_sessions": 1,
+    "failed_sessions": 8,
+    "success_rate": 11.11111111111111,
+    "broker_breakdown": {
+      "ZERODHA": {
+        "active": 1,
+        "failed": 0
+      },
+      "FINVASIA": {
+        "active": 0,
+        "failed": 7
+      },
+      "Groww": {
+        "active": 0,
+        "failed": 1
+      }
+    },
+    "failed_clients": [
+      {
+        "client_id": "smartetf_user_10001",
+        "broker": "FINVASIA",
+        "error": "Expecting value: line 1 column 1 (char 0)",
+        "timestamp": "2026-04-01 14:04:43.147541",
+        "email": "coolshrey2000@gmail.com"
+      },
+      {
+        "client_id": "smartetf_user_10005",
+        "broker": "FINVASIA",
+        "error": "Expecting value: line 1 column 1 (char 0)",
+        "timestamp": "2026-04-01 14:04:43.258673",
+        "email": "mahaviramkt@gmail.com"
+      },
+      {
+        "client_id": "smartetf_user_10006",
+        "broker": "FINVASIA",
+        "error": "Expecting value: line 1 column 1 (char 0)",
+        "timestamp": "2026-04-01 14:04:43.371699",
+        "email": "care.mhrc@gmail.com"
+      },
+      {
+        "client_id": "smartetf_user_10008",
+        "broker": "FINVASIA",
+        "error": "Expecting value: line 1 column 1 (char 0)",
+        "timestamp": "2026-04-01 14:04:43.488209",
+        "email": "mkmk2011@gmail.com"
+      },
+      {
+        "client_id": "smartetf_user_10010",
+        "broker": "FINVASIA",
+        "error": "Expecting value: line 1 column 1 (char 0)",
+        "timestamp": "2026-04-01 14:04:43.593269",
+        "email": "jasneetsaliya31@gmail.com"
+      },
+      {
+        "client_id": "smartetf_user_10017",
+        "broker": "FINVASIA",
+        "error": "Expecting value: line 1 column 1 (char 0)",
+        "timestamp": "2026-04-01 14:04:43.703192",
+        "email": "meenudewani262@gmail.com"
+      },
+      {
+        "client_id": "smartetf_user_10019",
+        "broker": "FINVASIA",
+        "error": "Expecting value: line 1 column 1 (char 0)",
+        "timestamp": "2026-04-01 14:04:43.816076",
+        "email": "menghranisbankmssg@gmail.com"
+      },
+      {
+        "client_id": "smartetf_user_10023",
+        "broker": "Groww",
+        "error": "Broker Groww not yet supported",
+        "timestamp": "2026-04-01 14:04:45.148180",
+        "email": "b7puxzusc3i0@melbourne.edu.pl"
+      }
+    ],
+    "timestamp": "2026-04-01 14:04:45.148180"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "PASS",
+    "test_url": "https://www.google.com",
+    "page_title": "Google",
+    "test_time_seconds": 6.195192575454712,
+    "timestamp": "2026-04-01 14:05:15.948375"
+  },
+  "overall_status": "CRITICAL",
+  "critical_issues": [
+    "Low session success rate: 11.1%"
+  ],
+  "warnings": [
+    "8 client sessions failed"
+  ],
+  "recommendations": [],
+  "password_reset_failures": [
+    {
+      "customer_id": "smartetf_user_10001",
+      "broker_id": 5,
+      "old_password": "Shrey@913",
+      "new_password": "Shrey@913",
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)",
+      "verified": false,
+      "balance": null,
+      "verify_error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "customer_id": "smartetf_user_10005",
+      "broker_id": 6,
+      "old_password": "Sanjeev@743",
+      "new_password": "Sanjeev@743",
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)",
+      "verified": false,
+      "balance": null,
+      "verify_error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "customer_id": "smartetf_user_10006",
+      "broker_id": 8,
+      "old_password": "Chandra@911",
+      "new_password": "Chandra@945",
+      "success": false,
+      "error": "change_or_verify_failed"
+    },
+    {
+      "customer_id": "smartetf_user_10008",
+      "broker_id": 10,
+      "old_password": "Mkmk2011@743",
+      "new_password": "Mahesh@743",
+      "success": false,
+      "error": "change_or_verify_failed"
+    },
+    {
+      "customer_id": "smartetf_user_10010",
+      "broker_id": 11,
+      "old_password": "Jasneet@913",
+      "new_password": "Jasneet@913",
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)",
+      "verified": false,
+      "balance": null,
+      "verify_error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "customer_id": "smartetf_user_10017",
+      "broker_id": 36,
+      "old_password": "Meenu@12345",
+      "new_password": "Meenu@654",
+      "success": false,
+      "error": "change_or_verify_failed"
+    },
+    {
+      "customer_id": "smartetf_user_10019",
+      "broker_id": 37,
+      "old_password": "Rajesh@321",
+      "new_password": "Rajesh@525",
+      "success": false,
+      "error": "change_or_verify_failed"
+    }
+  ]
+}

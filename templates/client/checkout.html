@@ -1,0 +1,353 @@
+{% extends "layout.html" %}
+
+{% block title %}Checkout - SmartETF{% endblock %}
+
+{% block additional_styles %}
+<style>
+:root { --p:#6D28D9; --p2:#9333EA; --p3:#EC4899; --ok:#059669; --cr:1.2rem; --sh:0 4px 20px rgba(109,40,217,.10); }
+
+/* Page header */
+.pg-header {
+  background: linear-gradient(135deg, var(--p) 0%, var(--p2) 55%, var(--p3) 100%);
+  border-radius: var(--cr);
+  padding: 1.75rem 1.75rem 1.5rem;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.pg-header::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 80% 20%, rgba(255,255,255,.12) 0%, transparent 60%);
+  pointer-events: none;
+}
+.pg-header h2 { color: #fff; font-weight: 800; font-size: 1.6rem; margin: 0; letter-spacing: -.02em; }
+.pg-header .btn-back {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.35);
+  color: #fff; padding: .5rem 1.1rem; border-radius: 2rem;
+  font-size: .875rem; font-weight: 600; text-decoration: none;
+  transition: background .2s; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.pg-header .btn-back:hover { background: rgba(255,255,255,.32); color: #fff; }
+
+/* Cards */
+.scard {
+  background: #fff; border-radius: var(--cr);
+  box-shadow: var(--sh); overflow: hidden; margin-bottom: 1.5rem; border: none;
+}
+.scard-head {
+  padding: 1.1rem 1.5rem; font-size: 1rem; font-weight: 700; color: #1e1b4b;
+  border-bottom: 1px solid #F3F4F6; display: flex; align-items: center; gap: .5rem;
+}
+.scard-head i { color: var(--p); }
+.scard-head.gradient { background: linear-gradient(135deg, var(--p), var(--p2)); color: #fff; }
+.scard-head.gradient i { color: rgba(255,255,255,.8); }
+.scard-body { padding: 1.5rem; }
+
+/* Order summary */
+.plan-badge {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: #EDE9FE; color: var(--p);
+  padding: .3rem .85rem; border-radius: 2rem; font-size: .8rem; font-weight: 700;
+}
+.feat-list { list-style: none; padding: 0; margin: 0; }
+.feat-list li { display: flex; align-items: flex-start; gap: .65rem; padding: .45rem 0; border-bottom: 1px solid #F9FAFB; font-size: .85rem; color: #374151; }
+.feat-list li:last-child { border-bottom: none; }
+.feat-list .fi { width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; background: #D1FAE5; color: var(--ok); }
+.feat-list .fi i { font-size: .55rem; }
+
+/* Info blocks */
+.info-block {
+  display: flex; gap: .75rem; align-items: flex-start;
+  border-radius: .875rem; padding: .85rem 1rem; margin-bottom: .75rem; font-size: .875rem;
+}
+.info-block.purple { background: #F5F3FF; border: 1px solid #DDD6FE; }
+.info-block.blue   { background: #EFF6FF; border: 1px solid #BFDBFE; }
+.info-block.amber  { background: #FFFBEB; border: 1px solid #FDE68A; }
+.info-block.green  { background: #ECFDF5; border: 1px solid #A7F3D0; }
+.info-block .ib-icon { font-size: 1rem; margin-top: .1rem; flex-shrink: 0; }
+.info-block p { margin: 0; color: #374151; }
+
+/* Price rows */
+.price-row-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: .5rem 0; font-size: .9rem;
+}
+.price-total {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: .9rem 0; border-top: 2px solid #F3F4F6; border-bottom: 2px solid #F3F4F6; margin: .5rem 0;
+  font-weight: 700; font-size: 1.05rem; color: #1e1b4b;
+}
+.price-total span:last-child { color: var(--p); font-size: 1.15rem; }
+
+/* Billing info */
+.billing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem 1.5rem; }
+.billing-item { font-size: .875rem; padding: .35rem 0; }
+.billing-item .label { color: #9CA3AF; font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .1rem; }
+.billing-item .value { color: #1e1b4b; font-weight: 500; }
+
+/* Secure badge */
+.secure-badge {
+  display: flex; align-items: center; gap: 1rem;
+  background: #F5F3FF; border: 1px solid #DDD6FE;
+  border-radius: .875rem; padding: 1rem 1.25rem; margin-bottom: 1.25rem;
+}
+.secure-badge .sb-icon { color: var(--p); font-size: 1.5rem; flex-shrink: 0; }
+
+/* Pay button */
+.btn-pay {
+  display: block; width: 100%; padding: 1rem;
+  background: linear-gradient(135deg, var(--p), var(--p2));
+  color: #fff; font-weight: 700; font-size: 1.1rem;
+  border: none; border-radius: .875rem; cursor: pointer;
+  text-align: center; transition: all .25s;
+  box-shadow: 0 4px 16px rgba(109,40,217,.30);
+}
+.btn-pay:hover { box-shadow: 0 8px 28px rgba(109,40,217,.45); transform: translateY(-2px); }
+.btn-pay:active { transform: translateY(0); }
+
+/* Razorpay logo area */
+.rzp-brand { text-align: center; padding: 1rem 0 .5rem; }
+.rzp-brand img { height: 26px; opacity: .7; }
+.rzp-brand p { font-size: .8rem; color: #9CA3AF; margin: .4rem 0 0; }
+
+/* Error state */
+.error-block {
+  background: #FEF2F2; border: 1px solid #FECACA;
+  border-radius: .875rem; padding: 1.25rem 1.5rem;
+  display: flex; gap: .75rem; align-items: flex-start;
+}
+.error-block .eb-icon { color: #EF4444; font-size: 1.25rem; flex-shrink: 0; }
+.error-block p { margin: 0; color: #7F1D1D; font-size: .9rem; }
+.btn-back-plans {
+  display: block; margin-top: 1.25rem; padding: .8rem;
+  background: transparent; border: 2px solid #E5E7EB;
+  border-radius: .75rem; color: #6B7280; font-weight: 600;
+  text-align: center; text-decoration: none; transition: all .2s;
+}
+.btn-back-plans:hover { border-color: #9CA3AF; color: #374151; }
+
+@media (max-width: 767px) {
+  .pg-header { flex-direction: column; padding: 1.25rem; }
+  .pg-header h2 { font-size: 1.3rem; }
+  .billing-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="pg-header">
+  <h2><i class="fas fa-shopping-cart me-2" style="opacity:.8"></i>Checkout</h2>
+  <a href="{{ url_for('view_plans') }}" class="btn-back">
+    <i class="fas fa-arrow-left"></i> Back to Plans
+  </a>
+</div>
+
+<div class="row g-4">
+
+  <!-- Order Summary (right on desktop, top on mobile) -->
+  <div class="col-md-4 order-md-2">
+    <div class="scard">
+      <div class="scard-head gradient">
+        <i class="fas fa-receipt"></i> Order Summary
+      </div>
+      <div class="scard-body">
+
+        <div class="d-flex justify-content-between align-items-center mb-3 pb-3" style="border-bottom:1px solid #F3F4F6;">
+          <h5 style="font-weight:700;color:#1e1b4b;margin:0;">{{ plan.name }}</h5>
+          <span class="plan-badge"><i class="fas fa-calendar-alt"></i> {{ billing_cycle.title() }}</span>
+        </div>
+
+        <ul class="feat-list mb-3">
+          {% for feature in plan.features.split('\n') %}
+          {% if feature.strip() %}
+          <li>
+            <span class="fi"><i class="fas fa-check"></i></span>
+            {{ feature.strip() }}
+          </li>
+          {% endif %}
+          {% endfor %}
+        </ul>
+
+        {% set current_sub = current_subscription %}
+        {% set queued_subs = get_queued_subscriptions(user.id)|selectattr('plan_id', 'equalto', plan.id)|list %}
+
+        {% if current_sub and current_sub.plan_id == plan.id %}
+        <div class="info-block blue">
+          <div class="ib-icon" style="color:#3B82F6"><i class="fas fa-info-circle"></i></div>
+          <p><strong>Active:</strong> You already have this plan, expiring {{ current_sub.expiry_date|datetime('%d %b, %Y') }}.</p>
+        </div>
+        {% endif %}
+
+        {% if queued_subs %}
+        <div class="info-block amber">
+          <div class="ib-icon" style="color:#D97706"><i class="fas fa-clock"></i></div>
+          <p>
+            <strong>Queued:</strong>
+            <ul class="mb-0 ps-3 mt-1">
+              {% for sub in queued_subs %}
+              <li>{{ sub.start_date|datetime('%d %b, %Y') }} → {{ sub.expiry_date|datetime('%d %b, %Y') }}</li>
+              {% endfor %}
+            </ul>
+          </p>
+        </div>
+        {% endif %}
+
+        {% if current_sub and current_sub.plan_id == plan.id or queued_subs %}
+        <div class="info-block green">
+          <div class="ib-icon" style="color:var(--ok)"><i class="fas fa-calendar-plus"></i></div>
+          <p>
+            <strong>New subscription</strong> starts after
+            {% if queued_subs %}{{ queued_subs[-1].expiry_date|datetime('%d %b, %Y') }}{% else %}{{ current_sub.expiry_date|datetime('%d %b, %Y') }}{% endif %}.
+          </p>
+        </div>
+        {% endif %}
+
+        <div class="price-row-item">
+          <span style="color:#6B7280">Plan Price</span>
+          <span>&#8377;{% if billing_cycle == 'monthly' %}{{ (plan.monthly_price or 0)|round(2) }}{% elif billing_cycle == 'quarterly' %}{{ (plan.quarterly_price or 0)|round(2) }}{% elif billing_cycle == 'half_yearly' %}{{ (plan.half_yearly_price or 0)|round(2) }}{% elif billing_cycle == 'annually' %}{{ (plan.annually_price or 0)|round(2) }}{% else %}{{ (plan.monthly_price or 0)|round(2) }}{% endif %}</span>
+        </div>
+
+        <div class="price-total">
+          <span>Total</span>
+          <span>&#8377;{% if billing_cycle == 'monthly' %}{{ (plan.monthly_price or 0)|round(2) }}{% elif billing_cycle == 'quarterly' %}{{ (plan.quarterly_price or 0)|round(2) }}{% elif billing_cycle == 'half_yearly' %}{{ (plan.half_yearly_price or 0)|round(2) }}{% elif billing_cycle == 'annually' %}{{ (plan.annually_price or 0)|round(2) }}{% else %}{{ (plan.monthly_price or 0)|round(2) }}{% endif %}</span>
+        </div>
+
+        <div class="info-block blue" style="margin-top:.75rem;margin-bottom:0">
+          <div class="ib-icon" style="color:#3B82F6"><i class="fas fa-info-circle"></i></div>
+          <p>Your subscription will be activated immediately upon successful payment.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Details (left on desktop) -->
+  <div class="col-md-8 order-md-1">
+    <div class="scard">
+      <div class="scard-head">
+        <i class="fas fa-credit-card"></i> Payment Details
+      </div>
+      <div class="scard-body">
+        {% if razorpay_order %}
+
+          <div class="secure-badge">
+            <div class="sb-icon"><i class="fas fa-shield-alt"></i></div>
+            <div>
+              <strong style="color:#1e1b4b;">Secure Payment</strong><br>
+              <span style="font-size:.85rem;color:#6B7280;">Your payment will be processed securely through Razorpay, India's trusted payment gateway.</span>
+            </div>
+          </div>
+
+          <h6 style="font-weight:700;color:#1e1b4b;margin-bottom:.875rem;">Billing Information</h6>
+          <div class="billing-grid mb-4">
+            <div class="billing-item">
+              <div class="label">Name</div>
+              <div class="value">{{ user.username }}</div>
+            </div>
+            <div class="billing-item">
+              <div class="label">Email</div>
+              <div class="value">{{ user.email }}</div>
+            </div>
+            <div class="billing-item">
+              <div class="label">Customer ID</div>
+              <div class="value">{{ user.customer_id }}</div>
+            </div>
+            <div class="billing-item">
+              <div class="label">Order ID</div>
+              <div class="value" style="font-size:.8rem;">{{ razorpay_order.id }}</div>
+            </div>
+          </div>
+
+          <div class="rzp-brand">
+            <img src="https://razorpay.com/assets/razorpay-logo.svg" alt="Razorpay">
+            <p>Choose your preferred payment method on the next screen</p>
+          </div>
+
+          <button id="rzp-button" class="btn-pay">
+            <i class="fas fa-lock me-2"></i>
+            Pay &#8377;{% if billing_cycle == 'monthly' %}{{ (plan.monthly_price or 0)|round(2) }}{% elif billing_cycle == 'quarterly' %}{{ (plan.quarterly_price or 0)|round(2) }}{% elif billing_cycle == 'half_yearly' %}{{ (plan.half_yearly_price or 0)|round(2) }}{% elif billing_cycle == 'annually' %}{{ (plan.annually_price or 0)|round(2) }}{% else %}{{ (plan.monthly_price or 0)|round(2) }}{% endif %} Now
+          </button>
+
+        {% else %}
+          <div class="error-block">
+            <div class="eb-icon"><i class="fas fa-exclamation-circle"></i></div>
+            <p><strong>Payment Error</strong><br>Unable to initialize payment. Please try again later or contact support.</p>
+          </div>
+          <a href="{{ url_for('view_plans') }}" class="btn-back-plans">
+            <i class="fas fa-arrow-left me-2"></i>Back to Plans
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% block scripts %}
+{% if razorpay_order %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var options = {
+        "key": "{{ razorpay_key_id }}",
+        "amount": "{{ razorpay_order.amount }}",
+        "currency": "{{ razorpay_order.currency }}",
+        "name": "ETF Trading Portal",
+        "description": "{{ plan.name }} Subscription",
+        "image": "https://your-logo-url.com/logo.png", // Replace with your logo
+        "order_id": "{{ razorpay_order.id }}",
+        "handler": function (response){
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{{ url_for('payment_verify') }}";
+            var fields = {
+                'razorpay_payment_id': response.razorpay_payment_id,
+                'razorpay_order_id': response.razorpay_order_id,
+                'razorpay_signature': response.razorpay_signature
+            };
+            for(var key in fields) {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = fields[key];
+                form.appendChild(input);
+            }
+            document.body.appendChild(form);
+            form.submit();
+        },
+        "prefill": {
+            "name": "{{ user.username }}",
+            "email": "{{ user.email }}",
+            "contact": ""
+        },
+        "notes": {
+            "user_id": "{{ user.id }}",
+            "plan_id": "{{ plan.id }}",
+            "customer_id": "{{ user.customer_id }}"
+        },
+        "theme": {
+            "color": "#6D28D9"
+        },
+        "modal": {
+            "ondismiss": function(){
+                window.location.href = "{{ url_for('payment_cancel') }}";
+            }
+        }
+    };
+    var rzp = new Razorpay(options);
+    document.getElementById('rzp-button').onclick = function(e){
+        rzp.open();
+        e.preventDefault();
+    }
+});
+</script>
+{% endif %}
+{% endblock %}
+{% endblock %}

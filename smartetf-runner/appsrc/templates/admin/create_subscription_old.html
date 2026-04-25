@@ -1,0 +1,233 @@
+{% extends "layout.html" %}
+
+{% block title %}Create Subscription - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+        <h2>Create New Subscription</h2>
+        <a href="{{ url_for('admin_subscriptions') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Subscriptions
+        </a>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header">
+        <h5 class="mb-0">Subscription Details</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('admin_create_subscription') }}">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="user_id" class="form-label">User</label>
+                        <select class="form-select" id="user_id" name="user_id" required>
+                            <option value="">-- Select User --</option>
+                            {% for user in users %}
+                            <option value="{{ user.id }}" {% if preselected_user_id and preselected_user_id == user.id %}selected{% endif %}>
+                                {{ user.username }} ({{ user.email }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="billing_cycle" class="form-label">Billing Cycle</label>
+                        <select class="form-select" id="billing_cycle" name="billing_cycle" required>
+                            <option value="monthly">Monthly</option>
+                            <option value="quarterly">Quarterly</option>
+                            <option value="half_yearly">Half-Yearly</option>
+                            <option value="annually">Annually</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="plan_id" class="form-label">Plan</label>
+<select class="form-select" id="plan_id" name="plan_id" required>
+    <option value="">-- Select Plan --</option>
+</select>
+
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="payment_status" class="form-label">Payment Status</label>
+                        <select class="form-select" id="payment_status" name="payment_status" required>
+                            {% for status in subscription_statuses %}
+                            <option value="{{ status.name }}">{{ status.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="payment_method" class="form-label">Payment Method</label>
+                        <select class="form-select" id="payment_method" name="payment_method" required>
+                            <option value="">-- Select Payment Method --</option>
+                            {% for method in payment_method_types %}
+                            <option value="{{ method }}">{{ method }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="start_date" class="form-label">Start Date</label>
+                        <input type="date" class="form-control" id="start_date" name="start_date"
+                               value="{{ now().strftime('%Y-%m-%d') }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="expiry_date" class="form-label">Expiry Date</label>
+                        <input type="date" class="form-control" id="expiry_date" name="expiry_date" required readonly>
+                        <small class="text-muted">Expiry date is calculated automatically.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">Amount</label>
+                        <div class="input-group">
+                            <span class="input-group-text">₹</span>
+                            <input type="number" step="0.01" class="form-control" id="amount" name="amount" required readonly>
+                        </div>
+                         <small class="text-muted">Amount is calculated automatically.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="payment_id" class="form-label">Payment ID</label>
+                        <input type="text" class="form-control" id="payment_id" name="payment_id"
+                               value="ADM-{{ now().strftime('%Y%m%d%H%M%S') }}" required>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="update_brokers" name="update_brokers" checked>
+                        <label class="form-check-label" for="update_brokers">Update associated broker subscriptions</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                <a href="{{ url_for('admin_subscriptions') }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                <button type="submit" class="btn btn-primary">Create Subscription</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+{# This is the correct place for page-specific JavaScript.
+   Your layout.html must define a 'scripts' block, usually right before the closing </body> tag.
+#}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const billingCycleSelect = document.getElementById("billing_cycle");
+    const amountInput = document.getElementById("amount");
+    const startDateInput = document.getElementById("start_date");
+    const expiryDateInput = document.getElementById("expiry_date");
+    const planSelect = document.getElementById("plan_id");
+
+    // The 'plans_serialized' data passed from your Python backend is used here
+    const plansData = {{ plans_serialized | tojson | safe }};
+
+    /**
+     * Updates the text of each plan in the dropdown to show the
+     * price corresponding to the selected billing cycle.
+     */
+    function updatePlanOptions(selectedCycle) {
+        if (!planSelect) return;
+
+        // Loop through each <option> in the plan dropdown (skip the first '-- Select Plan --' option)
+        for (let i = 1; i < planSelect.options.length; i++) {
+            const option = planSelect.options[i];
+            const planId = parseInt(option.value);
+            const plan = plansData.find(p => p.id === planId);
+
+            if (plan) {
+                let price = 0;
+                switch (selectedCycle) {
+                    case "monthly": price = plan.monthly_price; break;
+                    case "quarterly": price = plan.quarterly_price; break;
+                    case "half_yearly": price = plan.half_yearly_price; break;
+                    case "annually": price = plan.annually_price; break;
+                }
+                // Update the option's display text
+                const priceText = (typeof price === 'number') ? `(₹${price.toLocaleString()})` : '(Price N/A)';
+                option.text = `${plan.name} ${priceText}`;
+            }
+        }
+    }
+
+    /**
+     * Updates the main Amount and Expiry Date fields based on the
+     * currently selected plan and billing cycle.
+     */
+    function updateSubscriptionDetails() {
+        const selectedCycle = billingCycleSelect.value;
+        const selectedPlanId = parseInt(planSelect.value);
+        const plan = plansData.find(p => p.id === selectedPlanId);
+
+        const startDateString = startDateInput.value;
+        const startDate = startDateString ? new Date(startDateString) : new Date();
+
+        // Do nothing if no plan is selected or the start date is invalid
+        if (!plan || !selectedPlanId || isNaN(startDate)) {
+            amountInput.value = "";
+            expiryDateInput.value = "";
+            return;
+        }
+
+        let expiryDate = new Date(startDate);
+        let price = 0;
+
+        switch (selectedCycle) {
+            case "monthly":
+                expiryDate.setMonth(expiryDate.getMonth() + 1);
+                price = plan.monthly_price;
+                break;
+            case "quarterly":
+                expiryDate.setMonth(expiryDate.getMonth() + 3);
+                price = plan.quarterly_price;
+                break;
+            case "half_yearly":
+                expiryDate.setMonth(expiryDate.getMonth() + 6);
+                price = plan.half_yearly_price;
+                break;
+            case "annually":
+                expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+                price = plan.annually_price;
+                break;
+        }
+
+        // Set the final Amount and Expiry Date fields
+        amountInput.value = (typeof price === 'number') ? price.toFixed(2) : "";
+        expiryDateInput.value = expiryDate.toISOString().split('T')[0];
+    }
+
+    // --- Event Listeners ---
+
+    // When the BILLING CYCLE changes:
+    billingCycleSelect.addEventListener("change", function() {
+        // 1. Update the prices displayed in the plan dropdown first.
+        updatePlanOptions(this.value);
+        // 2. Then, update the main subscription details (Amount, Expiry).
+        updateSubscriptionDetails();
+    });
+
+    // When the PLAN selection changes:
+    planSelect.addEventListener("change", updateSubscriptionDetails);
+
+    // When the START DATE changes:
+    startDateInput.addEventListener("change", updateSubscriptionDetails);
+
+    // --- Initial Page Load ---
+    // Update the plan dropdown with the default billing cycle's prices when the page first loads.
+    updatePlanOptions(billingCycleSelect.value);
+
+    // Also update the main details if a user is pre-selected
+    if (planSelect.value) {
+        updateSubscriptionDetails();
+    }
+});
+</script>
+{% endblock %}

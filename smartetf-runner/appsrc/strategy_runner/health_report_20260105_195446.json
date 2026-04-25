@@ -1,0 +1,73 @@
+{
+  "timestamp": "2026-01-05 19:54:00.682622",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 4,
+    "failed": []
+  },
+  "low_balance_alerts": {
+    "threshold_percent": 20,
+    "alerts": [
+      {
+        "customer_id": "smartetf_user_10008",
+        "broker": "FINVASIA",
+        "balance": 0.0,
+        "threshold": 4000.0
+      }
+    ]
+  },
+  "session_check": {
+    "status": "PASS",
+    "total_clients": 6,
+    "active_sessions": 4,
+    "failed_sessions": 2,
+    "success_rate": 66.66666666666666,
+    "broker_breakdown": {
+      "FINVASIA": {
+        "active": 4,
+        "failed": 1
+      },
+      "DHAN": {
+        "active": 0,
+        "failed": 1
+      }
+    },
+    "failed_clients": [
+      {
+        "client_id": "smartetf_user_10006",
+        "broker": "FINVASIA",
+        "error": "Login failed for FN148473: No response from API",
+        "timestamp": "2026-01-05 19:54:05.390510",
+        "email": "care.mhrc@gmail.com"
+      },
+      {
+        "client_id": "smartetf_user_10007",
+        "broker": "DHAN",
+        "error": "Missing mobile number for DHAN token generation. Please update broker details with mobile.",
+        "timestamp": "2026-01-05 19:54:05.911820",
+        "email": "nitimajain91@gmail.com"
+      }
+    ],
+    "password_rotations": [],
+    "timestamp": "2026-01-05 19:54:05.911820"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "PASS",
+    "test_url": "https://www.google.com",
+    "page_title": "Google",
+    "test_time_seconds": 6.142264127731323,
+    "timestamp": "2026-01-05 19:54:21.932934"
+  },
+  "overall_status": "CRITICAL",
+  "critical_issues": [
+    "Low session success rate: 66.7%"
+  ],
+  "warnings": [
+    "2 client sessions failed"
+  ],
+  "recommendations": []
+}

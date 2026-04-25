@@ -1,0 +1,277 @@
+{% extends "layout.html" %}
+
+{% block title %}View Plan - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+        <h2>Plan Details</h2>
+        <div>
+            <a href="{{ url_for('admin_edit_plan', plan_id=plan.id) }}" class="btn btn-primary">
+                <i class="fas fa-edit me-1"></i> Edit Plan
+            </a>
+            <a href="{{ url_for('admin_plans') }}" class="btn btn-outline-primary ms-2">
+                <i class="fas fa-arrow-left me-1"></i> Back to Plans
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Plan Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Plan Name:</div>
+                    <div class="col-md-8">{{ plan.name }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Description:</div>
+                    <div class="col-md-8">{{ plan.description }}</div>
+                </div>
+<!--                <div class="row mb-3">-->
+<!--                    <div class="col-md-4 fw-bold">Duration:</div>-->
+<!--                    <div class="col-md-8">{{ plan.duration }} days</div>-->
+<!--                </div>-->
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Monthly Price:</div>
+                    <div class="col-md-8">₹{{ (plan.monthly_price or 0) | round(2) }}</div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Quarterly Price:</div>
+                    <div class="col-md-8">₹{{ (plan.quarterly_price or 0) | round(2) }}</div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Half-Yearly Price:</div>
+                    <div class="col-md-8">₹{{ (plan.half_yearly_price or 0) | round(2) }}</div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Annually Price:</div>
+                    <div class="col-md-8">₹{{ (plan.annually_price or 0) | round(2) }}</div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Max SIP Amount:</div>
+                    <div class="col-md-8">₹{{ (plan.max_sip_amount or 0) | round(2) }}</div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Status:</div>
+                    <div class="col-md-8">
+                        {% if plan.status == 'Active' %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-danger">Inactive</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Algo Investment:</div>
+                    <div class="col-md-8">
+                        {% if plan.has_copy_trading %}
+                        <span class="badge bg-success">Enabled</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Disabled</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Max Brokers:</div>
+                    <div class="col-md-8">{{ plan.max_brokers }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Created At:</div>
+                    <div class="col-md-8">{{ plan.created_at|datetime('%d %b, %Y %H:%M:%S') }}</div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Features:</div>
+                    <div class="col-md-8">
+                        {% if plan.features %}
+                        <ul class="list-group list-group-flush">
+                            {% for feature in plan.features.split('\n') %}
+                            <li class="list-group-item">{{ feature }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <span class="text-muted">No features specified</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Subscription Stats</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-6 fw-bold">Active:</div>
+                    <div class="col-6">{{ active_subscriptions }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6 fw-bold">Total:</div>
+                    <div class="col-6">{{ total_subscriptions }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6 fw-bold">Revenue:</div>
+                    <div class="col-6">₹{{ "%.2f"|format(total_revenue) }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6 fw-bold">Users:</div>
+                    <div class="col-6">{{ unique_users }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6 fw-bold">Brokers:</div>
+                    <div class="col-6">{{ broker_count }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Preview</h5>
+            </div>
+            <div class="card-body">
+                <div class="plan-card text-center mb-3">
+                    <h3 class="mb-2">{{ plan.name }}</h3>
+                    <div class="price mb-2">₹{{ "%.0f"|format(plan.monthly_price or 0) }}</div>
+<!--                    <div class="duration text-muted mb-3">{{ plan.duration }} days</div>-->
+
+                    {% if plan.features %}
+                    <div class="features text-start">
+                        <ul class="list-unstyled">
+                            {% for feature in plan.features.split('\n') %}
+                            <li><i class="fas fa-check text-success me-2"></i> {{ feature }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0">Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('admin_edit_plan', plan_id=plan.id) }}" class="btn btn-outline-primary">
+                        <i class="fas fa-edit me-1"></i> Edit Plan
+                    </a>
+
+                    {% if plan.status == 'Active' %}
+                    <a href="{{ url_for('admin_toggle_plan_status', plan_id=plan.id) }}" class="btn btn-outline-warning">
+                        <i class="fas fa-ban me-1"></i> Deactivate Plan
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('admin_toggle_plan_status', plan_id=plan.id) }}" class="btn btn-outline-success">
+                        <i class="fas fa-check-circle me-1"></i> Activate Plan
+                    </a>
+                    {% endif %}
+
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deletePlanModal">
+                        <i class="fas fa-trash me-1"></i> Delete Plan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Subscriptions -->
+<div class="row mt-4">
+    <div class="col">
+        <div class="card shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Subscriptions</h5>
+                <a href="{{ url_for('admin_subscriptions') }}?plan_id={{ plan.id }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-external-link-alt me-1"></i> View All
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_subscriptions %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Start Date</th>
+                            <th>Expiry Date</th>
+                            <th>Status</th>
+                            <th>Amount</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for subscription in recent_subscriptions %}
+                        <tr>
+                            <td>{{ subscription.user.username }}</td>
+                            <td>{{ subscription.start_date|datetime('%d %b, %Y') }}</td>
+                            <td>{{ subscription.expiry_date|datetime('%d %b, %Y') }}</td>
+                            <td>
+                                {% if subscription.payment_status == 'Paid' %}
+                                <span class="badge bg-success">Paid</span>
+                                {% elif subscription.payment_status == 'Pending' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                                {% else %}
+                                <span class="badge bg-danger">{{ subscription.payment_status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>₹{{ "%.2f"|format(subscription.amount) }}</td>
+                            <td>
+                                <a href="{{ url_for('admin_view_subscription', subscription_id=subscription.id) }}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <p class="text-muted">No subscriptions found for this plan</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deletePlanModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete plan <strong>{{ plan.name }}</strong>?</p>
+                {% if total_subscriptions > 0 %}
+                <p class="text-danger">This plan has {{ total_subscriptions }} subscriptions. Deleting it may affect active users.</p>
+                {% else %}
+                <p class="text-danger">This cannot be undone.</p>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('admin_delete_plan', plan_id=plan.id) }}" method="POST">
+                    <button type="submit" class="btn btn-danger">Delete Plan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

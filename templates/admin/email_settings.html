@@ -1,0 +1,221 @@
+{% extends "layout.html" %}
+
+{% block title %}Email Settings - Admin{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2>📧 Email Settings</h2>
+        <p class="text-muted">Configure email provider (Zoho or Gmail) for sending system emails.</p>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'error' else 'warning' }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Email Provider Configuration</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin_email_settings') }}">
+                    
+                    <!-- Provider Selection -->
+                    <div class="mb-4">
+                        <label for="provider" class="form-label fw-bold">Email Provider</label>
+                        <select class="form-select form-select-lg" id="provider" name="provider" onchange="toggleProvider()">
+                            <option value="zoho" {{ 'selected' if settings.provider == 'zoho' else '' }}>
+                                📧 Zoho Mail (support@smartetfalgo.com)
+                            </option>
+                            <option value="gmail" {{ 'selected' if settings.provider == 'gmail' else '' }}>
+                                📧 Gmail (smartetfalgo@gmail.com)
+                            </option>
+                        </select>
+                        <div class="form-text">Select which email service to use for sending all system emails.</div>
+                    </div>
+
+                    <!-- Zoho Settings -->
+                    <div id="zoho-settings" class="provider-settings" style="{{ 'display: block;' if settings.provider == 'zoho' else 'display: none;' }}">
+                        <h5 class="text-primary mb-3">Zoho Mail Settings</h5>
+                        
+                        <div class="mb-3">
+                            <label for="zoho_email" class="form-label">Zoho Email Address</label>
+                            <input type="email" class="form-control" id="zoho_email" name="zoho_email" 
+                                   value="{{ settings.zoho_email }}" placeholder="support@smartetfalgo.com">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="zoho_password" class="form-label">App Password</label>
+                            <input type="password" class="form-control" id="zoho_password" name="zoho_password" 
+                                   value="{{ settings.zoho_password }}" placeholder="Enter Zoho App Password">
+                            <div class="form-text">
+                                <a href="https://accounts.zoho.com/home#security/apppasswords" target="_blank">
+                                    Generate App Password from Zoho
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="zoho_smtp_server" class="form-label">SMTP Server</label>
+                                <input type="text" class="form-control" id="zoho_smtp_server" name="zoho_smtp_server" 
+                                       value="{{ settings.zoho_smtp_server }}" placeholder="smtppro.zoho.in">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="zoho_smtp_port" class="form-label">Port</label>
+                                <select class="form-select" id="zoho_smtp_port" name="zoho_smtp_port">
+                                    <option value="465" {{ 'selected' if settings.zoho_smtp_port == 465 else '' }}>465 (SSL)</option>
+                                    <option value="587" {{ 'selected' if settings.zoho_smtp_port == 587 else '' }}>587 (TLS)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gmail Settings -->
+                    <div id="gmail-settings" class="provider-settings" style="{{ 'display: block;' if settings.provider == 'gmail' else 'display: none;' }}">
+                        <h5 class="text-danger mb-3">Gmail Settings</h5>
+                        
+                        <div class="mb-3">
+                            <label for="gmail_email" class="form-label">Gmail Address</label>
+                            <input type="email" class="form-control" id="gmail_email" name="gmail_email" 
+                                   value="{{ settings.gmail_email }}" placeholder="smartetfalgo@gmail.com">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="gmail_password" class="form-label">App Password</label>
+                            <input type="password" class="form-control" id="gmail_password" name="gmail_password" 
+                                   value="{{ settings.gmail_password }}" placeholder="Enter Gmail App Password">
+                            <div class="form-text">
+                                <a href="https://myaccount.google.com/apppasswords" target="_blank">
+                                    Generate App Password from Google
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="gmail_smtp_server" class="form-label">SMTP Server</label>
+                                <input type="text" class="form-control" id="gmail_smtp_server" name="gmail_smtp_server" 
+                                       value="{{ settings.gmail_smtp_server }}" placeholder="smtp.gmail.com">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="gmail_smtp_port" class="form-label">Port</label>
+                                <select class="form-select" id="gmail_smtp_port" name="gmail_smtp_port">
+                                    <option value="587" {{ 'selected' if settings.gmail_smtp_port == 587 else '' }}>587 (TLS)</option>
+                                    <option value="465" {{ 'selected' if settings.gmail_smtp_port == 465 else '' }}>465 (SSL)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <strong>⚠️ Gmail Limit:</strong> Free Gmail allows only ~100-150 emails/day. 
+                            Zoho allows 200-500 emails/day. For production, we recommend Zoho.
+                        </div>
+                    </div>
+
+                    <!-- Common Settings -->
+                    <hr class="my-4">
+                    <h5 class="mb-3">Common Settings</h5>
+
+                    <div class="mb-3">
+                        <label for="admin_email" class="form-label">Admin Notification Email</label>
+                        <input type="email" class="form-control" id="admin_email" name="admin_email" 
+                               value="{{ settings.admin_email }}" placeholder="admin@smartetfalgo.com">
+                        <div class="form-text">Where to send admin alerts and notifications.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="sender_name" class="form-label">Sender Name</label>
+                        <input type="text" class="form-control" id="sender_name" name="sender_name" 
+                               value="{{ settings.sender_name }}" placeholder="SmartETF Algo">
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save me-2"></i>Save Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Test Email Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">🧪 Test Email</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Send a test email to verify your configuration.</p>
+                <form method="POST" action="{{ url_for('admin_test_email') }}">
+                    <div class="mb-3">
+                        <label for="test_email" class="form-label">Test Email Address</label>
+                        <input type="email" class="form-control" id="test_email" name="test_email" 
+                               placeholder="your-email@example.com" required>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-paper-plane me-2"></i>Send Test Email
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Info Card -->
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">ℹ️ Email Information</h5>
+            </div>
+            <div class="card-body">
+                <h6>Current Provider:</h6>
+                <p class="fw-bold text-{{ 'primary' if settings.provider == 'zoho' else 'danger' }}">
+                    {{ 'Zoho Mail' if settings.provider == 'zoho' else 'Gmail' }}
+                </p>
+                
+                <h6>Sending Email:</h6>
+                <p>{{ settings.zoho_email if settings.provider == 'zoho' else settings.gmail_email }}</p>
+                
+                <hr>
+                
+                <h6>Daily Limits:</h6>
+                <ul class="list-unstyled">
+                    <li>📧 <strong>Zoho:</strong> 200-500 emails/day</li>
+                    <li>📧 <strong>Gmail:</strong> 100-150 emails/day</li>
+                </ul>
+                
+                <div class="alert alert-info mt-3">
+                    <small>
+                        <strong>Tip:</strong> Zoho is recommended for production use due to higher limits.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleProvider() {
+    const provider = document.getElementById('provider').value;
+    const zohoSettings = document.getElementById('zoho-settings');
+    const gmailSettings = document.getElementById('gmail-settings');
+    
+    if (provider === 'zoho') {
+        zohoSettings.style.display = 'block';
+        gmailSettings.style.display = 'none';
+    } else {
+        zohoSettings.style.display = 'none';
+        gmailSettings.style.display = 'block';
+    }
+}
+</script>
+{% endblock %}

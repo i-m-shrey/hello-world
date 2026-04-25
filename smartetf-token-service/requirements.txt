@@ -1,0 +1,6 @@
+flask==3.0.0
+playwright==1.40.0
+selenium==4.15.0
+requests==2.31.0
+pyotp==2.9.0
+kiteconnect==4.2.0

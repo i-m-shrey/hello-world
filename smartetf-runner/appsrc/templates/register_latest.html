@@ -1,0 +1,231 @@
+{% extends "layout.html" %}
+
+{% block title %}Register - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="row">
+<div class="col-md-6 offset-md-3">
+<div class="card shadow">
+<div class="card-header">
+<h4 class="mb-0">Register</h4>
+</div>
+<div class="card-body">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show">
+                                {{ message }}
+                                <button class="btn-close" data-bs-dismiss="alert" type="button"></button>
+</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form id="registerForm" method="POST">
+<div class="mb-3">
+<label class="form-label" for="username">Username</label>
+<input class="form-control" id="username" name="username" required="" type="text"/>
+</div>
+<div class="mb-3">
+<label class="form-label" for="email">Email</label>
+<input class="form-control" id="email" name="email" required="" type="email"/>
+    <div class="mb-1" id="email-feedback" style="font-size: 0.9rem;"></div>
+<small class="text-muted">Your email must be unique and will be used for account verification.</small>
+</div>
+
+<div class="mb-3">
+<label class="form-label" for="full_name">Full Name</label>
+<input class="form-control" id="full_name" name="full_name" required="" type="text"/>
+</div>
+<div class="mb-3">
+<label class="form-label" for="address">Address</label>
+<textarea class="form-control" id="address" name="address" required="" rows="2"></textarea>
+</div>
+<div class="mb-3">
+<label class="form-label" for="state">State</label>
+<input class="form-control" id="state" name="state" required="" type="text"/>
+</div>
+<div class="mb-3">
+<label class="form-label" for="city">City</label>
+<input class="form-control" id="city" name="city" required="" type="text"/>
+</div>
+<div class="mb-3">
+<label class="form-label" for="pin">PIN Code</label>
+<input class="form-control" id="pin" maxlength="6" name="pin" pattern="\d{6}" required="" type="text"/>
+</div>
+<div class="mb-3">
+<label class="form-label" for="mobile">Mobile Number</label>
+<div class="input-group">
+<span class="input-group-text">+91</span>
+<input class="form-control" id="mobile" maxlength="10" name="mobile" pattern="[0-9]{10}" placeholder="10-digit mobile number" required="" type="tel"/>
+</div>
+<small class="text-muted">Enter a 10-digit mobile number without country code.</small>
+</div>
+<div class="mb-3">
+<label class="form-label" for="password">Password</label>
+<input class="form-control" id="password" name="password" required="" type="password"/>
+</div>
+<div class="mb-3">
+<label class="form-label" for="confirm_password">Confirm Password</label>
+<input class="form-control" id="confirm_password" name="confirm_password" required="" type="password"/>
+</div>
+<div class="mb-3 form-check">
+<input class="form-check-input" id="terms_agree" name="terms_agree" required="" type="checkbox"/>
+<label class="form-check-label" for="terms_agree">
+                            I agree to the <a class="text-decoration-none" href="#">Terms &amp; Conditions</a> and <a class="text-decoration-none" href="#">Privacy Policy</a>
+</label>
+</div>
+<div class="d-grid">
+<button class="btn btn-primary" id="registerButton" type="submit" disabled>Register</button>
+</div>
+</form>
+<div class="mt-3 text-center">
+<small>Already have an account? <a href="{{ url_for('login') }}">Login</a></small>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const registerForm = document.getElementById('registerForm');
+    const passwordField = document.getElementById('password');
+    const confirmField = document.getElementById('confirm_password');
+    const mobileField = document.getElementById('mobile');
+
+    // Mobile validation - numbers only
+    mobileField.addEventListener('input', function(e) {
+        this.value = this.value.replace(/\D/g, '');
+    });
+
+    // Form validation
+    registerForm.addEventListener('submit', function(e) {
+        // Check password match
+        if (passwordField.value !== confirmField.value) {
+            e.preventDefault();
+            alert('Passwords do not match');
+            confirmField.focus();
+            return false;
+        }
+
+        // Check mobile format
+        if (mobileField.value.length !== 10) {
+            e.preventDefault();
+            alert('Please enter a valid 10-digit mobile number');
+            mobileField.focus();
+            return false;
+        }
+
+        
+        const pinField = document.getElementById('pin');
+        if (pinField.value.length !== 6 || !/^[0-9]{6}$/.test(pinField.value)) {
+            e.preventDefault();
+            alert('Please enter a valid 6-digit PIN code');
+            pinField.focus();
+            return false;
+        }
+    
+        return true;
+    });
+});
+</script>
+<script>
+const emailField = document.getElementById('email');
+const feedback = document.getElementById('email-feedback');
+
+emailField.addEventListener('input', function () {
+    const email = this.value;
+    if (!email.includes("@") || email.length < 5) {
+        feedback.textContent = "";
+        return;
+    }
+
+    fetch("/api/check_email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.exists) {
+            feedback.textContent = "❌ Email already in use";
+            feedback.style.color = "red";
+        } else {
+            feedback.textContent = "✅ Email available";
+            feedback.style.color = "green";
+        }
+    });
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const registerButton = document.getElementById('registerButton');
+    const emailField = document.getElementById('email');
+    const usernameField = document.getElementById('username');
+    const mobileField = document.getElementById('mobile');
+
+    const feedbackEmail = document.getElementById('email-feedback');
+    const feedbackUsername = document.createElement('div');
+    const feedbackMobile = document.createElement('div');
+
+    feedbackUsername.style.fontSize = '0.9rem';
+    feedbackMobile.style.fontSize = '0.9rem';
+
+    usernameField.insertAdjacentElement('afterend', feedbackUsername);
+    mobileField.parentNode.insertAdjacentElement('afterend', feedbackMobile);
+
+    let valid = {
+        email: false,
+        username: false,
+        mobile: false
+    };
+
+    function updateButtonState() {
+        registerButton.disabled = !(valid.email && valid.username && valid.mobile);
+    }
+
+    function checkAvailability(field, value, endpoint, feedbackElement, key) {
+        if (value.length < 3) {
+            feedbackElement.textContent = "";
+            valid[key] = false;
+            updateButtonState();
+            return;
+        }
+
+        fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ [field]: value })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.exists) {
+                feedbackElement.textContent = `❌ ${field.charAt(0).toUpperCase() + field.slice(1)} already in use`;
+                feedbackElement.style.color = "red";
+                valid[key] = false;
+            } else {
+                feedbackElement.textContent = `✅ ${field.charAt(0).toUpperCase() + field.slice(1)} available`;
+                feedbackElement.style.color = "green";
+                valid[key] = true;
+            }
+            updateButtonState();
+        });
+    }
+
+    emailField.addEventListener('input', () => {
+        checkAvailability("email", emailField.value, "/api/check_email", feedbackEmail, "email");
+    });
+
+    usernameField.addEventListener('input', () => {
+        checkAvailability("username", usernameField.value, "/api/check_username", feedbackUsername, "username");
+    });
+
+    mobileField.addEventListener('input', () => {
+        checkAvailability("mobile", mobileField.value, "/api/check_mobile", feedbackMobile, "mobile");
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

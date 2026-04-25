@@ -1,0 +1,84 @@
+{
+  "timestamp": "2026-02-22 13:14:23.060405",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 7,
+    "failed": [
+      {
+        "customer_id": "smartetf_user_10015",
+        "broker_name": "ZERODHA",
+        "reason": "no_amount_parsed"
+      }
+    ]
+  },
+  "low_balance_alerts": {
+    "threshold_percent": 20,
+    "alerts": [
+      {
+        "customer_id": "smartetf_user_10001",
+        "broker": "FINVASIA",
+        "balance": 3652.52,
+        "threshold": 5000.0
+      }
+    ]
+  },
+  "session_check": {
+    "status": "PASS",
+    "total_clients": 9,
+    "active_sessions": 8,
+    "failed_sessions": 1,
+    "success_rate": 88.88888888888889,
+    "broker_breakdown": {
+      "FINVASIA": {
+        "active": 6,
+        "failed": 1
+      },
+      "DHAN": {
+        "active": 1,
+        "failed": 0
+      },
+      "ZERODHA": {
+        "active": 1,
+        "failed": 0
+      }
+    },
+    "failed_clients": [
+      {
+        "client_id": "smartetf_user_10019",
+        "broker": "FINVASIA",
+        "error": "Login failed for FN123919: No response from API",
+        "timestamp": "2026-02-22 13:14:29.632256",
+        "email": "menghranisbankmssg@gmail.com"
+      }
+    ],
+    "timestamp": "2026-02-22 13:15:04.181063"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "PASS",
+    "test_url": "https://www.google.com",
+    "page_title": "Google",
+    "test_time_seconds": 101.89285659790039,
+    "timestamp": "2026-02-22 13:17:47.917700"
+  },
+  "overall_status": "HEALTHY",
+  "critical_issues": [],
+  "warnings": [
+    "1 client sessions failed",
+    "ChromeDriver slow response: 101.89 seconds"
+  ],
+  "recommendations": [],
+  "password_reset_failures": [
+    {
+      "customer_id": "smartetf_user_10019",
+      "broker_id": 37,
+      "old_password": "Rajesh@54321",
+      "new_password": "Rajeshmenghrani1978@525",
+      "success": false,
+      "error": "change_or_verify_failed"
+    }
+  ]
+}

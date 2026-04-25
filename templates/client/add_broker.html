@@ -1,0 +1,439 @@
+{% extends "layout.html" %}
+
+{% block title %}Add Broker - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+        <h2>Add New Broker</h2>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header">
+        <h5 class="mb-0">Broker Details</h5>
+    </div>
+    <div class="card-body">
+        {% if max_brokers_reached %}
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                You have reached the maximum number of brokers ({{ current_plan.max_brokers }}) allowed for your plan.
+                <a href="{{ url_for('view_plans') }}">Upgrade your plan</a> to add more brokers.
+            </div>
+        {% else %}
+            <form method="POST" action="/broker/add" id="brokerForm">
+                <div class="mb-4">
+                    <label for="broker_name" class="form-label">Select Broker</label>
+                    <select class="form-select" id="broker_name" name="broker_name" required>
+                        <option value="">-- Select Broker --</option>
+                        {% for broker in brokers %}
+                            <option value="{{ broker.name }}">{{ broker.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">Choose from our list of supported brokers.</small>
+                </div>
+
+                <div id="dynamicFields" style="display: none;">
+                    <h5 class="mb-3" id="brokerTitle">Broker Specific Details</h5>
+
+                    <!-- Client ID or User ID Field (controlled by requires_client_id) -->
+                    <div class="mb-4 broker-field" id="field_user_id_broker" style="display:none;">
+                        <label for="user_id_broker" class="form-label">
+                            Client ID or User ID
+                            <a href="javascript:void(0)" onclick="showHelp('client_id')" class="text-primary small ms-2">
+                                <i class="fas fa-question-circle"></i> How to find?
+                            </a>
+                        </label>
+                        <input type="text" class="form-control" id="user_id_broker" name="user_id_broker"
+                               placeholder="Enter your client ID or user ID">
+                        <small class="text-muted">This is your login ID for the broker's platform.</small>
+                    </div>
+
+                    <!-- Password Field (changes to PIN for DHAN) -->
+                    <div class="mb-4 broker-field" id="field_password" style="display:none;">
+                        <label for="password" class="form-label" id="password_label">
+                            Password
+                            <a href="javascript:void(0)" onclick="showHelp('password')" class="text-primary small ms-2">
+                                <i class="fas fa-question-circle"></i> How to find?
+                            </a>
+                        </label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="password" name="password"
+                                   placeholder="Enter your broker password">
+                            <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('password')">
+                                <i class="fas fa-eye" id="password_icon"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted">Your credentials are securely encrypted.</small>
+                    </div>
+
+                    <!-- Mobile Number Field -->
+                    <div class="mb-3 broker-field" id="field_mobile" style="display:none;">
+                        <label for="mobile" class="form-label">
+                            Mobile Number
+                            <a href="javascript:void(0)" onclick="showHelp('mobile')" class="text-primary small ms-2">
+                                <i class="fas fa-question-circle"></i> How to find?
+                            </a>
+                        </label>
+                        <input type="text" class="form-control" id="mobile" name="mobile"
+                               placeholder="10 digit mobile number">
+                        <small class="text-muted">Your registered mobile number.</small>
+                    </div>
+
+                    <!-- API Key Field -->
+                    <div class="mb-3 broker-field" id="field_api_key" style="display:none;">
+                        <label for="api_key" class="form-label">
+                            API Key
+                            <a href="javascript:void(0)" onclick="showHelp('api_key')" class="text-primary small ms-2">
+                                <i class="fas fa-question-circle"></i> How to find?
+                            </a>
+                        </label>
+                        <input type="text" class="form-control" id="api_key" name="api_key"
+                               placeholder="Enter API key">
+                        <small class="text-muted">API key provided by your broker.</small>
+                    </div>
+
+                    <!-- API Secret Field -->
+                    <div class="mb-3 broker-field" id="field_api_secret" style="display:none;">
+                        <label for="api_secret" class="form-label">
+                            API Secret
+                            <a href="javascript:void(0)" onclick="showHelp('api_secret')" class="text-primary small ms-2">
+                                <i class="fas fa-question-circle"></i> How to find?
+                            </a>
+                        </label>
+                        <input type="text" class="form-control" id="api_secret" name="api_secret"
+                               placeholder="Enter API secret">
+                        <small class="text-muted">API secret provided by your broker.</small>
+                    </div>
+
+                    <!-- TOTP Secret Field -->
+                    <div class="mb-3 broker-field" id="field_totp_secret" style="display:none;">
+                        <label for="totp_secret" class="form-label">
+                            TOTP Secret
+                            <a href="javascript:void(0)" onclick="showHelp('totp')" class="text-primary small ms-2">
+                                <i class="fas fa-question-circle"></i> How to find?
+                            </a>
+                        </label>
+                        <input type="text" class="form-control" id="totp_secret" name="totp_secret"
+                               placeholder="Enter TOTP secret">
+                        <small class="text-muted">The secret key for generating time-based one-time passwords.</small>
+                    </div>
+
+                    <!-- Vendor Code Field -->
+                    <div class="mb-3 broker-field" id="field_vendor_code" style="display:none;">
+                        <label for="vendor_code" class="form-label">
+                            Vendor Code
+                            <a href="javascript:void(0)" onclick="showHelp('vendor_code')" class="text-primary small ms-2">
+                                <i class="fas fa-question-circle"></i> How to find?
+                            </a>
+                        </label>
+                        <input type="text" class="form-control" id="vendor_code" name="vendor_code"
+                               placeholder="Enter vendor code">
+                        <small class="text-muted">Vendor code for API access.</small>
+                    </div>
+
+                    <!-- IMEI Field -->
+                    <div class="mb-3 broker-field" id="field_imei" style="display:none;">
+                        <label for="imei" class="form-label">
+                            IMEI
+                            <a href="javascript:void(0)" onclick="showHelp('imei')" class="text-primary small ms-2">
+                                <i class="fas fa-question-circle"></i> How to find?
+                            </a>
+                        </label>
+                        <input type="text" class="form-control" id="imei" name="imei"
+                               placeholder="Enter IMEI">
+                        <small class="text-muted">IMEI number for mobile authentication.</small>
+                    </div>
+
+                    <!-- Access Token Field -->
+                    <div class="mb-3 broker-field" id="field_access_token" style="display:none;">
+                        <label for="access_token" class="form-label">
+                            Access Token
+                            <a href="javascript:void(0)" onclick="showHelp('access_token')" class="text-primary small ms-2">
+                                <i class="fas fa-question-circle"></i> How to find?
+                            </a>
+                        </label>
+                        <input type="text" class="form-control" id="access_token" name="access_token"
+                               placeholder="Enter access token">
+                        <small class="text-muted">Access token provided by your broker.</small>
+                    </div>
+
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Note:</strong> Your broker details will be securely stored and used only for trading purposes.
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                        <button type="submit" id="addBrokerSubmit" class="btn btn-primary">Add Broker</button>
+                    </div>
+                </div>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Finvasia Gate Modal -->
+<div class="modal fade" id="finvasiaGateModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Finvasia Setup</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Have you opened your Finvasia account?</p>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary" id="finvProceedBtn">Yes, proceed</button>
+                    <a class="btn btn-outline-primary" id="finvOpenAccountBtn" href="#" target="_blank">No, open account</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Help Modal -->
+<div class="modal fade" id="helpModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="helpModalTitle">How to find?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="helpVideoContainer" style="display:none;">
+                    <div class="ratio ratio-16x9">
+                        <iframe id="helpVideoFrame" src="" allowfullscreen></iframe>
+                    </div>
+                </div>
+                <div id="helpTextContainer" style="display:none;">
+                    <p id="helpText"></p>
+                    <img id="helpImage" src="" class="img-fluid mt-3" style="display:none;" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block additional_scripts %}
+<script>
+const brokersData = {{ brokers_serialized|tojson|safe }};
+const helpData = {{ help_map|tojson|safe }} || {};
+window.brokerHelpData = {};
+
+let finvasiaLocked = false;
+let finvGateModal = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    const brokerSelect = document.getElementById('broker_name');
+    const dynamicFields = document.getElementById('dynamicFields');
+    const brokerTitle = document.getElementById('brokerTitle');
+    const form = document.getElementById('brokerForm');
+    const passwordLabel = document.getElementById('password_label');
+    
+    finvGateModal = new bootstrap.Modal(document.getElementById('finvasiaGateModal'));
+    
+    brokerSelect.addEventListener('change', function() {
+        const brokerName = this.value;
+        if (!brokerName) {
+            dynamicFields.style.display = 'none';
+            return;
+        }
+        
+        const broker = brokersData.find(b => b.name === brokerName);
+        if (!broker) return;
+        
+        dynamicFields.style.display = 'block';
+        brokerTitle.textContent = brokerName + ' Specific Details';
+        
+        const brokerUpper = brokerName.toUpperCase();
+        const help = helpData[brokerUpper] || {};
+        window.brokerHelpData = {
+            'client_id': { text: help.help_text_client_id, image: help.help_image_client_id, video: help.video_client_id_url },
+            'password': { text: help.help_text_password, image: help.help_image_password, video: help.video_password_url },
+            'api_key': { text: help.help_text_api_key, image: help.help_image_api_key, video: help.video_api_key_url },
+            'api_secret': { text: help.help_text_api_secret, image: help.help_image_api_secret, video: help.video_api_secret_url },
+            'totp': { text: help.help_text_totp, image: help.help_image_totp, video: help.video_totp_url },
+            'vendor_code': { text: help.help_text_vendor_code, image: help.help_image_vendor_code, video: help.video_vendor_code_url },
+            'imei': { text: help.help_text_imei, image: help.help_image_imei, video: help.video_imei_url },
+            'mobile': { text: help.help_text_mobile, image: help.help_image_mobile, video: help.video_mobile_url },
+            'access_token': { text: help.help_text_access_token, image: help.help_image_access_token, video: help.video_access_token_url }
+        };
+        
+        const pinBrokers = ['DHAN', 'ANGEL', 'ANGELONE', 'ANGLE', 'ANGEL ONE', 'ANGELBROKING'];
+        if (pinBrokers.includes(brokerUpper)) {
+            passwordLabel.innerHTML = 'PIN / MPIN <a href="javascript:void(0)" onclick="showHelp(\'password\')" class="text-primary small ms-2"><i class="fas fa-question-circle"></i> How to find?</a>';
+            document.getElementById('password').placeholder = 'Enter your MPIN (4-6 digit PIN)';
+        } else {
+            passwordLabel.innerHTML = 'Password <a href="javascript:void(0)" onclick="showHelp(\'password\')" class="text-primary small ms-2"><i class="fas fa-question-circle"></i> How to find?</a>';
+            document.getElementById('password').placeholder = 'Enter your broker password';
+        }
+        
+        document.querySelectorAll('.broker-field').forEach(field => {
+            field.style.display = 'none';
+            const input = field.querySelector('input');
+            if (input) {
+                input.removeAttribute('required');
+                input.value = '';
+            }
+        });
+        
+        if (broker.requires_client_id) {
+            showField('user_id_broker', true);
+        }
+        if (broker.requires_password) {
+            showField('password', true);
+        }
+        if (broker.requires_mobile) {
+            showField('mobile', true);
+        }
+        if (broker.requires_api_key) {
+            showField('api_key', true);
+        }
+        if (broker.requires_api_secret) {
+            showField('api_secret', true);
+        }
+        if (broker.requires_totp) {
+            showField('totp_secret', true);
+        }
+        if (broker.requires_vendor_code) {
+            showField('vendor_code', true);
+        }
+        if (broker.requires_imei) {
+            showField('imei', true);
+        }
+        if (broker.requires_access_token) {
+            showField('access_token', true);
+        }
+        
+        if (brokerName.toUpperCase() === 'FINVASIA') {
+            showFinvasiaGate();
+        } else {
+            setFormLocked(false);
+        }
+    });
+    
+    function showField(fieldName, required) {
+        const fieldDiv = document.getElementById('field_' + fieldName);
+        const input = document.getElementById(fieldName);
+        if (fieldDiv && input) {
+            fieldDiv.style.display = 'block';
+            if (required) {
+                input.setAttribute('required', 'required');
+            }
+        }
+    }
+    
+    function setFormLocked(locked) {
+        finvasiaLocked = locked;
+        document.getElementById('addBrokerSubmit').disabled = locked;
+    }
+    
+    function showFinvasiaGate() {
+        const help = helpData['FINVASIA'] || {};
+        const openUrl = help.open_account_url || '';
+        const openBtn = document.getElementById('finvOpenAccountBtn');
+        if (openUrl) {
+            openBtn.href = openUrl;
+            openBtn.classList.remove('disabled');
+        } else {
+            openBtn.href = '#';
+            openBtn.classList.add('disabled');
+        }
+        setFormLocked(true);
+        finvGateModal.show();
+    }
+    
+    document.getElementById('finvProceedBtn').addEventListener('click', function() {
+        finvGateModal.hide();
+        setFormLocked(false);
+    });
+    
+    form.addEventListener('submit', function(e) {
+        if (brokerSelect.value.toUpperCase() === 'FINVASIA' && finvasiaLocked) {
+            e.preventDefault();
+            showFinvasiaGate();
+        } else {
+            const btn = document.getElementById('addBrokerSubmit');
+            btn.disabled = true;
+            btn.innerHTML = "Processing... Please wait";
+        }
+    });
+});
+
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const icon = document.getElementById(fieldId + '_icon');
+    if (field.type === 'password') {
+        field.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        field.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+function showHelp(field) {
+    var helpData = window.brokerHelpData || {};
+    var data = helpData[field] || {};
+    
+    document.getElementById('helpModalTitle').textContent = 'How to find ' + field + '?';
+    
+    if (data.video) {
+        document.getElementById('helpVideoContainer').style.display = 'block';
+        document.getElementById('helpTextContainer').style.display = 'none';
+        document.getElementById('helpVideoFrame').src = toEmbed(data.video);
+    } else if (data.text || data.image) {
+        document.getElementById('helpVideoContainer').style.display = 'none';
+        document.getElementById('helpTextContainer').style.display = 'block';
+        document.getElementById('helpText').textContent = data.text || 'No help text available.';
+        
+        if (data.image) {
+            document.getElementById('helpImage').src = data.image;
+            document.getElementById('helpImage').style.display = 'block';
+        } else {
+            document.getElementById('helpImage').style.display = 'none';
+        }
+    } else {
+        document.getElementById('helpVideoContainer').style.display = 'none';
+        document.getElementById('helpTextContainer').style.display = 'block';
+        document.getElementById('helpText').textContent = 'No help available for this field yet.';
+        document.getElementById('helpImage').style.display = 'none';
+    }
+    
+    new bootstrap.Modal(document.getElementById('helpModal')).show();
+}
+
+function toEmbed(u) {
+    if (!u) return '';
+    u = u.trim();
+    if (u.startsWith('//')) u = 'https:' + u;
+    if (u.startsWith('http://')) u = 'https://' + u.slice(7);
+    try {
+        const url = new URL(u);
+        const h = url.hostname.toLowerCase();
+        if (h.includes('youtu.be')) {
+            const id = url.pathname.split('/').filter(Boolean)[0];
+            if (id) return 'https://www.youtube.com/embed/' + id;
+        }
+        if (h.includes('youtube.com')) {
+            const id = url.searchParams.get('v');
+            if (id) return 'https://www.youtube.com/embed/' + id;
+        }
+        if (h.includes('drive.google.com')) {
+            const m = url.pathname.match(/\/file\/d\/([^/]+)/);
+            if (m && m[1]) return 'https://drive.google.com/file/d/' + m[1] + '/preview';
+        }
+        return u;
+    } catch(e) {
+        return '';
+    }
+}
+</script>
+{% endblock %}
+{% endblock %}

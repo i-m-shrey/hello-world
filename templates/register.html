@@ -1,0 +1,255 @@
+{% extends "layout.html" %}
+
+{% block title %}Register - ETF Trading Portal{% endblock %}
+
+{% block additional_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/validation.css') }}">
+<style>
+    .auth-page {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        padding: 3rem 0;
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.08), rgba(14, 165, 233, 0.08));
+    }
+    .auth-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        box-shadow: 0 24px 50px rgba(15, 23, 42, 0.12);
+        overflow: hidden;
+    }
+    .auth-card-header {
+        background: linear-gradient(135deg, #0f172a, #1d4ed8);
+        color: #fff;
+        padding: 1.8rem 2rem;
+    }
+    .auth-card-body {
+        padding: 2rem;
+        background: #fff;
+    }
+    .auth-side {
+        background: #0f172a;
+        color: #e2e8f0;
+        border-radius: 20px;
+        padding: 2.5rem;
+    }
+    .auth-highlight {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: rgba(14, 165, 233, 0.2);
+        color: #38bdf8;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #1e3a8a, #0ea5e9);
+        border: none;
+        font-weight: 600;
+        padding: 0.6rem 1.5rem;
+    }
+    .form-label {
+        font-weight: 600;
+    }
+    .section-title {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="auth-page">
+    <div class="container">
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-5">
+                <div class="auth-side h-100">
+                    <span class="auth-highlight">SmartETF Client Portal</span>
+                    <h2>Create your SmartETF account</h2>
+                    <p class="mt-3">Set up your profile once, then connect your broker and automate ETF investing across sectors like IT, Infra, Realty, Gold BeES, Silver BeES, and MAFANG.</p>
+                    <ul class="mt-4">
+                        <li>Secure broker-linked automation</li>
+                        <li>Real-time alerts and approvals</li>
+                        <li>Dashboard performance tracking</li>
+                    </ul>
+                    <a href="/" class="btn btn-outline-light mt-3">← Back to homepage</a>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="auth-card">
+                    <div class="auth-card-header">
+                        <h3 class="mb-1">Register for SmartETF</h3>
+                        <p class="mb-0">Start building a long-term ETF portfolio with automation.</p>
+                    </div>
+                    <div class="auth-card-body">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show">
+                                        {{ message }}
+                                        <button class="btn-close" data-bs-dismiss="alert" type="button"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <form id="registerForm" method="POST">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="username">Username</label>
+                                    <input class="form-control" id="username" name="username" required type="text"/>
+                                    <div id="username-feedback" style="font-size: 0.875rem; margin-top: 0.25rem;"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="email">Email</label>
+                                    <input class="form-control" id="email" name="email" required type="email"/>
+                                    <div id="email-feedback" style="font-size: 0.875rem; margin-top: 0.25rem;"></div>
+                                </div>
+                                <div class="col-12">
+                                    <small class="text-muted">Your email must be unique and will be used for account verification.</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="full_name">Full Name</label>
+                                    <input class="form-control" id="full_name" name="full_name" required type="text"/>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="mobile">Mobile Number</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">+91</span>
+                                        <input class="form-control" id="mobile" maxlength="10" name="mobile" placeholder="10-digit mobile number" required type="tel"/>
+                                    </div>
+                                    <div id="mobile-feedback" style="font-size: 0.875rem; margin-top: 0.25rem;"></div>
+                                    <small class="text-muted">Enter a 10-digit mobile number without country code.</small>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" for="address">Address</label>
+                                    <textarea class="form-control" id="address" name="address" required rows="2"></textarea>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="state">State</label>
+                                    <select class="form-select" id="state" name="state" required>
+                                        <option value="">Select State</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="city">City</label>
+                                    <select class="form-select" id="city" name="city" required>
+                                        <option value="">Select City</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="pin">PIN Code</label>
+                                    <input class="form-control" id="pin" maxlength="6" name="pin" required type="text"/>
+                                    <div id="pin-feedback" style="font-size: 0.875rem; margin-top: 0.25rem;"></div>
+                                    <small class="text-muted d-block">6-digit code</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="password">Password</label>
+                                    <input class="form-control" id="password" name="password" required type="password"/>
+                                    <div id="password-feedback" style="font-size: 0.875rem; margin-top: 0.25rem;"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="confirm_password">Confirm Password</label>
+                                    <input class="form-control" id="confirm_password" name="confirm_password" required type="password"/>
+                                    <div id="confirm-password-feedback" style="font-size: 0.875rem; margin-top: 0.25rem;"></div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input class="form-check-input" id="terms_agree" name="terms_agree" required type="checkbox"/>
+                                        <label class="form-check-label" for="terms_agree">
+                                            I agree to the <a class="text-decoration-none" href="#">Terms &amp; Conditions</a> and <a class="text-decoration-none" href="#">Privacy Policy</a>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="d-grid">
+                                        <button class="btn btn-primary" id="registerButton" type="submit">Register</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                        <div class="mt-3 text-center">
+                            <small>Already have an account? <a href="{{ url_for('login') }}">Login</a></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% block scripts %}
+<script>
+// Indian States and Cities Data
+const statesAndCities = {
+    "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Nellore", "Kurnool", "Tirupati", "Rajahmundry", "Kadapa", "Kakinada", "Anantapur"],
+    "Arunachal Pradesh": ["Itanagar", "Naharlagun", "Pasighat", "Tawang", "Ziro", "Bomdila"],
+    "Assam": ["Guwahati", "Silchar", "Dibrugarh", "Jorhat", "Nagaon", "Tinsukia", "Tezpur", "Bongaigaon"],
+    "Bihar": ["Patna", "Gaya", "Bhagalpur", "Muzaffarpur", "Darbhanga", "Purnia", "Arrah", "Bihar Sharif"],
+    "Chhattisgarh": ["Raipur", "Bhilai", "Bilaspur", "Korba", "Durg", "Rajnandgaon", "Jagdalpur", "Raigarh"],
+    "Goa": ["Panaji", "Margao", "Vasco da Gama", "Mapusa", "Ponda"],
+    "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Jamnagar", "Junagadh", "Gandhinagar", "Anand", "Mehsana"],
+    "Haryana": ["Faridabad", "Gurgaon", "Panipat", "Ambala", "Yamunanagar", "Rohtak", "Hisar", "Karnal", "Sonipat", "Panchkula"],
+    "Himachal Pradesh": ["Shimla", "Mandi", "Solan", "Dharamshala", "Kullu", "Manali", "Palampur", "Baddi"],
+    "Jharkhand": ["Ranchi", "Jamshedpur", "Dhanbad", "Bokaro", "Deoghar", "Hazaribagh", "Giridih", "Ramgarh"],
+    "Karnataka": ["Bengaluru", "Mysuru", "Mangaluru", "Hubli", "Belagavi", "Davanagere", "Ballari", "Vijayapura", "Shivamogga", "Tumakuru"],
+    "Kerala": ["Thiruvananthapuram", "Kochi", "Kozhikode", "Thrissur", "Kollam", "Palakkad", "Alappuzha", "Kannur", "Kottayam", "Malappuram"],
+    "Madhya Pradesh": ["Indore", "Bhopal", "Jabalpur", "Gwalior", "Ujjain", "Sagar", "Dewas", "Satna", "Ratlam", "Rewa"],
+    "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Thane", "Nashik", "Aurangabad", "Solapur", "Kolhapur", "Amravati", "Navi Mumbai", "Sangli"],
+    "Manipur": ["Imphal", "Thoubal", "Bishnupur", "Churachandpur"],
+    "Meghalaya": ["Shillong", "Tura", "Nongstoin", "Jowai"],
+    "Mizoram": ["Aizawl", "Lunglei", "Saiha", "Champhai"],
+    "Nagaland": ["Kohima", "Dimapur", "Mokokchung", "Tuensang"],
+    "Odisha": ["Bhubaneswar", "Cuttack", "Rourkela", "Berhampur", "Sambalpur", "Puri", "Balasore", "Bhadrak"],
+    "Punjab": ["Ludhiana", "Amritsar", "Jalandhar", "Patiala", "Bathinda", "Mohali", "Pathankot", "Hoshiarpur", "Moga"],
+    "Rajasthan": ["Jaipur", "Jodhpur", "Kota", "Bikaner", "Ajmer", "Udaipur", "Bhilwara", "Alwar", "Sikar", "Bharatpur"],
+    "Sikkim": ["Gangtok", "Namchi", "Gyalshing", "Mangan"],
+    "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem", "Tirunelveli", "Tiruppur", "Vellore", "Erode", "Thoothukudi"],
+    "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Khammam", "Karimnagar", "Ramagundam", "Mahbubnagar", "Nalgonda"],
+    "Tripura": ["Agartala", "Udaipur", "Dharmanagar", "Kailashahar"],
+    "Uttar Pradesh": ["Lucknow", "Kanpur", "Ghaziabad", "Agra", "Varanasi", "Meerut", "Allahabad", "Bareilly", "Aligarh", "Moradabad", "Noida"],
+    "Uttarakhand": ["Dehradun", "Haridwar", "Roorkee", "Haldwani", "Rudrapur", "Rishikesh", "Nainital"],
+    "West Bengal": ["Kolkata", "Howrah", "Durgapur", "Asansol", "Siliguri", "Bardhaman", "Kharagpur", "Haldia"],
+    "Andaman and Nicobar Islands": ["Port Blair"],
+    "Chandigarh": ["Chandigarh"],
+    "Dadra and Nagar Haveli and Daman and Diu": ["Silvassa", "Daman", "Diu"],
+    "Delhi": ["New Delhi", "Delhi"],
+    "Jammu and Kashmir": ["Srinagar", "Jammu", "Anantnag", "Baramulla", "Udhampur"],
+    "Ladakh": ["Leh", "Kargil"],
+    "Lakshadweep": ["Kavaratti"],
+    "Puducherry": ["Puducherry", "Karaikal", "Mahe", "Yanam"]
+};
+
+// Use the existing registration validation JS
+document.addEventListener('DOMContentLoaded', function() {
+    const stateSelect = document.getElementById('state');
+    const citySelect = document.getElementById('city');
+    
+    // Populate states dropdown
+    Object.keys(statesAndCities).sort().forEach(state => {
+        const option = document.createElement('option');
+        option.value = state;
+        option.textContent = state;
+        stateSelect.appendChild(option);
+    });
+
+    // Update cities when state changes
+    stateSelect.addEventListener('change', function() {
+        const selectedState = this.value;
+        citySelect.innerHTML = '<option value="">Select City</option>';
+        
+        if (selectedState && statesAndCities[selectedState]) {
+            statesAndCities[selectedState].forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                citySelect.appendChild(option);
+            });
+        }
+    });
+});
+</script>
+<script src="{{ url_for('static', filename='js/registration-validation.js') }}"></script>
+{% endblock %}
+{% endblock %}

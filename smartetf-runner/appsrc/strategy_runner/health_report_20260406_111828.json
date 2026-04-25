@@ -1,0 +1,86 @@
+{
+  "timestamp": "2026-04-06 11:09:53.570490",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 1,
+    "failed": [
+      {
+        "customer_id": "smartetf_user_10001",
+        "broker_name": "FINVASIA",
+        "reason": "Expecting value: line 1 column 1 (char 0)"
+      },
+      {
+        "customer_id": "smartetf_user_10005",
+        "broker_name": "FINVASIA",
+        "reason": "Expecting value: line 1 column 1 (char 0)"
+      },
+      {
+        "customer_id": "smartetf_user_10006",
+        "broker_name": "FINVASIA",
+        "reason": "Expecting value: line 1 column 1 (char 0)"
+      },
+      {
+        "customer_id": "smartetf_user_10008",
+        "broker_name": "FINVASIA",
+        "reason": "Expecting value: line 1 column 1 (char 0)"
+      },
+      {
+        "customer_id": "smartetf_user_10010",
+        "broker_name": "FINVASIA",
+        "reason": "Expecting value: line 1 column 1 (char 0)"
+      },
+      {
+        "customer_id": "smartetf_user_10017",
+        "broker_name": "FINVASIA",
+        "reason": "Expecting value: line 1 column 1 (char 0)"
+      },
+      {
+        "customer_id": "smartetf_user_10019",
+        "broker_name": "FINVASIA",
+        "reason": "Expecting value: line 1 column 1 (char 0)"
+      }
+    ]
+  },
+  "low_balance_alerts": {
+    "threshold_percent": 20,
+    "alerts": [
+      {
+        "customer_id": "smartetf_user_10015",
+        "broker": "ZERODHA",
+        "balance": 59.1,
+        "threshold": 1600.0
+      }
+    ]
+  },
+  "session_check": {
+    "status": "PASS",
+    "total_clients": 8,
+    "active_sessions": 8,
+    "failed_sessions": 0,
+    "success_rate": 100.0,
+    "broker_breakdown": {
+      "FINVASIA": {
+        "active": 7,
+        "failed": 0
+      },
+      "ZERODHA": {
+        "active": 1,
+        "failed": 0
+      }
+    },
+    "failed_clients": [],
+    "timestamp": "2026-04-06 11:13:31.322728"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "N/A",
+    "note": "Selenium removed \u2014 pure API login"
+  },
+  "overall_status": "HEALTHY",
+  "critical_issues": [],
+  "warnings": [],
+  "recommendations": []
+}

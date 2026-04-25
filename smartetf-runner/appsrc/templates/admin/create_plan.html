@@ -1,0 +1,169 @@
+{% extends "layout.html" %}
+
+{% block title %}Create Plan - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+        <h2>Create New Plan</h2>
+        <a href="{{ url_for('admin_plans') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Plans
+        </a>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header">
+        <h5 class="mb-0">Plan Details</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('admin_create_plan') }}">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Plan Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="max_sip_amount">Maximum SIP Amount (₹)</label>
+                        <input type="number" class="form-control" id="max_sip_amount" name="max_sip_amount"
+                               min="0" step="100" required>
+                    </div>
+
+
+                    <div class="mb-3">
+                        <label for="monthly_price" class="form-label">Monthly Price (₹)</label>
+                        <input type="number" step="0.01" name="monthly_price" id="monthly_price" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="quarterly_price" class="form-label">Quarterly Price (₹)</label>
+                        <input type="number" step="0.01" name="quarterly_price" id="quarterly_price" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="half_yearly_price" class="form-label">Half-Yearly Price (₹)</label>
+                        <input type="number" step="0.01" name="half_yearly_price" id="half_yearly_price" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="annually_price" class="form-label">Annually Price (₹)</label>
+                        <input type="number" step="0.01" name="annually_price" id="annually_price" class="form-control" required>
+                    </div>
+
+
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="Active" selected>Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" placeholder="Enter plan description here"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="features" class="form-label">Features</label>
+                        <textarea class="form-control" id="features" name="features" rows="5" placeholder="Enter features, one per line">Single broker access
+Basic ETF trading
+Email support</textarea>
+                        <small class="text-muted">Enter each feature on a new line</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="has_copy_trading" name="has_copy_trading">
+                            <label class="form-check-label" for="has_copy_trading">Enable Algo Investment</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="max_brokers" class="form-label">Maximum Brokers Allowed</label>
+                        <input type="number" class="form-control" id="max_brokers" name="max_brokers" min="1" value="1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{{ url_for('admin_plans') }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                <button type="submit" class="btn btn-primary">Create Plan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6 offset-md-3">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0">Plan Preview</h5>
+            </div>
+            <div class="card-body">
+                <div class="plan-card text-center" id="plan-preview">
+                    <h3 class="mb-2" id="preview-name">Plan Name</h3>
+                    <div class="price mb-2" id="preview-price">₹499.00</div>
+<!--                    <div class="duration text-muted mb-3" id="preview-duration">30 days</div>-->
+
+                    <div class="features text-start">
+                        <ul class="list-unstyled" id="preview-features">
+                            <li><i class="fas fa-check text-success me-2"></i> Single broker access</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Basic ETF trading</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Email support</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block additional_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Setup live preview
+        const nameInput = document.getElementById('name');
+<!--        const priceInput = document.getElementById('price');-->
+<!--        const durationInput = document.getElementById('duration');-->
+        const featuresInput = document.getElementById('features');
+
+        const previewName = document.getElementById('preview-name');
+<!--        const previewPrice = document.getElementById('preview-price');-->
+<!--        const previewDuration = document.getElementById('preview-duration');-->
+        const previewFeatures = document.getElementById('preview-features');
+
+        // Update name
+        nameInput.addEventListener('input', function() {
+            previewName.textContent = this.value || 'Plan Name';
+        });
+
+        // Update price
+<!--        priceInput.addEventListener('input', function() {-->
+<!--            previewPrice.textContent = '₹' + (parseFloat(this.value) || 0).toFixed(2);-->
+<!--        });-->
+
+<!--        // Update duration-->
+<!--        durationInput.addEventListener('input', function() {-->
+<!--            previewDuration.textContent = (parseInt(this.value) || 0) + ' days';-->
+<!--        });-->
+
+        // Update features
+        featuresInput.addEventListener('input', function() {
+            const features = this.value.split('\n').filter(feature => feature.trim());
+            let html = '';
+
+            features.forEach(feature => {
+                html += `<li><i class="fas fa-check text-success me-2"></i> ${feature}</li>`;
+            });
+
+            previewFeatures.innerHTML = html;
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

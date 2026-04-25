@@ -1,0 +1,98 @@
+{% extends "layout.html" %}
+
+{% block title %}Payment Cancelled - SmartETF{% endblock %}
+
+{% block additional_styles %}
+<style>
+:root { --p:#6D28D9; --p2:#9333EA; --cr:1.2rem; --sh:0 4px 20px rgba(109,40,217,.10); }
+
+.outcome-wrap {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+.outcome-card {
+  background: #fff;
+  border-radius: 1.5rem;
+  box-shadow: var(--sh);
+  padding: 3rem 2.5rem;
+  text-align: center;
+  max-width: 480px;
+  width: 100%;
+  animation: popIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes popIn {
+  from { opacity: 0; transform: scale(.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.outcome-icon {
+  width: 90px; height: 90px;
+  margin: 0 auto 1.5rem;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #FEE2E2, #FECACA);
+  animation: bounceIn .6s .2s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes bounceIn {
+  from { opacity: 0; transform: scale(.5); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.outcome-icon i { font-size: 2.75rem; color: #EF4444; }
+.outcome-card h1 { font-size: 1.75rem; font-weight: 800; color: #1e1b4b; margin-bottom: .75rem; }
+.outcome-card p { color: #6B7280; font-size: 1rem; margin-bottom: 2rem; line-height: 1.6; }
+
+.notice {
+  background: #FFFBEB; border: 1px solid #FDE68A;
+  border-radius: .875rem; padding: .85rem 1.1rem;
+  font-size: .875rem; color: #92400E; margin-bottom: 1.75rem;
+  display: flex; align-items: center; gap: .5rem;
+}
+
+.btn-primary-grad {
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+  background: linear-gradient(135deg, var(--p), var(--p2));
+  color: #fff; padding: .9rem 1.5rem; border-radius: .875rem;
+  font-weight: 700; font-size: 1rem; text-decoration: none; margin-bottom: .75rem;
+  box-shadow: 0 4px 16px rgba(109,40,217,.28);
+  transition: all .25s;
+}
+.btn-primary-grad:hover { box-shadow: 0 8px 28px rgba(109,40,217,.42); transform: translateY(-2px); color: #fff; }
+.btn-ghost {
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+  background: transparent; color: #6B7280; padding: .85rem 1.5rem;
+  border-radius: .875rem; border: 2px solid #E5E7EB;
+  font-weight: 600; font-size: .95rem; text-decoration: none; transition: all .2s;
+}
+.btn-ghost:hover { border-color: #9CA3AF; color: #374151; }
+
+@media (max-width: 480px) {
+  .outcome-card { padding: 2rem 1.5rem; }
+  .outcome-icon { width: 72px; height: 72px; }
+  .outcome-icon i { font-size: 2.2rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="outcome-wrap">
+  <div class="outcome-card">
+    <div class="outcome-icon">
+      <i class="fas fa-times"></i>
+    </div>
+    <h1>Payment Cancelled</h1>
+    <p>Your payment process was cancelled. No charges have been made to your account.</p>
+    <div class="notice">
+      <i class="fas fa-info-circle"></i>
+      If you faced any issue during payment, please try again or contact support.
+    </div>
+    <a href="{{ url_for('view_plans') }}" class="btn-primary-grad">
+      <i class="fas fa-tags"></i> Return to Plans
+    </a>
+    <a href="{{ url_for('dashboard') }}" class="btn-ghost">
+      <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+    </a>
+  </div>
+</div>
+{% endblock %}

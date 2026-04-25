@@ -1,0 +1,88 @@
+{% extends "layout.html" %}
+
+{% block title %}Add New Broker Type - Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Add New Broker Type</h2>
+    <a href="{{ url_for('admin_supported_brokers') }}" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left me-1"></i> Back to Broker Types
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Broker Details</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label for="name" class="form-label">Broker Name</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+                <small class="text-muted">This is the name that users will see when adding a broker.</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                <small class="text-muted">A brief description of this broker.</small>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Required Fields</label>
+                <div class="row">
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_totp" name="requires_totp">
+                            <label class="form-check-label" for="requires_totp">TOTP Secret</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_api_key" name="requires_api_key">
+                            <label class="form-check-label" for="requires_api_key">API Key</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_api_secret" name="requires_api_secret">
+                            <label class="form-check-label" for="requires_api_secret">API Secret</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_vendor_code" name="requires_vendor_code">
+                            <label class="form-check-label" for="requires_vendor_code">Vendor Code</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_imei" name="requires_imei">
+                            <label class="form-check-label" for="requires_imei">IMEI</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="requires_access_token" name="requires_access_token">
+                            <label class="form-check-label" for="requires_access_token">Access Token</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                    <label class="form-check-label" for="is_active">Active</label>
+                    <small class="text-muted d-block">If unchecked, this broker will not be available to users.</small>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{{ url_for('admin_supported_brokers') }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                <button type="submit" class="btn btn-primary">Add Broker Type</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

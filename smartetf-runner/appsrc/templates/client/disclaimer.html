@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+
+{% block title %}Disclaimer - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Important Disclaimer</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Please read carefully</strong>: You must accept this disclaimer to continue using the platform.
+                </div>
+                
+                <div class="border p-4 mb-4" style="height: 300px; overflow-y: auto;">
+                    <h5>Trading Disclaimer</h5>
+                    
+                    <p class="mb-3">
+                        <strong>This service provides algorithmic trade signals based on predefined strategies. No personalized investment advice or portfolio management is offered. Users remain fully in control of their trading accounts, and execution happens only with their explicit authorization. We do not access or manage user funds.</strong>
+                    </p>
+                    
+                    <p class="mb-3">Trading in stocks, ETFs, and other securities involves significant risk of loss and is not suitable for all investors. Past performance is not indicative of future results.</p>
+                    
+                    <h6>Risk Acknowledgement</h6>
+                    <ul>
+                        <li>Market volatility, rapid price movements, and other factors can cause substantial losses</li>
+                        <li>Technical issues may prevent timely execution of trades</li>
+                        <li>Algorithmic strategies may underperform in certain market conditions</li>
+                        <li>You should only invest money you can afford to lose</li>
+                    </ul>
+                    
+                    <h6>Service Limitations</h6>
+                    <ul>
+                        <li>Our platform provides trade signals based on algorithms, not personalized advice</li>
+                        <li>We do not guarantee the accuracy of signals or their profitability</li>
+                        <li>Signals are generated without consideration of your personal financial situation</li>
+                        <li>You are solely responsible for all trading decisions and their outcomes</li>
+                    </ul>
+                    
+                    <p class="mt-3">By accepting this disclaimer, you acknowledge that you've read and understood these terms, and you accept all risks associated with using our platform.</p>
+                </div>
+                
+                <form method="POST" action="{{ url_for('accept_disclaimer') }}">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="accept" name="accept" required>
+                        <label class="form-check-label" for="accept">
+                            <strong>I have read, understood, and accept the disclaimer.</strong>
+                        </label>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary me-md-2">Logout</a>
+                        <button type="submit" class="btn btn-primary">Accept & Continue</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

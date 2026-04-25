@@ -1,0 +1,47 @@
+{
+  "timestamp": "2026-01-07 13:01:57.712253",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 6,
+    "failed": []
+  },
+  "low_balance_alerts": {
+    "threshold_percent": 20,
+    "alerts": [
+      {
+        "customer_id": "smartetf_user_10008",
+        "broker": "FINVASIA",
+        "balance": 0.0,
+        "threshold": 4000.0
+      },
+      {
+        "customer_id": "smartetf_user_10007",
+        "broker": "DHAN",
+        "balance": 0.0,
+        "threshold": 1700.0
+      }
+    ]
+  },
+  "session_check": {
+    "status": "ERROR",
+    "error": "'MultibrokerSessionManager' object has no attribute 'password_rotations'",
+    "timestamp": "2026-01-07 13:02:55.158959"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "PASS",
+    "test_url": "https://www.google.com",
+    "page_title": "Google",
+    "test_time_seconds": 4.67545485496521,
+    "timestamp": "2026-01-07 13:03:15.881942"
+  },
+  "overall_status": "CRITICAL",
+  "critical_issues": [
+    "Session check error: 'MultibrokerSessionManager' object has no attribute 'password_rotations'"
+  ],
+  "warnings": [],
+  "recommendations": []
+}

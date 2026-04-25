@@ -1,0 +1,42 @@
+STEP 1: CREATE TOKEN GENERATOR SERVICE
+======================================
+
+WHERE TO CREATE THESE FILES:
+---------------------------
+In your SmartETF project, create a NEW folder called "token_service"
+
+Your structure should look like:
+SmartETF_Merged_Full_Project/
+├── token_service/          ← NEW FOLDER (create this)
+│   ├── token_service.py    ← Main service file
+│   ├── dhan_oauth.py       ← Copied from parent
+│   ├── zerodha_oauth.py    ← Copied from parent
+│   ├── requirements.txt    ← Dependencies
+│   └── Dockerfile          ← Container config
+├── app.py                  ← Your existing backend
+├── dhan_oauth.py           ← Existing
+└── zerodha_oauth.py        ← Existing
+
+FILES INCLUDED IN THIS ZIP:
+---------------------------
+✅ token_service.py    - Flask service that generates tokens
+✅ dhan_oauth.py       - DHAN token generation (uses Playwright)
+✅ zerodha_oauth.py    - Zerodha token generation (uses HTTP - no browser!)
+✅ requirements.txt    - Python dependencies
+✅ Dockerfile          - Container configuration
+
+WHAT THIS SERVICE DOES:
+-----------------------
+- Runs ONLY when a client adds a broker
+- Generates access tokens for DHAN and Zerodha
+- Returns token to your backend
+- Costs: ~$0.50/month (pay per use)
+
+SECURITY:
+---------
+Uses X-Internal-Secret header for authentication
+Backend must send this secret header when calling service
+
+NEXT STEPS:
+-----------
+After you confirm Step 1 is ready, I'll give you Step 2 (deployment commands)

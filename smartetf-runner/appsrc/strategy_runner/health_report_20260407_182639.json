@@ -1,0 +1,109 @@
+{
+  "timestamp": "2026-04-07 18:18:52.164755",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 7,
+    "failed": []
+  },
+  "low_balance_alerts": {
+    "threshold_percent": 20,
+    "alerts": [
+      {
+        "customer_id": "smartetf_user_10001",
+        "broker": "FINVASIA",
+        "balance": 0.0,
+        "threshold": 5000.0
+      },
+      {
+        "customer_id": "smartetf_user_10005",
+        "broker": "FINVASIA",
+        "balance": 0.0,
+        "threshold": 20000.0
+      },
+      {
+        "customer_id": "smartetf_user_10008",
+        "broker": "FINVASIA",
+        "balance": 0.0,
+        "threshold": 4000.0
+      },
+      {
+        "customer_id": "smartetf_user_10010",
+        "broker": "FINVASIA",
+        "balance": 0.0,
+        "threshold": 4000.0
+      },
+      {
+        "customer_id": "smartetf_user_10017",
+        "broker": "FINVASIA",
+        "balance": 0.0,
+        "threshold": 10000.0
+      },
+      {
+        "customer_id": "smartetf_user_10019",
+        "broker": "FINVASIA",
+        "balance": 0.0,
+        "threshold": 20000.0
+      },
+      {
+        "customer_id": "smartetf_user_10015",
+        "broker": "ZERODHA",
+        "balance": 59.1,
+        "threshold": 1600.0
+      }
+    ]
+  },
+  "session_check": {
+    "status": "PASS",
+    "total_clients": 8,
+    "active_sessions": 7,
+    "failed_sessions": 1,
+    "success_rate": 87.5,
+    "broker_breakdown": {
+      "FINVASIA": {
+        "active": 6,
+        "failed": 1
+      },
+      "ZERODHA": {
+        "active": 1,
+        "failed": 0
+      }
+    },
+    "failed_clients": [
+      {
+        "client_id": "smartetf_user_10006",
+        "broker": "FINVASIA",
+        "error": "QuickAuth failed for FN148473: Invalid Input : User Blocked due to multiple wrong attempts",
+        "timestamp": "2026-04-07 18:20:11.093695",
+        "email": "care.mhrc@gmail.com"
+      }
+    ],
+    "timestamp": "2026-04-07 18:20:31.036900"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "N/A",
+    "note": "Selenium removed \u2014 pure API login"
+  },
+  "overall_status": "HEALTHY",
+  "critical_issues": [],
+  "warnings": [
+    "1 client sessions failed"
+  ],
+  "recommendations": [],
+  "password_reset_failures": [
+    {
+      "customer_id": "smartetf_user_10006",
+      "broker_id": 8,
+      "old_password": "Chandra@945",
+      "new_password": "Chandra@945",
+      "success": false,
+      "error": "QuickAuth failed for FN148473: Invalid Input : User Blocked due to multiple wrong attempts",
+      "verified": false,
+      "balance": null,
+      "verify_error": "QuickAuth failed for FN148473: Invalid Input : User Blocked due to multiple wrong attempts"
+    }
+  ]
+}

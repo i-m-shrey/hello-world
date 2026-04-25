@@ -1,0 +1,90 @@
+{% extends "layout.html" %}
+{% block title %}Edit Discount Code - Admin{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ url_for('admin_discount_codes') }}" class="btn btn-outline-secondary btn-sm me-3">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h2 class="mb-0">Edit Discount Code</h2>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Code <span class="text-danger">*</span></label>
+                            <input type="text" name="code" class="form-control text-uppercase" value="{{ dc.code }}" required>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Discount Type <span class="text-danger">*</span></label>
+                            <select name="discount_type" class="form-select">
+                                <option value="percentage" {% if dc.discount_type == 'percentage' %}selected{% endif %}>Percentage (%)</option>
+                                <option value="fixed" {% if dc.discount_type == 'fixed' %}selected{% endif %}>Fixed Amount (₹)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Value <span class="text-danger">*</span></label>
+                            <input type="number" name="discount_value" class="form-control" value="{{ dc.discount_value }}" step="0.01" min="0.01" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Max Uses</label>
+                            <input type="number" name="max_uses" class="form-control" value="{{ dc.max_uses }}" min="0">
+                            <small class="text-muted">0 = Unlimited. Used: {{ dc.times_used }}</small>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Valid From</label>
+                            <input type="date" name="valid_from" class="form-control" value="{{ dc.valid_from.strftime('%Y-%m-%d') if dc.valid_from else '' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Valid Until</label>
+                            <input type="date" name="valid_until" class="form-control" value="{{ dc.valid_until.strftime('%Y-%m-%d') if dc.valid_until else '' }}">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Applicable Plans</label>
+                            <select name="applicable_plan_ids" class="form-select">
+                                <option value="">All Plans</option>
+                                {% for plan in plans %}
+                                <option value="{{ plan.id }}" {% if dc.applicable_plan_ids and plan.id|string in dc.applicable_plan_ids.split(',') %}selected{% endif %}>{{ plan.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Applicable Billing Cycles</label>
+                            <select name="applicable_billing_cycles" class="form-select">
+                                <option value="">All Cycles</option>
+                                <option value="monthly" {% if dc.applicable_billing_cycles and 'monthly' in dc.applicable_billing_cycles %}selected{% endif %}>Monthly</option>
+                                <option value="quarterly" {% if dc.applicable_billing_cycles and 'quarterly' in dc.applicable_billing_cycles %}selected{% endif %}>Quarterly</option>
+                                <option value="half_yearly" {% if dc.applicable_billing_cycles and 'half_yearly' in dc.applicable_billing_cycles %}selected{% endif %}>Half Yearly</option>
+                                <option value="annually" {% if dc.applicable_billing_cycles and 'annually' in dc.applicable_billing_cycles %}selected{% endif %}>Annually</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_active" id="is_active" {% if dc.is_active %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">Active</label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Save Changes
+                        </button>
+                        <a href="{{ url_for('admin_discount_codes') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

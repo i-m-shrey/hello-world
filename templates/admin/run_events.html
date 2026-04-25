@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% block title %}Run {{ run.id }} Details{% endblock %}
+{% block content %}
+<div class="card shadow mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">Run {{ run.id }} – {{ run.status }}</h5>
+    <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin_runs') }}">Back</a>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-3"><strong>Started:</strong> {{ run.started_at }}</div>
+      <div class="col-md-3"><strong>Ended:</strong> {{ run.ended_at }}</div>
+      <div class="col-md-2"><strong>Mode:</strong> {{ run.mode }}</div>
+      <div class="col-md-2"><strong>Clients:</strong> {{ run.processed }}/{{ run.total_clients }}</div>
+      <div class="col-md-2"><strong>Orders:</strong> {{ run.ok_orders }}/{{ run.total_orders }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow">
+  <div class="card-header"><h6 class="mb-0">Order Events</h6></div>
+  <div class="card-body table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Customer</th>
+          <th>Broker</th>
+          <th>Symbol</th>
+          <th>Qty</th>
+          <th>Status</th>
+          <th>Error</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in events %}
+        <tr>
+          <td>{{ e.placed_at }}</td>
+          <td>{{ e.customer_id }}</td>
+          <td>{{ e.broker_name }}</td>
+          <td>{{ e.symbol }}</td>
+          <td>{{ e.qty }}</td>
+          <td>{{ e.status }}</td>
+          <td class="text-danger small">{{ e.error }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-muted">No events for this run.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartETF Algorithm vs Normal ETF SIP | SmartETF</title>
+    <meta name="description" content="See how SmartETF's algorithmic ETF automation compares to a normal ETF SIP for long-term investors in India.">
+    <link rel="canonical" href="{{ request.url_root.rstrip('/') ~ request.path }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family:'Inter',sans-serif; background:#f8fafc; }
+        .hero { background:#0f172a; color:#fff; padding:70px 0; }
+        .stat-box { background:#fff; border-radius:16px; border:1px solid #e2e8f0; padding:1.5rem; text-align:center; box-shadow:0 15px 35px rgba(15,23,42,0.08); }
+        .stat-box h3 { font-size:2rem; }
+        .timeline { border-left:3px solid #1d4ed8; padding-left:1.5rem; }
+        .timeline-step { margin-bottom:1.5rem; }
+        .highlight { background:#ecfccb; border-radius:12px; padding:1rem; border:1px solid #bef264; }
+    </style>
+</head>
+<body>
+<header class="hero">
+    <div class="container">
+        <p class="text-warning text-uppercase fw-semibold">Automation</p>
+        <h1 class="fw-bold">SmartETF Algo vs Normal ETF SIP</h1>
+        <p class="mt-3">Both invest in ETFs. SmartETF just buys smarter during crashes.</p>
+        <a href="/resources" class="btn btn-light btn-sm">← Back to resources</a>
+    </div>
+</header>
+
+<main class="container py-5">
+    <section class="mb-5">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="stat-box">
+                    <small class="text-muted text-uppercase">Backtest (₹10k SIP)</small>
+                    <h3>₹76.89 L</h3>
+                    <p>SmartETF Algo (15 years, 2010-2024)</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="stat-box">
+                    <small class="text-muted text-uppercase">Backtest (₹10k SIP)</small>
+                    <h3>₹55.12 L</h3>
+                    <p>Normal ETF SIP</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="mb-5">
+        <h2 class="fw-bold">Why SmartETF wins</h2>
+        <ol class="timeline">
+            <li class="timeline-step"><strong>Crash detection:</strong> We monitor ETF drawdowns intra-month. When price drops beyond your threshold, we allocate extra funds.</li>
+            <li class="timeline-step"><strong>Dip multiplier:</strong> Choose 1.5×, 2×, 3×, or 4× additional units to accumulate when markets are cheap.</li>
+            <li class="timeline-step"><strong>Cash buffer:</strong> We park part of your SIP as dry powder so you always have purchasing power during dips.</li>
+            <li class="timeline-step"><strong>Volatility guard:</strong> Stops buying if price is above your “overheated” percentage.</li>
+        </ol>
+    </section>
+
+    <section>
+        <div class="highlight mb-4">
+            <strong>Example:</strong> In March 2023, NiftyBees fell 7%. SmartETF with 2× multiplier bought ₹20,000 extra units, adding ₹34,000 profit when the market recovered, while a normal SIP invested only ₹10,000.
+        </div>
+        <div class="d-flex flex-column flex-md-row gap-3">
+            <a href="/how-it-works" class="btn btn-outline-primary">See automation flow</a>
+            <a href="/register" class="btn btn-primary">Start SmartETF</a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

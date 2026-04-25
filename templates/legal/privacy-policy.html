@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script type="text/javascript">
+  // This is a CodeSandbox injection script that's used to
+  // add navigation and inspector functionality to the preview
+  (function () {
+    // 1) Get the <script> tag that's currently running:
+    var me = document.currentScript;
+
+    // 2) Create the blocking‐style <script> to load:
+    var script = document.createElement("script");
+    script.src = "https://codesandbox.io/p/preview-protocol.js";
+
+    // By default a dynamically‐inserted <script> is async=true.
+    // Turn async off to make it behave like a normal blocking <script>:
+    script.async = false;
+    // (Do NOT set defer.)
+
+    // 3) Insert it immediately after the current <script>:
+    me.parentNode.insertBefore(script, me);
+  })();
+
+  const isIFramePreview = window.top !== window.self;
+
+  // Only run this script in editor context
+  if (isIFramePreview) {
+    // This script is used to enable Chrome DevTools functionality
+    (function () {
+      var script = document.createElement("script");
+      script.src =
+        "https://codesandbox.io/p/chrome-devtool/protocol/index.js";
+
+      script.onload = () => {
+        const devtoolProtocol = window.chobitsu;
+        if (devtoolProtocol) {
+          window.addEventListener("message", (event) => {
+            const { type, data } = event.data;
+
+            if (type === "FROM_DEVTOOL") {
+              devtoolProtocol.sendRawMessage(data);
+            }
+          });
+
+          devtoolProtocol.setOnMessage((data) => {
+            if (data.includes('"id":"tmp')) {
+              return;
+            }
+
+            window.parent.postMessage({ type: "TO_DEVTOOL", data }, "*");
+          });
+
+          devtoolProtocol.sendRawMessage(
+            `{"id":5,"method":"Runtime.enable","params":{}}`
+          );
+        }        
+      }
+
+      (document.head || document.documentElement).prepend(script);
+    })();
+  }
+
+  if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ === "undefined") {
+    let nextID = 0;
+    let hook = (__REACT_DEVTOOLS_GLOBAL_HOOK__ = {
+      renderers: new Map(),
+      supportsFiber: true,
+      inject: (renderer) => {
+        const id = nextID++;
+        hook.renderers.set(id, renderer);
+        return id;
+      },
+      onScheduleFiberRoot() {},
+      onCommitFiberRoot() {},
+      onCommitFiberUnmount() {},
+    });
+  }
+
+  document.currentScript.remove();
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy | SmartETF Algo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #1e293b;
+        }
+        .header {
+            background: #059669;
+            color: white;
+            padding: 2rem 0;
+        }
+        .content-section {
+            padding: 2rem 0;
+        }
+        .privacy-box {
+            background: rgba(5, 150, 105, 0.1);
+            border: 2px solid #059669;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>Privacy Policy</h1>
+            <p class="mb-0">SmartETF Algo - Data Protection & Privacy</p>
+        </div>
+    </header>
+
+    <div class="container content-section">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                
+                <div class="privacy-box">
+                    <h4><i class="fas fa-shield-alt"></i> Privacy Commitment</h4>
+                    <p><strong>Effective Date:</strong> January 1, 2026</p>
+                    <p><strong>Last Updated:</strong> January 7, 2026</p>
+                    <p>We are committed to protecting your privacy and handling your personal information with the highest level of security and transparency.</p>
+                </div>
+
+                <h2>1. Information We Collect</h2>
+                
+                <h3>1.1 Personal Information</h3>
+                <p>We collect information you provide directly to us:</p>
+                <ul>
+                    <li><strong>Account Information:</strong> Name, email address, phone number</li>
+                    <li><strong>Payment Information:</strong> Billing details (processed securely by payment providers)</li>
+                    <li><strong>Communication:</strong> Messages, support requests, feedback</li>
+                    <li><strong>Preferences:</strong> Investment goals, risk tolerance (for educational purposes)</li>
+                </ul>
+
+                <h3>1.2 Usage Information</h3>
+                <p>We automatically collect certain information when you use our service:</p>
+                <ul>
+                    <li><strong>Technical Data:</strong> IP address, browser type, device information</li>
+                    <li><strong>Usage Patterns:</strong> Pages visited, features used, time spent</li>
+                    <li><strong>Performance Data:</strong> Educational portfolio tracking (no real money)</li>
+                </ul>
+
+                <h3>1.3 Information We DO NOT Collect</h3>
+                <div class="warning-box">
+                    <p><strong>Important:</strong> We do NOT collect or have access to:</p>
+                    <ul class="mb-0">
+                        <li>Your broker account passwords or login credentials</li>
+                        <li>Your actual investment amounts or real portfolio holdings</li>
+                        <li>Your bank account or trading account details</li>
+                        <li>Your actual trading activities or transactions</li>
+                    </ul>
+                </div>
+
+                <h2>2. How We Use Your Information</h2>
+                
+                <p>We use your information for legitimate business purposes:</p>
+                
+                <h3>2.1 Service Delivery</h3>
+                <ul>
+                    <li>Provide educational trading signals and content</li>
+                    <li>Maintain and improve our technology platform</li>
+                    <li>Send educational market analysis and insights</li>
+                    <li>Provide customer support and assistance</li>
+                </ul>
+
+                <h3>2.2 Communication</h3>
+                <ul>
+                    <li>Send service-related notifications</li>
+                    <li>Provide educational content and market updates</li>
+                    <li>Respond to your inquiries and support requests</li>
+                    <li>Send important service announcements</li>
+                </ul>
+
+                <h3>2.3 Business Operations</h3>
+                <ul>
+                    <li>Process payments and manage subscriptions</li>
+                    <li>Analyze usage patterns to improve our service</li>
+                    <li>Comply with legal and regulatory requirements</li>
+                    <li>Protect against fraud and security threats</li>
+                </ul>
+
+                <h2>3. Information Sharing and Disclosure</h2>
+                
+                <h3>3.1 We DO NOT Sell Your Data</h3>
+                <div class="privacy-box">
+                    <p><strong>Clear Commitment:</strong> We do not sell, rent, or trade your personal information to third parties for marketing purposes.</p>
+                </div>
+
+                <h3>3.2 Limited Sharing</h3>
+                <p>We may share your information only in these specific circumstances:</p>
+                
+                <ul>
+                    <li><strong>Service Providers:</strong> Trusted partners who help deliver our service (payment processors, hosting providers)</li>
+                    <li><strong>Legal Requirements:</strong> When required by law, court order, or government request</li>
+                    <li><strong>Business Transfer:</strong> In case of merger, acquisition, or sale of our business</li>
+                    <li><strong>Safety Protection:</strong> To protect the rights, property, or safety of our users</li>
+                </ul>
+
+                <h2>4. Data Security</h2>
+                
+                <p>We implement comprehensive security measures:</p>
+                
+                <h3>4.1 Technical Safeguards</h3>
+                <ul>
+                    <li><strong>Encryption:</strong> All data transmission uses SSL/TLS encryption</li>
+                    <li><strong>Access Controls:</strong> Strict access controls and authentication</li>
+                    <li><strong>Monitoring:</strong> Continuous security monitoring and threat detection</li>
+                    <li><strong>Regular Updates:</strong> Regular security updates and vulnerability assessments</li>
+                </ul>
+
+                <h3>4.2 Administrative Safeguards</h3>
+                <ul>
+                    <li><strong>Employee Training:</strong> Regular privacy and security training for staff</li>
+                    <li><strong>Access Limitation:</strong> Employees access data only on a need-to-know basis</li>
+                    <li><strong>Incident Response:</strong> Established procedures for security incidents</li>
+                </ul>
+
+                <h2>5. Your Privacy Rights</h2>
+                
+                <p>You have important rights regarding your personal information:</p>
+                
+                <h3>5.1 Access and Control</h3>
+                <ul>
+                    <li><strong>Access:</strong> Request access to your personal information</li>
+                    <li><strong>Correction:</strong> Update or correct inaccurate information</li>
+                    <li><strong>Deletion:</strong> Request deletion of your personal information</li>
+                    <li><strong>Portability:</strong> Request a copy of your data in a portable format</li>
+                </ul>
+
+                <h3>5.2 Communication Preferences</h3>
+                <ul>
+                    <li><strong>Opt-out:</strong> Unsubscribe from marketing communications</li>
+                    <li><strong>Preferences:</strong> Choose types of communications you receive</li>
+                    <li><strong>Frequency:</strong> Control frequency of educational content</li>
+                </ul>
+
+                <h2>6. Data Retention</h2>
+                
+                <p>We retain your information for specific periods:</p>
+                
+                <ul>
+                    <li><strong>Active Accounts:</strong> During your subscription period</li>
+                    <li><strong>Closed Accounts:</strong> Up to 3 years after account closure</li>
+                    <li><strong>Legal Requirements:</strong> As required by applicable laws</li>
+                    <li><strong>Essential Records:</strong> Payment records retained for 7 years</li>
+                </ul>
+
+                <h2>7. Cookies and Tracking</h2>
+                
+                <h3>7.1 Cookie Usage</h3>
+                <p>We use cookies for:</p>
+                <ul>
+                    <li><strong>Essential Functions:</strong> Login, security, basic functionality</li>
+                    <li><strong>Analytics:</strong> Understanding usage patterns (anonymized)</li>
+                    <li><strong>Preferences:</strong> Remembering your settings and preferences</li>
+                </ul>
+
+                <h3>7.2 Cookie Control</h3>
+                <p>You can control cookies through your browser settings. Note that disabling essential cookies may affect service functionality.</p>
+
+                <h2>8. Third-Party Services</h2>
+                
+                <p>Our service integrates with trusted third-party providers:</p>
+                
+                <ul>
+                    <li><strong>Payment Processors:</strong> Secure payment processing (they have their own privacy policies)</li>
+                    <li><strong>Analytics Services:</strong> Website analytics with anonymized data</li>
+                    <li><strong>Communication Tools:</strong> Email and messaging services</li>
+                    <li><strong>Market Data:</strong> Real-time market data providers</li>
+                </ul>
+
+                <h2>9. Children's Privacy</h2>
+                
+                <p>Our service is not intended for individuals under 18 years of age. We do not knowingly collect personal information from children under 18.</p>
+
+                <h2>10. International Data Transfers</h2>
+                
+                <p>Your data is primarily stored and processed in India. If we transfer data internationally, we ensure appropriate safeguards are in place.</p>
+
+                <h2>11. Changes to Privacy Policy</h2>
+                
+                <p>We may update this privacy policy periodically. We will:</p>
+                <ul>
+                    <li>Notify you of material changes via email</li>
+                    <li>Post updated policies on our website</li>
+                    <li>Provide the effective date of changes</li>
+                    <li>Give you options to review and consent to changes</li>
+                </ul>
+
+                <h2>12. Contact Information</h2>
+                
+                <p>For privacy-related questions or requests:</p>
+                
+                <ul>
+                    <li><strong>Email:</strong> <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7404061d0215170d3407191506001100121518131b5a171b19">smartetfalgo@gmail.com</a></li>
+                    <li><strong>General Contact:</strong> <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="462529283227253206352b273432233220272a21296825292b">smartetfalgo@gmail.com</a></li>
+                    <li><strong>Phone:</strong> +91-7597583636</li>
+                    <li><strong>Hours:</strong> 10 AM - 5 PM (Monday to Friday)</li>
+                </ul>
+
+                <div class="privacy-box">
+                    <h4>Data Protection Summary</h4>
+                    <p>We collect only necessary information to provide our educational technology service. Your broker account and actual trading data remain entirely private and under your control. We implement strong security measures and respect your privacy rights.</p>
+                </div>
+
+                <p class="text-center mt-5">
+                    <a href="/" class="btn btn-success">← Back to Home</a>
+                </p>
+            </div>
+        </div>
+    </div>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script></body>
+</html>

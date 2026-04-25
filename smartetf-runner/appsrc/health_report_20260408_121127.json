@@ -1,0 +1,102 @@
+{
+  "timestamp": "2026-04-08 12:04:56.670102",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 3,
+    "failed": []
+  },
+  "low_balance_alerts": {
+    "threshold_percent": 20,
+    "alerts": [
+      {
+        "customer_id": "smartetf_user_10008",
+        "broker": "FINVASIA",
+        "balance": 0.0,
+        "threshold": 4000.0
+      },
+      {
+        "customer_id": "smartetf_user_10019",
+        "broker": "FINVASIA",
+        "balance": 0.0,
+        "threshold": 20000.0
+      },
+      {
+        "customer_id": "smartetf_user_10015",
+        "broker": "ZERODHA",
+        "balance": 59.1,
+        "threshold": 1600.0
+      }
+    ]
+  },
+  "session_check": {
+    "status": "PASS",
+    "total_clients": 8,
+    "active_sessions": 3,
+    "failed_sessions": 5,
+    "success_rate": 37.5,
+    "broker_breakdown": {
+      "FINVASIA": {
+        "active": 2,
+        "failed": 5
+      },
+      "ZERODHA": {
+        "active": 1,
+        "failed": 0
+      }
+    },
+    "failed_clients": [
+      {
+        "client_id": "smartetf_user_10001",
+        "broker": "FINVASIA",
+        "error": "QuickAuth failed for FA55537: Invalid Input : User Blocked due to multiple wrong attempts",
+        "timestamp": "2026-04-08 12:06:09.527645",
+        "email": "coolshrey2000@gmail.com"
+      },
+      {
+        "client_id": "smartetf_user_10005",
+        "broker": "FINVASIA",
+        "error": "QuickAuth failed for FN107927: Invalid Input : User Blocked due to multiple wrong attempts",
+        "timestamp": "2026-04-08 12:07:14.042073",
+        "email": "mahaviramkt@gmail.com"
+      },
+      {
+        "client_id": "smartetf_user_10006",
+        "broker": "FINVASIA",
+        "error": "QuickAuth failed for FN148473: Invalid Input : User Blocked due to multiple wrong attempts",
+        "timestamp": "2026-04-08 12:08:19.369165",
+        "email": "care.mhrc@gmail.com"
+      },
+      {
+        "client_id": "smartetf_user_10010",
+        "broker": "FINVASIA",
+        "error": "QuickAuth failed for FN169255: Invalid Input : User Blocked due to multiple wrong attempts",
+        "timestamp": "2026-04-08 12:09:35.313347",
+        "email": "jasneetsaliya31@gmail.com"
+      },
+      {
+        "client_id": "smartetf_user_10017",
+        "broker": "FINVASIA",
+        "error": "QuickAuth failed for FN178278: Invalid Input : User Blocked due to multiple wrong attempts",
+        "timestamp": "2026-04-08 12:10:40.792604",
+        "email": "meenudewani262@gmail.com"
+      }
+    ],
+    "timestamp": "2026-04-08 12:10:50.895336"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "N/A",
+    "note": "Selenium removed \u2014 pure API login"
+  },
+  "overall_status": "CRITICAL",
+  "critical_issues": [
+    "Low session success rate: 37.5%"
+  ],
+  "warnings": [
+    "5 client sessions failed"
+  ],
+  "recommendations": []
+}

@@ -1,0 +1,6 @@
+
+Add the following route in your app.py or routes.py in the Flask app:
+
+@app.route('/')
+def marketing_home():
+    return render_template('index.html')

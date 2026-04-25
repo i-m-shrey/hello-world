@@ -1,0 +1,2023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script type="text/javascript">
+  // This is a CodeSandbox injection script that's used to
+  // add navigation and inspector functionality to the preview
+  (function () {
+    // 1) Get the <script> tag that's currently running:
+    var me = document.currentScript;
+
+    // 2) Create the blocking‐style <script> to load:
+    var script = document.createElement("script");
+    script.src = "https://codesandbox.io/p/preview-protocol.js";
+
+    // By default a dynamically‐inserted <script> is async=true.
+    // Turn async off to make it behave like a normal blocking <script>:
+    script.async = false;
+    // (Do NOT set defer.)
+
+    // 3) Insert it immediately after the current <script>:
+    me.parentNode.insertBefore(script, me);
+  })();
+
+  const isIFramePreview = window.top !== window.self;
+
+  // Only run this script in editor context
+  if (isIFramePreview) {
+    // This script is used to enable Chrome DevTools functionality
+    (function () {
+      var script = document.createElement("script");
+      script.src =
+        "https://codesandbox.io/p/chrome-devtool/protocol/index.js";
+
+      script.onload = () => {
+        const devtoolProtocol = window.chobitsu;
+        if (devtoolProtocol) {
+          window.addEventListener("message", (event) => {
+            const { type, data } = event.data;
+
+            if (type === "FROM_DEVTOOL") {
+              devtoolProtocol.sendRawMessage(data);
+            }
+          });
+
+          devtoolProtocol.setOnMessage((data) => {
+            if (data.includes('"id":"tmp')) {
+              return;
+            }
+
+            window.parent.postMessage({ type: "TO_DEVTOOL", data }, "*");
+          });
+
+          devtoolProtocol.sendRawMessage(
+            `{"id":5,"method":"Runtime.enable","params":{}}`
+          );
+        }        
+      }
+
+      (document.head || document.documentElement).prepend(script);
+    })();
+  }
+
+  if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ === "undefined") {
+    let nextID = 0;
+    let hook = (__REACT_DEVTOOLS_GLOBAL_HOOK__ = {
+      renderers: new Map(),
+      supportsFiber: true,
+      inject: (renderer) => {
+        const id = nextID++;
+        hook.renderers.set(id, renderer);
+        return id;
+      },
+      onScheduleFiberRoot() {},
+      onCommitFiberRoot() {},
+      onCommitFiberUnmount() {},
+    });
+  }
+
+  document.currentScript.remove();
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartEtf Algo - Revolutionary ETF Investment Technology | Start from ₹3,000 Monthly</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --primary-blue: #1e40af;
+            --primary-green: #059669;
+            --accent-gold: #f59e0b;
+            --dark-bg: #0f172a;
+            --light-bg: #f8fafc;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* Sliding Section Animations */
+        .sliding-section {
+            opacity: 0;
+            transform: translateX(50px);
+            transition: all 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .sliding-section.slide-in {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .sliding-section:nth-child(even) {
+            transform: translateX(-50px);
+        }
+
+        .sliding-section:nth-child(even).slide-in {
+            transform: translateX(0);
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 15px 0;
+        }
+
+        .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            text-decoration: none;
+        }
+
+        .navbar-brand:hover {
+            color: var(--primary-green);
+        }
+
+        .nav-link {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin: 0 15px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-blue);
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(45deg, var(--primary-blue), var(--primary-green));
+            border: none;
+            padding: 10px 25px;
+            border-radius: 25px;
+            color: white;
+            font-weight: 600;
+            transition: transform 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            color: white;
+        }
+
+        /* Educational Disclaimer */
+        .disclaimer {
+            background: rgba(6, 182, 212, 0.1);
+            border-left: 4px solid #0891b2;
+            padding: 1rem;
+            margin: 0;
+        }
+
+        .disclaimer-text {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Hero Section - Stop Overpaying */
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, #0ea5e9 50%, var(--primary-green) 100%);
+            color: white;
+            padding: 100px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="rgba(255,255,255,0.1)" points="0,1000 1000,800 1000,1000"/></svg>');
+            background-size: cover;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-stat {
+            text-align: center;
+            padding: 2.5rem 2rem;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .hero-stat:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero-stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--accent-gold);
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .hero-stat-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-stat-desc {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .hero-buttons {
+            margin-top: 3rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-hero-primary {
+            background: linear-gradient(45deg, var(--accent-gold), #f97316);
+            border: none;
+            padding: 15px 35px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 50px;
+            color: white;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-hero-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);
+            color: white;
+        }
+
+        .btn-hero-secondary {
+            background: transparent;
+            border: 2px solid white;
+            padding: 13px 35px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 50px;
+            color: white;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-hero-secondary:hover {
+            background: white;
+            color: var(--primary-blue);
+            transform: translateY(-3px);
+        }
+
+        /* Market Conditions Section */
+        .market-conditions-section {
+            padding: 100px 0;
+            background: white;
+        }
+
+        .section-title {
+            font-size: 2.8rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 4rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .market-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        .market-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 2px solid #f1f5f9;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .market-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .market-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--primary-green));
+        }
+
+        .market-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-green));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: white;
+            font-size: 1.8rem;
+        }
+
+        .market-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .market-comparison {
+            margin: 1.5rem 0;
+        }
+
+        .comparison-item {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .comparison-item:last-child {
+            border-bottom: none;
+        }
+
+        .comparison-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .comparison-value {
+            font-weight: 500;
+            margin-top: 0.3rem;
+        }
+
+        .traditional-value {
+            color: #dc2626;
+        }
+
+        .smart-value {
+            color: var(--primary-green);
+        }
+
+        .result-highlight {
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1.5rem;
+            border-left: 4px solid var(--primary-green);
+        }
+
+        .result-text {
+            font-weight: 600;
+            color: #065f46;
+            margin: 0;
+        }
+
+        /* Dynamic SIP Section */
+        .dynamic-sip-section {
+            padding: 100px 0;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+        }
+
+        .dynamic-sip-section .section-title,
+        .dynamic-sip-section .section-subtitle {
+            color: white !important;
+        }
+
+        .sip-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        .sip-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2.5rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .sip-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
+        }
+
+        .sip-card-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .sip-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .problem-icon {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+        }
+
+        .solution-icon {
+            background: linear-gradient(135deg, var(--primary-green), #10b981);
+        }
+
+        .sip-example {
+            margin: 1.5rem 0;
+        }
+
+        .example-item {
+            padding: 0.8rem 1rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .traditional-example {
+            background: rgba(220, 38, 38, 0.2);
+            border-left: 3px solid #dc2626;
+        }
+
+        .smart-example {
+            background: rgba(5, 150, 105, 0.2);
+            border-left: 3px solid var(--primary-green);
+        }
+
+        .highlight-box {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .problem-highlight {
+            background: rgba(220, 38, 38, 0.2);
+            color: #fca5a5;
+        }
+
+        .solution-highlight {
+            background: rgba(5, 150, 105, 0.2);
+            color: #86efac;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            margin: 4rem 0;
+        }
+
+        .work-steps {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1.5rem;
+            margin: 3rem 0;
+        }
+
+        @media (max-width: 1200px) {
+            .work-steps {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .work-steps {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .work-step {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .work-step:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
+        }
+
+        .step-number {
+            background: var(--accent-gold);
+            color: var(--text-primary);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin: 0 auto 1.5rem;
+        }
+
+        .step-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+        }
+
+        .step-description {
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* Interactive Calculator */
+        .calculator-section {
+            padding: 100px 0;
+            background: var(--light-bg);
+        }
+
+        .calculator-card {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .calculator-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin: 2rem 0;
+            align-items: stretch;
+            min-height: 500px;
+        }
+
+        .calculator-left {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .calculator-right {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .input-group {
+            margin-bottom: 2rem;
+        }
+
+        .input-label {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: block;
+            color: var(--text-primary);
+        }
+
+        .slider-container {
+            position: relative;
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #e2e8f0;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            cursor: pointer;
+        }
+
+        .slider-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin-top: 0.5rem;
+        }
+
+        .results-display {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 2rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--primary-green);
+        }
+
+        .chart-container {
+            height: 400px;
+            margin: 2rem 0;
+            background: white;
+            border-radius: 15px;
+            padding: 1rem;
+        }
+
+        /* Pricing Section */
+        .pricing-section {
+            padding: 100px 0;
+            background: white;
+        }
+
+        .timeframe-buttons {
+            text-align: center;
+            margin: 2rem 0 3rem;
+        }
+
+        .timeframe-btn {
+            background: transparent;
+            border: 2px solid var(--primary-blue);
+            color: var(--primary-blue);
+            padding: 12px 24px;
+            margin: 0 0.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .timeframe-btn.active,
+        .timeframe-btn:hover {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .pricing-card {
+            background: var(--light-bg);
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-blue);
+        }
+
+        .pricing-card.popular {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-green) 100%);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .pricing-card.popular:hover {
+            transform: scale(1.05) translateY(-15px);
+            box-shadow: 0 25px 50px rgba(30, 64, 175, 0.3);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-gold);
+            color: var(--text-primary);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .pricing-plan-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .pricing-amount {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .pricing-duration {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.8;
+        }
+
+        .pricing-features {
+            list-style: none;
+            padding: 0;
+            margin: 2rem 0;
+        }
+
+        .pricing-features li {
+            padding: 0.8rem 0;
+            font-size: 1.1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .pricing-card:not(.popular) .pricing-features li {
+            border-bottom-color: #e2e8f0;
+        }
+
+        .pricing-cta {
+            background: var(--accent-gold);
+            color: var(--text-primary);
+            padding: 15px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 700;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-cta:hover {
+            background: #f97316;
+            transform: translateY(-3px);
+            color: white;
+        }
+
+        /* Testimonials Section */
+        .testimonials-section {
+            padding: 100px 0;
+            background: var(--light-bg);
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+            margin: 3rem 0;
+        }
+
+        .testimonial-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .testimonial-card:hover {
+            transform: translateY(-8px);
+        }
+
+        .testimonial-quote {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            font-style: italic;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+        }
+
+        .author-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-green));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-right: 1rem;
+        }
+
+        .stars {
+            color: #fbbf24;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        /* FAQ Section */
+        .faq-section {
+            padding: 100px 0;
+            background: white;
+        }
+
+        .faq-list {
+            margin: 3rem 0;
+        }
+
+        .faq-item {
+            background: var(--light-bg);
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .faq-question {
+            padding: 2rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .faq-question:hover {
+            background: #e2e8f0;
+        }
+
+        .faq-question::after {
+            content: '+';
+            font-size: 1.5rem;
+            font-weight: 700;
+            position: absolute;
+            right: 2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .faq-item.active .faq-question::after {
+            transform: rotate(45deg);
+        }
+
+        .faq-answer {
+            padding: 0 2rem 2rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .faq-item.active .faq-answer {
+            max-height: 200px;
+        }
+
+        /* Contact Section */
+        .contact-section {
+            padding: 100px 0;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            margin: 3rem 0;
+        }
+
+        .contact-info h4 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+            font-size: 1.1rem;
+        }
+
+        .contact-item i {
+            font-size: 1.3rem;
+            margin-right: 1rem;
+            color: var(--accent-gold);
+        }
+
+        .contact-item a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .contact-item a:hover {
+            color: var(--accent-gold);
+        }
+
+        .onboarding-steps {
+            margin: 2rem 0;
+        }
+
+        .onboarding-step {
+            display: flex;
+            align-items: flex-start;
+            margin: 1.5rem 0;
+        }
+
+        .step-number-small {
+            background: var(--accent-gold);
+            color: var(--text-primary);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .step-content h6 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-content p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--dark-bg);
+            color: white;
+            padding: 3rem 0 1rem 0;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            margin-bottom: 1rem;
+            color: var(--accent-gold);
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-disclaimer {
+            background: rgba(220, 38, 38, 0.1);
+            border: 2px solid #dc2626;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            color: #fecaca;
+        }
+
+        .footer-disclaimer h5 {
+            color: #dc2626;
+            margin-bottom: 1rem;
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #374151;
+            color: #94a3b8;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .sip-comparison {
+                grid-template-columns: 1fr;
+            }
+            
+            .calculator-inputs {
+                grid-template-columns: 1fr;
+                min-height: auto;
+            }
+            
+            .calculator-left, .calculator-right {
+                min-height: auto;
+                height: auto;
+            }
+            
+            .market-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .work-steps {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg">
+                <a class="navbar-brand" href="/">SmartEtf Algo</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#benefits">Benefits</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#market-conditions">Market Analysis</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#dynamic-sip">How It Works</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#calculator">Calculator</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#pricing">Pricing</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/register" class="btn btn-primary-custom">Start Investing</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Educational Disclaimer -->
+    <div class="disclaimer container-fluid">
+        <div class="container">
+            <p class="disclaimer-text text-center"><strong>📚 Educational Technology Service:</strong> We provide trading signal technology and educational content, not personalized investment advice. Your money stays secure in your own broker account.</p>
+        </div>
+    </div>
+
+    <!-- Hero Section - Stop Overpaying -->
+    <section class="hero-section sliding-section" id="benefits">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">Stop Overpaying Mutual Funds</h1>
+                <p class="hero-subtitle">Smart ETF Technology That Saves You Thousands in Fees While Buying Systematically During Market Dips</p>
+                
+                <div class="hero-stats">
+                    <div class="hero-stat" data-stat="fees">
+                        <span class="hero-stat-number">50-80%</span>
+                        <div class="hero-stat-title">Lower Annual Fees</div>
+                        <div class="hero-stat-desc">vs Mutual Funds</div>
+                    </div>
+                    
+                    <div class="hero-stat" data-stat="savings">
+                        <span class="hero-stat-number">₹18,000+</span>
+                        <div class="hero-stat-title">Annual Savings</div>
+                        <div class="hero-stat-desc">on ₹1L Investment</div>
+                    </div>
+                    
+                    <div class="hero-stat" data-stat="control">
+                        <span class="hero-stat-number">100%</span>
+                        <div class="hero-stat-title">Your Money, Your Control</div>
+                        <div class="hero-stat-desc">Funds stay in your broker account</div>
+                    </div>
+                </div>
+                
+                <div class="hero-buttons">
+                    <a href="#calculator" class="btn-hero-primary">📊 Calculate Your Savings</a>
+                    <a href="#market-conditions" class="btn-hero-secondary">📈 See Backtesting Results</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Market Conditions Analysis -->
+    <section class="market-conditions-section sliding-section" id="market-conditions">
+        <div class="container">
+            <h2 class="section-title">What If Different Market Conditions?</h2>
+            <p class="section-subtitle">Our strategy adapts to all market conditions, consistently outperforming traditional SIPs</p>
+            
+            <div class="market-cards">
+                <div class="market-card">
+                    <div class="market-icon">
+                        <i class="fas fa-chart-line-down"></i>
+                    </div>
+                    <h3 class="market-title">Bear Market (2008, 2020)</h3>
+                    
+                    <div class="market-comparison">
+                        <div class="comparison-item">
+                            <div class="comparison-label">Traditional SIP:</div>
+                            <div class="comparison-value traditional-value">Buys fixed amount during crash</div>
+                        </div>
+                        <div class="comparison-item">
+                            <div class="comparison-label">Smart ETF:</div>
+                            <div class="comparison-value smart-value">Buys 2-3x more during major dips</div>
+                        </div>
+                    </div>
+                    
+                    <div class="result-highlight">
+                        <p class="result-text">Result: Better recovery positioning</p>
+                    </div>
+                </div>
+
+                <div class="market-card">
+                    <div class="market-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="market-title">Bull Market (2017, 2021)</h3>
+                    
+                    <div class="market-comparison">
+                        <div class="comparison-item">
+                            <div class="comparison-label">Traditional SIP:</div>
+                            <div class="comparison-value traditional-value">Continues buying at peaks</div>
+                        </div>
+                        <div class="comparison-item">
+                            <div class="comparison-label">Smart ETF:</div>
+                            <div class="comparison-value smart-value">Reduces buying at market highs</div>
+                        </div>
+                    </div>
+                    
+                    <div class="result-highlight">
+                        <p class="result-text">Result: Better average cost basis</p>
+                    </div>
+                </div>
+
+                <div class="market-card">
+                    <div class="market-icon">
+                        <i class="fas fa-wave-square"></i>
+                    </div>
+                    <h3 class="market-title">Sideways Market (2015-2016)</h3>
+                    
+                    <div class="market-comparison">
+                        <div class="comparison-item">
+                            <div class="comparison-label">Traditional SIP:</div>
+                            <div class="comparison-value traditional-value">Random entry points</div>
+                        </div>
+                        <div class="comparison-item">
+                            <div class="comparison-label">Smart ETF:</div>
+                            <div class="comparison-value smart-value">Systematic accumulation on dips</div>
+                        </div>
+                    </div>
+                    
+                    <div class="result-highlight">
+                        <p class="result-text">Result: Steady accumulation advantage</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dynamic SIP Section -->
+    <section class="dynamic-sip-section sliding-section" id="dynamic-sip">
+        <div class="container">
+            <h2 class="section-title">Dynamic SIP: The Smart Way to Invest</h2>
+            <p class="section-subtitle">See the difference between traditional fixed SIPs and our intelligent dynamic approach</p>
+            
+            <div class="sip-comparison">
+                <div class="sip-card">
+                    <h3 class="sip-card-title">
+                        <div class="sip-icon problem-icon">
+                            <i class="fas fa-calendar-times"></i>
+                        </div>
+                        Traditional Fixed SIP Problem
+                    </h3>
+                    
+                    <div class="sip-example">
+                        <div class="example-item traditional-example">
+                            ❌ ₹10,000 on 1st Jan (Market high: Nifty 18,000)
+                        </div>
+                        <div class="example-item traditional-example">
+                            ❌ ₹10,000 on 1st Feb (Market high: Nifty 17,800)
+                        </div>
+                        <div class="example-item traditional-example">
+                            ✓ ₹10,000 on 1st Mar (Market dip: Nifty 16,500)
+                        </div>
+                        <div class="example-item traditional-example">
+                            ❌ ₹10,000 on 1st Apr (Market high: Nifty 18,200)
+                        </div>
+                    </div>
+                    
+                    <div class="highlight-box problem-highlight">
+                        Problem: You buy the same amount regardless of market conditions!
+                    </div>
+                </div>
+
+                <div class="sip-card">
+                    <h3 class="sip-card-title">
+                        <div class="sip-icon solution-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        Smart Dynamic SIP Solution
+                    </h3>
+                    
+                    <div class="sip-example">
+                        <div class="example-item smart-example">
+                            ⚡ ₹3,000 when Nifty at 18,000 (market high)
+                        </div>
+                        <div class="example-item smart-example">
+                            ⚡ ₹4,000 when Nifty at 17,800 (still high)
+                        </div>
+                        <div class="example-item smart-example">
+                            💰 ₹20,000 when Nifty drops to 16,500 (8% dip)
+                        </div>
+                        <div class="example-item smart-example">
+                            ⚡ ₹3,000 when Nifty back to 18,200
+                        </div>
+                    </div>
+                    
+                    <div class="highlight-box solution-highlight">
+                        Advantage: You buy MORE when markets are DOWN!
+                    </div>
+                </div>
+            </div>
+
+            <div class="how-it-works">
+                <h3 class="text-center text-white mb-4">How Our Technology Works</h3>
+                <div class="work-steps">
+                    <div class="work-step">
+                        <div class="step-number">1</div>
+                        <h5 class="step-title">Open Finvasia Account</h5>
+                        <p class="step-description">Free account with API access and low charges</p>
+                    </div>
+                    <div class="work-step">
+                        <div class="step-number">2</div>
+                        <h5 class="step-title">Choose Your Plan</h5>
+                        <p class="step-description">Select plan that suits your investment needs</p>
+                    </div>
+                    <div class="work-step">
+                        <div class="step-number">3</div>
+                        <h5 class="step-title">Market Monitoring</h5>
+                        <p class="step-description">24/7 tracking of indices and ETF prices</p>
+                    </div>
+                    <div class="work-step">
+                        <div class="step-number">4</div>
+                        <h5 class="step-title">Signal Generation</h5>
+                        <p class="step-description">Algorithm calculates optimal investment amounts</p>
+                    </div>
+                    <div class="work-step">
+                        <div class="step-number">5</div>
+                        <h5 class="step-title">Automated Execution</h5>
+                        <p class="step-description">Instant signals sent to your broker account</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Calculator -->
+    <section class="calculator-section sliding-section" id="calculator">
+        <div class="container">
+            <h2 class="section-title">Calculate Your Exact Savings</h2>
+            <p class="section-subtitle">See how much you can save and earn with SmartEtf Algo vs traditional mutual funds</p>
+            
+            <div class="calculator-card">
+                <h3 class="text-center mb-4">🧮 Interactive Savings Calculator</h3>
+                
+                <div class="calculator-inputs">
+                    <div class="calculator-left">
+                        <div class="input-group">
+                            <label class="input-label">Monthly Investment Amount</label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="monthlyAmount" min="3000" max="50000" step="1000" value="15000">
+                                <div class="d-flex justify-content-between mt-2">
+                                    <span>₹3,000</span>
+                                    <span class="slider-value" id="monthlyAmountValue">₹15,000</span>
+                                    <span>₹50,000</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label class="input-label">Investment Period (Years)</label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="investmentPeriod" min="1" max="20" step="1" value="10">
+                                <div class="d-flex justify-content-between mt-2">
+                                    <span>1 year</span>
+                                    <span class="slider-value" id="periodValue">10 years</span>
+                                    <span>20 years</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label class="input-label">Expected Annual Return (%)</label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="returnRate" min="8" max="25" step="1" value="19">
+                                <div class="d-flex justify-content-between mt-2">
+                                    <span>8%</span>
+                                    <span class="slider-value" id="returnValue">19%</span>
+                                    <span>25%</span>
+                                </div>
+                            </div>
+                            <small class="text-muted">SmartETF Algo historical average: 19%</small>
+                        </div>
+                        
+                        <div style="flex-grow: 1;"></div>
+                    </div>
+                    
+                    <div class="results-display calculator-right">
+                        <h4 class="text-center mb-3">Your Potential Results</h4>
+                        
+                        <div class="result-item">
+                            <span>Total Investment:</span>
+                            <span id="totalInvestment">₹18,00,000</span>
+                        </div>
+                        
+                        <div class="result-item">
+                            <span>Mutual Fund Fees (2.5%):</span>
+                            <span id="mutualFundFees" style="color: #dc2626;">₹3,60,000</span>
+                        </div>
+                        
+                        <div class="result-item">
+                            <span>SmartETF Fees (0.5%):</span>
+                            <span id="smartETFFees" style="color: var(--primary-green);">₹90,000</span>
+                        </div>
+                        
+                        <div class="result-item">
+                            <span>Your Fee Savings:</span>
+                            <span id="feeSavings" style="color: var(--primary-green);">₹2,70,000</span>
+                        </div>
+                        
+                        <div class="result-item">
+                            <span><strong>Mutual Fund Final Value (12%):</strong></span>
+                            <span id="mutualFundValue">₹35,09,767</span>
+                        </div>
+                        
+                        <div class="result-item">
+                            <span><strong>SmartETF Final Value (19%):</strong></span>
+                            <span id="smartETFValue">₹52,64,650</span>
+                        </div>
+                        
+                        <div class="result-item" style="background: linear-gradient(135deg, #dcfce7, #bbf7d0); padding: 1rem; border-radius: 10px;">
+                            <span><strong>🎯 Your Total Advantage:</strong></span>
+                            <span id="totalAdvantage" style="font-size: 1.3rem;">₹17,54,883</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+                
+                <div class="disclaimer">
+                    <p class="disclaimer-text"><strong>⚠️ Important:</strong> Past performance doesn't guarantee future results. These are educational projections based on historical data. Consult a qualified financial advisor before investing.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing-section sliding-section" id="pricing">
+        <div class="container">
+            <h2 class="section-title">Our Pricing</h2>
+            <p class="section-subtitle">Transparent fee structure with no hidden charges</p>
+            
+            <div class="timeframe-buttons">
+                <button class="timeframe-btn active" data-timeframe="monthly">Monthly</button>
+                <button class="timeframe-btn" data-timeframe="quarterly">Quarterly</button>
+                <button class="timeframe-btn" data-timeframe="half_yearly">Half-Yearly</button>
+                <button class="timeframe-btn" data-timeframe="annually">Annually</button>
+            </div>
+            
+            <div class="pricing-grid" id="pricingGrid">
+                <!-- Pricing cards will be dynamically loaded here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials-section sliding-section" id="testimonials">
+        <div class="container">
+            <h2 class="section-title">What Our Clients Say</h2>
+            <p class="section-subtitle">Join satisfied investors who are already saving thousands in fees</p>
+            
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="stars">⭐ ⭐ ⭐ ⭐ ⭐</div>
+                    <p class="testimonial-quote">"The SmartEtf Algo has transformed my investment strategy. I'm no longer worried about timing the market because the algorithm does it for me. Seeing my portfolio grow steadily has given me peace of mind."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">RK</div>
+                        <div class="author-info">
+                            <h5>Rahul K.</h5>
+                            <p>Investor since 2021</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="stars">⭐ ⭐ ⭐ ⭐ ⭐</div>
+                    <p class="testimonial-quote">"I've tried various investment approaches over the years, but SmartEtf Algo's systematic approach to buying during market dips has consistently outperformed my previous investments."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">AP</div>
+                        <div class="author-info">
+                            <h5>Anita P.</h5>
+                            <p>Investor since 2022</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="stars">⭐ ⭐ ⭐ ⭐</div>
+                    <p class="testimonial-quote">"As someone who doesn't have time to monitor markets daily, SmartEtf Algo has been the perfect solution. My investment has grown steadily even during volatile market periods."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">VJ</div>
+                        <div class="author-info">
+                            <h5>Vikram J.</h5>
+                            <p>Investor since 2022</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section sliding-section" id="faq">
+        <div class="container">
+            <h2 class="section-title">Frequently Asked Questions</h2>
+            <p class="section-subtitle">Get answers to common questions about our Smart ETF investment strategy</p>
+            
+            <div class="faq-list">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        How does the SmartEtf Algo select which ETFs to buy?
+                    </div>
+                    <div class="faq-answer">
+                        <p>Our algorithm analyzes all 250+ ETFs listed on NSE using proprietary criteria that include historical performance, volatility metrics, liquidity, expense ratios, and tracking efficiency. We apply additional filters to identify ETFs with the best potential for long-term growth.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        What is the minimum investment amount?
+                    </div>
+                    <div class="faq-answer">
+                        <p>Our service is accessible with a minimum monthly investment of ₹3,000 to ₹5,000. We believe in making algorithmic investing available to a wide range of investors.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Do I need SEBI certification for this service?
+                    </div>
+                    <div class="faq-answer">
+                        <p>No SEBI certification is required. We don't handle client money - you maintain complete control of your broker account. You can add or withdraw money whenever you want. We only provide trading signal technology.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        How often will the algorithm make purchases?
+                    </div>
+                    <div class="faq-answer">
+                        <p>Unlike traditional SIPs that buy on fixed dates, our algorithm only purchases when market segments fall below their established average decline thresholds. This means purchases occur strategically during market dips rather than on a predetermined schedule.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        How will I know when purchases are made?
+                    </div>
+                    <div class="faq-answer">
+                        <p>You will receive real-time notifications whenever the algorithm executes a trade. Additionally, you'll have access to a dashboard showing all transactions and detailed monthly reports summarizing your investment performance.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Is there a lock-in period?
+                    </div>
+                    <div class="faq-answer">
+                        <p>No, there is no lock-in period. However, we recommend a minimum investment horizon of 3-5 years to fully benefit from the power of compounding and our strategic "buy the dip" approach.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section sliding-section" id="contact">
+        <div class="container">
+            <h2 class="section-title text-white">Ready to Start Smart Investing?</h2>
+            <p class="section-subtitle text-white">Start your minimum investment from ₹3,000-₹5,000 monthly</p>
+            
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <h4>Contact Information</h4>
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <span>+91-7597583636 <small>(Call timing: 10 AM – 5 PM)</small></span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <a href="/cdn-cgi/l/email-protection#d2a1bfb3a0a6b7a6b4b3beb5bd92b5bfb3bbbefcb1bdbf"><span class="__cf_email__" data-cfemail="42312f233036273624232e252d02252f232b2e6c212d2f">[email&#160;protected]</span></a>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-globe"></i>
+                        <span>www.smartetfalgo.com</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fab fa-facebook"></i>
+                        <a href="https://www.facebook.com/profile.php?id=61575997851893" target="_blank">Facebook</a>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fab fa-instagram"></i>
+                        <a href="https://www.instagram.com/smartetfalgo/profilecard/?igsh=MXRhOXcwZzdiNHRoMA==" target="_blank">Instagram</a>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-file-alt"></i>
+                        <a href="https://docs.google.com/forms/d/e/1FAIpQLSel6qW8PuJKmL6WtiUpJe5sVFD-iUfZXosxtWN0DNR5MpR-Zw/viewform" target="_blank">Google Form</a>
+                    </div>
+                </div>
+                
+                <div class="onboarding-steps">
+                    <h4>What Happens Next?</h4>
+                    <div class="onboarding-step">
+                        <div class="step-number-small">1</div>
+                        <div class="step-content">
+                            <h6>Submit Your Information</h6>
+                            <p>Complete our Google Form with your contact details and investment goals</p>
+                        </div>
+                    </div>
+                    <div class="onboarding-step">
+                        <div class="step-number-small">2</div>
+                        <div class="step-content">
+                            <h6>Consultation Call</h6>
+                            <p>Our expert will contact you to discuss your investment needs and explain our algorithm</p>
+                        </div>
+                    </div>
+                    <div class="onboarding-step">
+                        <div class="step-number-small">3</div>
+                        <div class="step-content">
+                            <h6>Account Setup</h6>
+                            <p>Open your Finvasia account and complete the onboarding process</p>
+                        </div>
+                    </div>
+                    <div class="onboarding-step">
+                        <div class="step-number-small">4</div>
+                        <div class="step-content">
+                            <h6>Start Investing</h6>
+                            <p>Begin your journey of algorithm-powered ETF investing</p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <a href="/register" class="btn-hero-primary">Get Started Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-disclaimer">
+                <h5><i class="fas fa-exclamation-triangle me-2"></i>Important Investment Disclaimers</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="mb-0">
+                            <li><strong>Educational Platform:</strong> All content is for educational purposes only</li>
+                            <li><strong>Technology Service:</strong> We provide trading signal technology, not investment advice</li>
+                            <li><strong>Market Risks:</strong> All investments subject to market risks; you may lose money</li>
+                            <li><strong>Your Control:</strong> You maintain complete control of your broker account and funds</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="mb-0">
+                            <li><strong>Past Performance:</strong> Historical data doesn't guarantee future results</li>
+                            <li><strong>Calculation Disclaimer:</strong> All calculations are educational estimates</li>
+                            <li><strong>Professional Advice:</strong> Consult a qualified financial advisor</li>
+                            <li><strong>Your Responsibility:</strong> All investment decisions are your responsibility</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>SmartEtf Algo</h4>
+                    <p>Revolutionary ETF investment technology that saves you thousands in fees while optimizing your returns through intelligent market timing.</p>
+                    <p><strong>🎯 Start from just ₹7,000 monthly</strong></p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Key Benefits</h4>
+                    <ul class="footer-links">
+                        <li>💰 Save 50-80% on fees vs mutual funds</li>
+                        <li>📈 Target 15-20% annual returns</li>
+                        <li>🤖 Fully automated strategy</li>
+                        <li>🔒 Your money, your control</li>
+                        <li>⚡ Real-time market analysis</li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Legal & Compliance</h4>
+                    <ul class="footer-links">
+                        <li><a href="/terms-of-service">Terms of Service</a></li>
+                        <li><a href="/privacy-policy">Privacy Policy</a></li>
+                        <li><a href="/risk-disclosure">Risk Disclosure</a></li>
+                        <li><a href="/refund-policy">Refund Policy</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <ul class="footer-links">
+                        <li>📞 +91-7597583636</li>
+                        <li>✉️ <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="790a14180b0d1c0d1f18151e16391e14181015571a1614">[email&#160;protected]</a></li>
+                        <li>🌐 www.smartetfalgo.com</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2024 SmartEtf Algo. All Rights Reserved.</p>
+                <p><strong>⚠️ Investment Disclaimer:</strong> Mutual fund & ETF investments are subject to market risks. This is a technology service providing trading signals - not investment advice. Your money remains in your own broker account. Consult a qualified financial advisor.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sliding animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('slide-in');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.sliding-section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // Calculator functionality
+        function updateCalculator() {
+            const monthlyAmount = parseInt(document.getElementById('monthlyAmount').value);
+            const years = parseInt(document.getElementById('investmentPeriod').value);
+            const returnRate = parseInt(document.getElementById('returnRate').value) / 100;
+            
+            // Update display values
+            document.getElementById('monthlyAmountValue').textContent = '₹' + monthlyAmount.toLocaleString();
+            document.getElementById('periodValue').textContent = years + (years === 1 ? ' year' : ' years');
+            document.getElementById('returnValue').textContent = (returnRate * 100) + '%';
+            
+            // Calculate values
+            const totalInvestment = monthlyAmount * 12 * years;
+            const mutualFundFees = totalInvestment * 0.025; // 2.5% annual fee
+            const smartETFFees = totalInvestment * 0.005; // 0.5% annual fee
+            const feeSavings = mutualFundFees - smartETFFees;
+            
+            // SIP calculations with different return rates
+            const mutualFundValue = calculateSIP(monthlyAmount, 0.12, years); // 12% for MF
+            const smartETFValue = calculateSIP(monthlyAmount, returnRate, years); // User selected rate
+            const totalAdvantage = smartETFValue - mutualFundValue;
+            
+            // Update displays
+            document.getElementById('totalInvestment').textContent = '₹' + (totalInvestment / 100000).toFixed(2) + 'L';
+            document.getElementById('mutualFundFees').textContent = '₹' + mutualFundFees.toLocaleString();
+            document.getElementById('smartETFFees').textContent = '₹' + smartETFFees.toLocaleString();
+            document.getElementById('feeSavings').textContent = '₹' + feeSavings.toLocaleString();
+            document.getElementById('mutualFundValue').textContent = '₹' + (mutualFundValue / 100000).toFixed(2) + 'L';
+            document.getElementById('smartETFValue').textContent = '₹' + (smartETFValue / 100000).toFixed(2) + 'L';
+            document.getElementById('totalAdvantage').textContent = '₹' + (totalAdvantage / 100000).toFixed(2) + 'L';
+            
+            updateChart(mutualFundValue, smartETFValue, totalInvestment);
+        }
+
+        function calculateSIP(monthlyAmount, annualRate, years) {
+            const monthlyRate = annualRate / 12;
+            const months = years * 12;
+            if (monthlyRate === 0) return monthlyAmount * months;
+            return monthlyAmount * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate);
+        }
+
+        function updateChart(mfValue, etfValue, investment) {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            
+            if (window.chart) {
+                window.chart.destroy();
+            }
+            
+            try {
+                window.chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Total Investment', 'Mutual Fund Final', 'SmartETF Final'],
+                        datasets: [{
+                            label: 'Amount (₹)',
+                            data: [investment, mfValue, etfValue],
+                            backgroundColor: [
+                                '#64748b',
+                                '#dc2626',
+                                '#059669'
+                            ],
+                            borderColor: [
+                                '#475569',
+                                '#b91c1c',
+                                '#047857'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Investment Comparison Results'
+                            },
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '₹' + (value / 100000).toFixed(1) + 'L';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.log('Chart.js not available, skipping chart update');
+            }
+        }
+
+        // Event listeners
+        document.getElementById('monthlyAmount').addEventListener('input', updateCalculator);
+        document.getElementById('investmentPeriod').addEventListener('input', updateCalculator);
+        document.getElementById('returnRate').addEventListener('input', updateCalculator);
+
+        // Initialize calculator
+        updateCalculator();
+
+        // Hero stats interactive effects
+        document.querySelectorAll('.hero-stat').forEach(stat => {
+            stat.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-15px) scale(1.05)';
+            });
+            
+            stat.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // FAQ functionality
+        document.querySelectorAll('.faq-item').forEach(item => {
+            const question = item.querySelector('.faq-question');
+            question.addEventListener('click', () => {
+                item.classList.toggle('active');
+            });
+        });
+
+        // Pricing functionality - EXACTLY LIKE PREVIOUS IMPLEMENTATION
+        let allPlansData = [];
+        let activeTimeframe = 'monthly';
+
+        function getPriceForTimeframe(plan, timeframe) {
+            switch (timeframe) {
+                case 'monthly':
+                    return { price: plan.monthly_price || 0, duration: 'Per Month' };
+                case 'quarterly':
+                    return { price: plan.quarterly_price || 0, duration: 'Per Quarter' };
+                case 'half_yearly':
+                    return { price: plan.half_yearly_price || 0, duration: 'Per Half-Year' };
+                case 'annually':
+                    return { price: plan.annually_price || 0, duration: 'Per Year' };
+                default:
+                    return { price: plan.monthly_price || 0, duration: 'Per Month' };
+            }
+        }
+
+        function renderPlans(timeframe) {
+            const pricingGrid = document.getElementById('pricingGrid');
+            pricingGrid.innerHTML = '';
+
+            // Use data from API or fallback
+            const plans = allPlansData.length > 0 ? allPlansData : [];
+
+            plans.forEach((plan, index) => {
+                const isPopular = index === 1; // Middle plan is popular
+                const priceInfo = getPriceForTimeframe(plan, timeframe);
+                
+                const card = document.createElement('div');
+                card.className = `pricing-card ${isPopular ? 'popular' : ''}`;
+                
+                // Split features by comma and create list items
+                const featuresList = plan.features ? 
+                    plan.features.split(',').map(f => `<li><i class="fas fa-check me-2"></i>${f.trim()}</li>`).join('') :
+                    '<li>Features not available</li>';
+                
+                card.innerHTML = `
+                    ${isPopular ? '<div class="popular-badge">POPULAR</div>' : ''}
+                    <h4 class="pricing-plan-name">${plan.name || 'Unnamed Plan'}</h4>
+                    <div class="pricing-amount">₹${priceInfo.price.toLocaleString()}</div>
+                    <div class="pricing-duration">${priceInfo.duration}</div>
+                    <div class="text-muted mb-3">Monthly SIP up to ₹${(plan.max_sip_amount || 0).toLocaleString()}</div>
+                    <ul class="pricing-features">
+                        ${featuresList}
+                    </ul>
+                    <a href="/register" class="pricing-cta">Get Started</a>
+                `;
+                
+                pricingGrid.appendChild(card);
+            });
+        }
+
+        // Timeframe button handlers
+        document.querySelectorAll('.timeframe-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.timeframe-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeTimeframe = btn.getAttribute('data-timeframe');
+                renderPlans(activeTimeframe);
+            });
+        });
+
+        // Load pricing data from database - EXACTLY LIKE PREVIOUS IMPLEMENTATION
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch("/api/plans")
+                .then(response => {
+                    console.log('API Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(plans => {
+                    console.log('Loaded plans from database:', plans);
+                    if (plans && plans.length > 0) {
+                        allPlansData = plans;
+                        renderPlans(activeTimeframe);
+                    } else {
+                        console.log('No plans returned from database');
+                        // Create fallback display if needed
+                        document.getElementById('pricingGrid').innerHTML = '<p class="text-center">Plans not available at the moment. Please try again later.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading plans from database:', error);
+                    // Create fallback display
+                    document.getElementById('pricingGrid').innerHTML = '<p class="text-center text-danger">Unable to load plans. Please refresh the page or try again later.</p>';
+                });
+        });
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

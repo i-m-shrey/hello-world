@@ -1,0 +1,402 @@
+{% extends "layout.html" %}
+
+{% block title %}Admin Dashboard - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2>Admin Dashboard</h2>
+        <p class="text-muted">Manage users, subscriptions, and broker connections.</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Stats Cards -->
+    <div class="col-md-3 mb-4">
+        <div class="card shadow text-center py-3">
+            <div class="mb-2">
+                <i class="fas fa-users fa-2x text-primary"></i>
+            </div>
+            <h3 class="fs-2">{{ user_count }}</h3>
+            <div class="text-muted">Total Users</div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card shadow text-center py-3">
+            <div class="mb-2">
+                <i class="fas fa-exchange-alt fa-2x text-info"></i>
+            </div>
+            <h3 class="fs-2">{{ broker_count }}</h3>
+            <div class="text-muted">Broker Connections</div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card shadow text-center py-3">
+            <div class="mb-2">
+                <i class="fas fa-tags fa-2x text-success"></i>
+            </div>
+            <h3 class="fs-2">{{ active_subscriptions }}</h3>
+            <div class="text-muted">Active Subscriptions</div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card shadow text-center py-3">
+            <div class="mb-2">
+                <i class="fas fa-clock fa-2x text-warning"></i>
+            </div>
+            <h3 class="fs-2">₹{{ "%.2f"|format(total_revenue) }}</h3>
+            <div class="text-muted">Total Revenue</div>
+        </div>
+    </div>
+
+    <!-- Scheduler Status Card -->
+    <div class="col-md-3 mb-4">
+        <div class="card shadow text-center py-3 border-success">
+            <div class="mb-2">
+                <i class="fas fa-clock fa-2x text-success"></i>
+            </div>
+            <h3 class="fs-2"><span id="scheduler-status">🟢</span></h3>
+            <div class="text-muted">Scheduler Status</div>
+            <small class="text-success">Last check: <span id="last-check">Loading...</span></small>
+        </div>
+    </div>
+</div>
+
+<!-- Scheduler Quick Stats -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card shadow border-info">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-robot me-2"></i>Enhanced Execution Scheduler
+                </h5>
+                <span class="badge bg-success">Active</span>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-2">
+                        <div class="border-end">
+                            <h5 class="text-primary" id="morning-check-time">10:30 AM</h5>
+                            <small class="text-muted">Morning Health Check</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border-end">
+                            <h5 class="text-success" id="execution-time">3:10 PM</h5>
+                            <small class="text-muted">Strategy Execution</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border-end">
+                            <h5 class="text-info" id="active-sessions">{{ broker_count }}</h5>
+                            <small class="text-muted">Active Sessions</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border-end">
+                            <h5 class="text-warning" id="driver-status">✅</h5>
+                            <small class="text-muted">ChromeDriver</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="border-end">
+                            <h5 class="text-danger" id="password-warnings">0</h5>
+                            <small class="text-muted">Password Alerts</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <h5 class="text-primary" id="next-execution">Today 3:10 PM</h5>
+                        <small class="text-muted">Next Execution</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Users -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Users</h5>
+                <a href="{{ url_for('admin_users') }}" class="btn btn-sm btn-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_users %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Joined</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for user in recent_users %}
+                        <tr>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.created_at|datetime('%d %b, %Y') }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <p class="text-muted">No users found</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Subscriptions -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Subscriptions</h5>
+                <a href="{{ url_for('admin_subscriptions') }}" class="btn btn-sm btn-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_subscriptions %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Plan</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for subscription in recent_subscriptions %}
+                        <tr>
+                            <td>{{ subscription.user.username }}</td>
+                            <td>{{ subscription.plan_name }}</td>
+                            <td>₹{{ "%.2f"|format(subscription.amount) }}</td>
+                            <td>{{ subscription.created_at|datetime('%d %b, %Y') }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <p class="text-muted">No subscriptions found</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dynamic Fall Calculator Status -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card shadow border-warning">
+            <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Average Fall Calculator — Data Collection Status
+                </h5>
+                <span class="badge" id="fall-phase-badge" style="font-size:0.85rem;">Loading...</span>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-3 text-center border-end">
+                        <h2 id="fall-days-collected" class="mb-0 text-warning">—</h2>
+                        <small class="text-muted">Days of data collected</small>
+                    </div>
+                    <div class="col-md-3 text-center border-end">
+                        <h2 id="fall-days-needed" class="mb-0">—</h2>
+                        <small class="text-muted">Days needed (min)</small>
+                    </div>
+                    <div class="col-md-3 text-center border-end">
+                        <div class="progress mx-2" style="height:22px;" title="Progress to Phase 3">
+                            <div class="progress-bar bg-success progress-bar-striped progress-bar-animated"
+                                 id="fall-progress-bar" role="progressbar" style="width:0%">
+                                <span id="fall-progress-label">0%</span>
+                            </div>
+                        </div>
+                        <small class="text-muted mt-1 d-block">Progress to full dynamic</small>
+                    </div>
+                    <div class="col-md-3">
+                        <p class="mb-1 fw-bold" id="fall-phase-label">—</p>
+                        <small class="text-muted" id="fall-message">Loading status...</small>
+                    </div>
+                </div>
+                <!-- Phase timeline -->
+                <div class="mt-3 px-2">
+                    <div class="d-flex justify-content-between text-muted small mb-1">
+                        <span>Day 0 — Start</span>
+                        <span>Day 90 — Blend starts</span>
+                        <span>Day 180 — Fully Dynamic</span>
+                    </div>
+                    <div class="progress" style="height:10px;">
+                        <div class="progress-bar bg-danger" id="fall-timeline-p1" style="width:0%" title="Phase 1: Hardcoded"></div>
+                        <div class="progress-bar bg-warning" id="fall-timeline-p2" style="width:0%" title="Phase 2: Blending"></div>
+                        <div class="progress-bar bg-success" id="fall-timeline-p3" style="width:0%" title="Phase 3: Dynamic"></div>
+                    </div>
+                    <div class="d-flex mt-1 gap-3 small">
+                        <span><span class="badge bg-danger">Phase 1</span> Hardcoded CSV</span>
+                        <span><span class="badge bg-warning text-dark">Phase 2</span> Blending</span>
+                        <span><span class="badge bg-success">Phase 3</span> Fully Dynamic</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Quick Actions -->
+    <div class="col-md-12 mb-4">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('admin_users') }}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-users me-1"></i> Manage Users
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('admin_plans') }}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-tags me-1"></i> Manage Plans
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('admin_brokers') }}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-exchange-alt me-1"></i> Manage Brokers
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('admin_exports') }}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-download me-1"></i> Export Data
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('admin_supported_brokers') }}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-exchange-alt me-2"></i> Broker Types
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('admin_scheduler_management') }}" class="btn btn-outline-success w-100">
+                            <i class="fas fa-clock me-2"></i> Scheduler Management
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('admin_broker_passwords') }}" class="btn btn-outline-info w-100">
+                            <i class="fas fa-key me-2"></i> Broker Passwords
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('admin_subscriptions') }}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-receipt me-2"></i> Subscriptions
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scheduler Real-time Updates -->
+<script>
+// Auto-refresh scheduler status every 30 seconds
+function updateSchedulerStatus() {
+    fetch('{{ url_for("admin_scheduler_status") }}')
+        .then(response => response.json())
+        .then(data => {
+            // Update scheduler status indicator
+            const statusElement = document.getElementById('scheduler-status');
+            if (data.is_running) {
+                statusElement.innerHTML = '🟢';
+                statusElement.parentElement.className = statusElement.parentElement.className.replace('text-danger', 'text-success');
+            } else {
+                statusElement.innerHTML = '🔴';
+                statusElement.parentElement.className = statusElement.parentElement.className.replace('text-success', 'text-danger');
+            }
+            
+            // Update last check time
+            document.getElementById('last-check').textContent = data.last_health_check || 'Never';
+            
+            // Update quick stats
+            document.getElementById('active-sessions').textContent = data.active_clients;
+            document.getElementById('driver-status').textContent = data.driver_status === 'OK' ? '✅' : '❌';
+            document.getElementById('password-warnings').textContent = data.password_warnings;
+            
+            // Update times from settings
+            if (data.morning_check_time) {
+                document.getElementById('morning-check-time').textContent = data.morning_check_time;
+            }
+            if (data.execution_time) {
+                document.getElementById('execution-time').textContent = data.execution_time;
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching scheduler status:', error);
+            document.getElementById('scheduler-status').innerHTML = '⚠️';
+        });
+}
+
+// Initial load and set interval
+document.addEventListener('DOMContentLoaded', function() {
+    updateSchedulerStatus();
+    setInterval(updateSchedulerStatus, 30000); // Update every 30 seconds
+    loadFallDataStatus();
+});
+
+// Dynamic Fall Calculator status
+function loadFallDataStatus() {
+    fetch('/admin/fall-data-status')
+        .then(r => r.json())
+        .then(d => {
+            if (d.error) { return; }
+
+            const collected = d.days_collected;
+            const needed    = d.days_needed;        // 90
+            const blend     = d.blend_period;       // 90
+            const total     = needed + blend;       // 180 = full dynamic
+
+            // Phase badge
+            const badge = document.getElementById('fall-phase-badge');
+            const phaseColors = {1:'bg-danger', 2:'bg-warning text-dark', 3:'bg-success', 0:'bg-secondary'};
+            badge.className = 'badge ' + (phaseColors[d.phase] || 'bg-secondary');
+            badge.textContent = 'Phase ' + d.phase + ': ' + d.phase_label;
+
+            document.getElementById('fall-days-collected').textContent = collected;
+            document.getElementById('fall-days-needed').textContent    = needed;
+            document.getElementById('fall-phase-label').textContent    = d.phase_label;
+            document.getElementById('fall-message').textContent        = d.message;
+
+            // Overall progress bar (0 → 180 days = 100%)
+            const pct = Math.min(100, Math.round((collected / total) * 100));
+            const bar = document.getElementById('fall-progress-bar');
+            const barColors = {1:'bg-danger', 2:'bg-warning', 3:'bg-success'};
+            bar.style.width = pct + '%';
+            bar.className   = 'progress-bar progress-bar-striped ' + (barColors[d.phase] || 'bg-secondary');
+            document.getElementById('fall-progress-label').textContent = pct + '%';
+
+            // Timeline segments (each segment out of 100%)
+            const p1Days = Math.min(collected, needed);
+            const p2Days = Math.max(0, Math.min(collected - needed, blend));
+            const p3Days = Math.max(0, collected - total);
+            document.getElementById('fall-timeline-p1').style.width = ((p1Days / total) * 100).toFixed(1) + '%';
+            document.getElementById('fall-timeline-p2').style.width = ((p2Days / total) * 100).toFixed(1) + '%';
+            document.getElementById('fall-timeline-p3').style.width = ((p3Days / total) * 100).toFixed(1) + '%';
+        })
+        .catch(() => {
+            document.getElementById('fall-message').textContent = 'Could not load status.';
+        });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends "layout.html" %}
+
+{% block title %}Subscription Plans - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+        <h2>Manage Plans</h2>
+        <div>
+            <a href="{{ url_for('admin_create_plan') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> Create New Plan
+            </a>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-primary ms-2">
+                <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header">
+        <h5 class="mb-0">All Plans</h5>
+    </div>
+    <div class="card-body">
+        {% if plans %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Duration</th>
+                            <th>Price</th>
+                            <th>Algo Investment</th>
+                            <th>Max Brokers</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for plan in plans %}
+                        <tr>
+                            <td>{{ plan.name }}</td>
+                            <td>{{ plan.duration }} days</td>
+                            <td>₹{{ "%.2f"|format(plan.monthly_price) }}</td>
+                            <td>
+                                {% if plan.has_copy_trading %}
+                                    <span class="badge bg-success">Enabled</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Disabled</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ plan.max_brokers }}</td>
+                            <td>
+                                {% if plan.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('admin_view_plan', plan_id=plan.id) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('admin_edit_plan', plan_id=plan.id) }}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deletePlanModal{{ plan.id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Delete Modal -->
+                                <div class="modal fade" id="deletePlanModal{{ plan.id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirm Delete</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Are you sure you want to delete the plan <strong>{{ plan.name }}</strong>?</p>
+                                                <p class="text-danger">This cannot be undone. All subscriptions using this plan will be affected.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="{{ url_for('admin_delete_plan', plan_id=plan.id) }}" method="POST">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-4">
+                <p class="text-muted">No plans found</p>
+                <a href="{{ url_for('admin_create_plan') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i> Create First Plan
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0">Plan Usage Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Plan</th>
+                                <th>Active Subscriptions</th>
+                                <th>Users</th>
+                                <th>Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for plan in plans %}
+                            <tr>
+                                <td>{{ plan.name }}</td>
+                                <td>
+                                    {% set active_count = subscriptions|selectattr('plan_id', 'equalto', plan.id)|selectattr('expiry_date', 'gt', now())|list|length %}
+                                    {{ active_count }}
+                                </td>
+                                <td>
+                                    {% set unique_users = subscriptions|selectattr('plan_id', 'equalto', plan.id)|map(attribute='user_id')|unique|list|length %}
+                                    {{ unique_users }}
+                                </td>
+                                <td>
+                                    {% set revenue = subscriptions|selectattr('plan_id', 'equalto', plan.id)|sum(attribute='amount')|default(0) %}
+                                    ₹{{ "%.2f"|format(revenue) }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

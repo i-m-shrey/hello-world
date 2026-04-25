@@ -1,0 +1,266 @@
+{% extends "layout.html" %}
+
+{% block title %}Broker Details - SmartETF Algo{% endblock %}
+
+{% block additional_styles %}
+<style>
+.broker-hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    margin: -1.5rem -1.5rem 2rem -1.5rem;
+    border-radius: 0 0 1.5rem 1.5rem;
+}
+.detail-row {
+    padding: 1rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+.detail-row:last-child {
+    border-bottom: none;
+}
+.detail-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.25rem;
+}
+.detail-value {
+    color: #212529;
+    font-size: 1rem;
+}
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+}
+.status-active {
+    background-color: #d4edda;
+    color: #155724;
+}
+.status-inactive {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="broker-hero">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="mb-2">{{ broker.broker_name }}</h1>
+            <p class="mb-0 opacity-75">Manage your broker connection and credentials</p>
+        </div>
+        <div>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-light me-2">
+                <i class="fas fa-arrow-left me-1"></i> Dashboard
+            </a>
+            <a href="{{ url_for('edit_broker', broker_id=broker.id) }}" class="btn btn-warning">
+                <i class="fas fa-edit me-1"></i> Edit
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-building me-2"></i>Broker Account Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="detail-row">
+                    <div class="detail-label">User ID / Client ID</div>
+                    <div class="detail-value">{{ broker.user_id_broker }}</div>
+                </div>
+                
+                {% if broker.totp_secret %}
+                <div class="detail-row">
+                    <div class="detail-label">TOTP Secret</div>
+                    <div class="detail-value">
+                        <span id="totp-masked">********</span>
+                        <span id="totp-revealed" class="d-none">{{ broker.totp_secret }}</span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2 toggle-visibility" data-target="totp">
+                            <i class="fas fa-eye" id="totp-icon"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if broker.api_key %}
+                <div class="detail-row">
+                    <div class="detail-label">API Key</div>
+                    <div class="detail-value">
+                        <span id="apikey-masked">********</span>
+                        <span id="apikey-revealed" class="d-none">{{ broker.api_key }}</span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2 toggle-visibility" data-target="apikey">
+                            <i class="fas fa-eye" id="apikey-icon"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if broker.api_secret %}
+                <div class="detail-row">
+                    <div class="detail-label">API Secret</div>
+                    <div class="detail-value">
+                        <span id="apisecret-masked">********</span>
+                        <span id="apisecret-revealed" class="d-none">{{ broker.api_secret }}</span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2 toggle-visibility" data-target="apisecret">
+                            <i class="fas fa-eye" id="apisecret-icon"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if broker.vendor_code %}
+                <div class="detail-row">
+                    <div class="detail-label">Vendor Code</div>
+                    <div class="detail-value">{{ broker.vendor_code }}</div>
+                </div>
+                {% endif %}
+                
+                {% if broker.imei %}
+                <div class="detail-row">
+                    <div class="detail-label">IMEI</div>
+                    <div class="detail-value">{{ broker.imei }}</div>
+                </div>
+                {% endif %}
+                
+                {% if broker.access_token %}
+                <div class="detail-row">
+                    <div class="detail-label">Access Token</div>
+                    <div class="detail-value">
+                        <span id="token-masked">********</span>
+                        <span id="token-revealed" class="d-none">{{ broker.access_token[:50] }}...</span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2 toggle-visibility" data-target="token">
+                            <i class="fas fa-eye" id="token-icon"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="detail-row">
+                    <div class="detail-label">Created</div>
+                    <div class="detail-value">{{ broker.created_at.strftime('%d %b %Y, %I:%M %p') if broker.created_at else 'N/A' }}</div>
+                </div>
+                
+                {% if broker.last_updated %}
+                <div class="detail-row">
+                    <div class="detail-label">Last Updated</div>
+                    <div class="detail-value">{{ broker.last_updated.strftime('%d %b %Y, %I:%M %p') }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="detail-label mb-2">Algo Investment</div>
+                    {% if broker.subscription_status == 'Active' %}
+                        <span class="status-badge status-active">
+                            <i class="fas fa-check-circle me-2"></i>Active
+                        </span>
+                    {% else %}
+                        <span class="status-badge status-inactive">
+                            <i class="fas fa-times-circle me-2"></i>Inactive
+                        </span>
+                    {% endif %}
+                </div>
+                
+                {% if broker.subscription_expiry %}
+                <div class="mb-3">
+                    <div class="detail-label mb-2">Subscription Expires</div>
+                    <div class="detail-value">
+                        {{ broker.subscription_expiry.strftime('%d %b %Y') }}
+                        {% set days_left = (broker.subscription_expiry.date() - now().date()).days %}
+                        {% if days_left >= 0 %}
+                            <small class="{% if days_left < 7 %}text-danger{% else %}text-muted{% endif %}">
+                                ({{ days_left }} days left)
+                            </small>
+                        {% else %}
+                            <small class="text-danger">(Expired)</small>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if broker.plan %}
+                <div class="mb-3">
+                    <div class="detail-label mb-2">Plan</div>
+                    <div class="detail-value">{{ broker.plan.name }}</div>
+                </div>
+                {% endif %}
+                
+                {% if broker.available_balance is not none %}
+                <div class="mb-3">
+                    <div class="detail-label mb-2">Available Balance</div>
+                    <div class="detail-value">₹{{ "{:,.2f}".format(broker.available_balance) }}</div>
+                    {% if broker.balance_checked_at %}
+                        <small class="text-muted d-block">Last checked: {{ broker.balance_checked_at.strftime('%d %b, %I:%M %p') }}</small>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                {% if broker.subscription_status != 'Active' %}
+                <div class="alert alert-warning mb-0 mt-3">
+                    <small><i class="fas fa-info-circle me-1"></i>
+                    <a href="{{ url_for('view_plans') }}" class="alert-link">Subscribe to a plan</a> to activate algo investment.</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-cog me-2"></i>Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('edit_broker', broker_id=broker.id) }}" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>Edit Credentials
+                    </a>
+                    <a href="{{ url_for('delete_broker', broker_id=broker.id) }}" class="btn btn-outline-danger">
+                        <i class="fas fa-trash me-2"></i>Delete Broker
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block additional_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle visibility for sensitive information
+    document.querySelectorAll('.toggle-visibility').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const target = this.getAttribute('data-target');
+            const maskedElement = document.getElementById(target + '-masked');
+            const revealedElement = document.getElementById(target + '-revealed');
+            const iconElement = document.getElementById(target + '-icon');
+            
+            if (revealedElement.classList.contains('d-none')) {
+                maskedElement.classList.add('d-none');
+                revealedElement.classList.remove('d-none');
+                iconElement.classList.remove('fa-eye');
+                iconElement.classList.add('fa-eye-slash');
+            } else {
+                maskedElement.classList.remove('d-none');
+                revealedElement.classList.add('d-none');
+                iconElement.classList.remove('fa-eye-slash');
+                iconElement.classList.add('fa-eye');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

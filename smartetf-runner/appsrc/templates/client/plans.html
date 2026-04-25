@@ -1,0 +1,488 @@
+{% extends "layout.html" %}
+
+{% block title %}Subscription Plans - SmartETF{% endblock %}
+
+{% block additional_styles %}
+<style>
+:root {
+  --p:   #6D28D9;
+  --p2:  #9333EA;
+  --p3:  #EC4899;
+  --ok:  #059669;
+  --cr:  1.2rem;
+  --sh:  0 4px 20px rgba(109,40,217,.10);
+  --shh: 0 20px 60px rgba(109,40,217,.20);
+}
+
+/* ── Hero ─────────────────────────────── */
+.ph-hero {
+  background: linear-gradient(135deg, var(--p) 0%, var(--p2) 55%, var(--p3) 100%);
+  border-radius: var(--cr);
+  padding: 2.5rem 1.5rem 2rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+.ph-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 75% 15%, rgba(255,255,255,.12) 0%, transparent 60%);
+  pointer-events: none;
+}
+.ph-hero h1 {
+  font-size: clamp(1.75rem, 4vw, 3rem);
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -.02em;
+  margin-bottom: .5rem;
+}
+.ph-hero > p {
+  color: rgba(255,255,255,.85);
+  font-size: 1.05rem;
+  max-width: 440px;
+  margin: 0 auto 1.25rem;
+}
+.active-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  background: rgba(255,255,255,.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.3);
+  color: #fff;
+  padding: .4rem 1rem;
+  border-radius: 2rem;
+  font-size: .85rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  display: inline-flex;
+}
+
+/* ── Billing toggle — INSIDE hero ─────── */
+.billing-wrap { margin-top: 1.25rem; position: relative; z-index: 2; }
+.billing-toggle {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .3rem;
+  background: rgba(255,255,255,.18);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 3rem;
+  padding: .4rem;
+}
+.billing-toggle a {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .6rem 1.15rem;
+  border-radius: 2rem;
+  font-size: .875rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: rgba(255,255,255,.85);
+  white-space: nowrap;
+  transition: background .2s, color .2s, box-shadow .2s;
+}
+.billing-toggle a.active {
+  background: #fff;
+  color: var(--p);
+  box-shadow: 0 4px 14px rgba(0,0,0,.18);
+}
+.billing-toggle a:not(.active):hover {
+  background: rgba(255,255,255,.28);
+  color: #fff;
+}
+.save-chip {
+  background: linear-gradient(135deg, var(--p3), #F43F5E);
+  color: #fff;
+  font-size: .68rem;
+  font-weight: 700;
+  padding: .1rem .4rem;
+  border-radius: 1rem;
+  line-height: 1.4;
+}
+
+/* ── Active Subscription Banner ──────── */
+.sub-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: linear-gradient(135deg, #ECFDF5, #D1FAE5);
+  border: 1px solid #A7F3D0;
+  border-radius: var(--cr);
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+}
+.sub-banner-icon {
+  width: 44px; height: 44px;
+  background: var(--ok);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; flex-shrink: 0;
+}
+
+/* ── Plan Cards ──────────────────────── */
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+  align-items: start;
+}
+.plan-card {
+  background: #fff;
+  border-radius: var(--cr);
+  overflow: hidden;
+  box-shadow: var(--sh);
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  transition: transform .3s ease, box-shadow .3s ease;
+  animation: fadeUp .45s ease both;
+}
+.plan-card:nth-child(2) { animation-delay: .08s; }
+.plan-card:nth-child(3) { animation-delay: .16s; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.plan-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shh);
+}
+.plan-card.featured {
+  border-color: var(--p);
+  transform: scale(1.025);
+}
+.plan-card.featured:hover {
+  transform: scale(1.025) translateY(-8px);
+  box-shadow: var(--shh);
+}
+.popular-bar {
+  background: linear-gradient(90deg, var(--p), var(--p2));
+  color: #fff;
+  text-align: center;
+  padding: .35rem .5rem;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.card-head {
+  padding: 1.5rem 1.5rem 1.25rem;
+  border-bottom: 1px solid #F3F4F6;
+}
+.plan-name { font-size: 1.2rem; font-weight: 700; color: #1e1b4b; margin-bottom: .3rem; }
+.plan-desc { color: #6B7280; font-size: .85rem; margin-bottom: 1rem; min-height: 2.2rem; }
+.price-wrap { display: flex; align-items: baseline; gap: .2rem; flex-wrap: wrap; }
+.price-curr { font-size: 1.2rem; font-weight: 700; color: var(--p); }
+.price-num  { font-size: 2.5rem; font-weight: 800; color: var(--p); line-height: 1; }
+.price-per  { font-size: .85rem; color: #9CA3AF; }
+
+.card-feats { padding: 1.25rem 1.5rem; flex: 1; }
+.card-feats ul { list-style: none; padding: 0; margin: 0; }
+.card-feats li {
+  display: flex; align-items: flex-start; gap: .65rem;
+  padding: .5rem 0; border-bottom: 1px solid #F9FAFB;
+  font-size: .875rem; color: #374151;
+}
+.card-feats li:last-child { border-bottom: none; }
+.fi { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.fi.y { background: #D1FAE5; color: var(--ok); }
+.fi.n { background: #F3F4F6; color: #D1D5DB; }
+.fi i  { font-size: .6rem; }
+
+.card-cta { padding: 1rem 1.5rem 1.5rem; }
+.plan-btn {
+  display: block; width: 100%; padding: .8rem;
+  border-radius: .75rem; font-weight: 700; font-size: .95rem;
+  text-align: center; text-decoration: none; cursor: pointer;
+  border: none; transition: all .25s;
+}
+.plan-btn.fill {
+  background: linear-gradient(135deg, var(--p), var(--p2));
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(109,40,217,.28);
+}
+.plan-btn.fill:hover { box-shadow: 0 8px 24px rgba(109,40,217,.4); transform: translateY(-2px); color: #fff; }
+.plan-btn.ghost { background: transparent; color: var(--p); border: 2px solid #DDD6FE; }
+.plan-btn.ghost:hover { background: #F5F3FF; border-color: var(--p); color: var(--p); }
+
+/* ── Boxes ───────────────────────────── */
+.box { background: #fff; border-radius: var(--cr); box-shadow: var(--sh); overflow: hidden; margin-bottom: 1.5rem; }
+.box-head { padding: 1rem 1.5rem; font-size: 1rem; font-weight: 700; color: #1e1b4b; border-bottom: 1px solid #F3F4F6; display: flex; align-items: center; gap: .5rem; }
+.box-head i { color: var(--p); }
+
+/* ── Pricing cols ────────────────────── */
+.pricing-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.pcol { padding: 1.1rem 1.25rem; border-right: 1px solid #F3F4F6; }
+.pcol:last-child { border-right: none; }
+.pcol h6 { font-weight: 700; color: var(--p); margin-bottom: .75rem; font-size: .95rem; }
+.prow { display: flex; justify-content: space-between; align-items: center; padding: .3rem 0; border-bottom: 1px solid #F9FAFB; font-size: .825rem; }
+.prow:last-child { border-bottom: none; }
+.prow span { color: #9CA3AF; }
+.prow strong { color: #1e1b4b; }
+
+/* ── Comparison table ────────────────── */
+.tbl-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.ctbl { width: 100%; border-collapse: collapse; min-width: 460px; }
+.ctbl thead { background: linear-gradient(135deg, var(--p), var(--p2)); }
+.ctbl thead th { padding: .9rem 1.1rem; font-weight: 600; color: #fff; text-align: center; white-space: nowrap; font-size: .875rem; }
+.ctbl thead th:first-child { text-align: left; }
+.ctbl tbody tr:nth-child(even) { background: #FAFAFA; }
+.ctbl tbody td { padding: .75rem 1.1rem; border-bottom: 1px solid #F3F4F6; font-size: .875rem; text-align: center; color: #374151; }
+.ctbl tbody td:first-child { text-align: left; font-weight: 500; color: #1e1b4b; }
+.ctbl tbody tr:last-child td { border-bottom: none; }
+
+/* ── Responsive ──────────────────────── */
+@media (max-width: 767px) {
+  .ph-hero { padding: 2rem 1rem 1.5rem; border-radius: 1rem; }
+  .billing-toggle a { padding: .5rem .9rem; font-size: .82rem; }
+  .save-chip { display: none; }
+  .plan-card.featured { transform: none; }
+  .plan-card.featured:hover { transform: translateY(-8px); }
+  .pcol { border-right: none; border-bottom: 1px solid #F3F4F6; }
+  .pcol:last-child { border-bottom: none; }
+}
+@media (max-width: 480px) {
+  .billing-toggle { border-radius: 1rem; gap: .2rem; }
+  .billing-toggle a { flex: 1 1 calc(50% - .2rem); justify-content: center; }
+  .plans-grid { grid-template-columns: 1fr; }
+  .price-num { font-size: 2.1rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Hero (billing toggle lives INSIDE here) ── -->
+<div class="ph-hero">
+  <h1>Choose Your Plan</h1>
+  <p>Simple, transparent pricing. Invest smarter every day.</p>
+
+  {% if current_subscription and now() < current_subscription.expiry_date %}
+  <div style="margin-bottom:.75rem;">
+    <span class="active-pill">
+      <i class="fas fa-check-circle"></i>
+      Active: {{ current_subscription.plan_name }} &middot; {{ (current_subscription.expiry_date - now()).days }} days left
+    </span>
+  </div>
+  {% endif %}
+
+  <div class="billing-wrap">
+    <div class="billing-toggle">
+      <a href="?timeframe=monthly" class="{{ 'active' if current_timeframe == 'monthly' else '' }}">Monthly</a>
+      <a href="?timeframe=quarterly" class="{{ 'active' if current_timeframe == 'quarterly' else '' }}">
+        Quarterly <span class="save-chip">-10%</span>
+      </a>
+      <a href="?timeframe=half_yearly" class="{{ 'active' if current_timeframe == 'half_yearly' else '' }}">
+        Half-Yearly <span class="save-chip">-15%</span>
+      </a>
+      <a href="?timeframe=annually" class="{{ 'active' if current_timeframe == 'annually' else '' }}">
+        Annually <span class="save-chip">-25%</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ── Page Body ── -->
+<div class="ph-body">
+
+  {% if current_subscription and now() < current_subscription.expiry_date %}
+  <div class="sub-banner">
+    <div class="sub-banner-icon"><i class="fas fa-check"></i></div>
+    <div>
+      <strong style="color:#065F46;">Active Subscription</strong><br>
+      <span style="font-size:.875rem;color:#047857;">
+        Your <strong>{{ current_subscription.plan_name }}</strong> plan runs until
+        {{ current_subscription.expiry_date|datetime('%d %b %Y') }}
+        ({{ (current_subscription.expiry_date - now()).days }} days left). You can upgrade at any time.
+      </span>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Plan Cards -->
+  <div class="plans-grid">
+    {% for plan in plans %}
+    {% set is_feat = plan.name|lower == 'growth' %}
+    <div class="plan-card {{ 'featured' if is_feat else '' }}">
+
+      {% if is_feat %}<div class="popular-bar">&#9733; Most Popular</div>{% endif %}
+
+      <div class="card-head">
+        <div class="plan-name">{{ plan.name }}</div>
+        <div class="plan-desc">{{ plan.description or '' }}</div>
+        <div class="price-wrap">
+          <span class="price-curr">&#8377;</span>
+          <span class="price-num">{{ plan.current_price|round|int }}</span>
+          <span class="price-per">/ {{ billing_cycle.title() if billing_cycle else 'month' }}</span>
+        </div>
+      </div>
+
+      <div class="card-feats">
+        <ul>
+          {% set pn = plan.name|lower %}
+          {% if pn == 'basic' %}
+            <li><span class="fi y"><i class="fas fa-check"></i></span>Automated ETF investing</li>
+            <li><span class="fi y"><i class="fas fa-check"></i></span>Monthly SIP up to <strong>&nbsp;&#8377;{{ "{:,}".format(plan.max_sip_amount or 0) }}</strong></li>
+            <li><span class="fi y"><i class="fas fa-check"></i></span>Standard email support</li>
+            <li><span class="fi y"><i class="fas fa-check"></i></span>Performance reports</li>
+            <li><span class="fi n"><i class="fas fa-times"></i></span><span style="color:#9CA3AF">Priority support</span></li>
+            <li><span class="fi n"><i class="fas fa-times"></i></span><span style="color:#9CA3AF">Advanced analytics</span></li>
+          {% elif pn == 'growth' %}
+            <li><span class="fi y"><i class="fas fa-check"></i></span>Everything in Basic</li>
+            <li><span class="fi y"><i class="fas fa-check"></i></span>Higher SIP up to <strong>&nbsp;&#8377;{{ "{:,}".format(plan.max_sip_amount or 0) }}</strong></li>
+            <li><span class="fi y"><i class="fas fa-check"></i></span>Priority email support</li>
+            <li><span class="fi y"><i class="fas fa-check"></i></span>Monthly performance summary</li>
+            <li><span class="fi y"><i class="fas fa-check"></i></span>Advanced analytics</li>
+            <li><span class="fi n"><i class="fas fa-times"></i></span><span style="color:#9CA3AF">Dedicated account manager</span></li>
+          {% elif pn == 'premium' %}
+            <li><span class="fi y"><i class="fas fa-check"></i></span>Everything in Growth</li>
+            <li><span class="fi y"><i class="fas fa-check"></i></span>Max SIP up to <strong>&nbsp;&#8377;{{ "{:,}".format(plan.max_sip_amount or 0) }}</strong></li>
+            <li><span class="fi y"><i class="fas fa-check"></i></span>Urgent priority support</li>
+            <li><span class="fi y"><i class="fas fa-check"></i></span>Early access to new features</li>
+            <li><span class="fi y"><i class="fas fa-check"></i></span>Advanced analytics</li>
+            <li><span class="fi y"><i class="fas fa-check"></i></span>Dedicated account manager</li>
+          {% else %}
+            {% if plan.features %}
+              {% for f in plan.features.replace('\r','').split('\n') %}
+                {% if f.strip() %}
+                <li><span class="fi y"><i class="fas fa-check"></i></span>{{ f.strip() }}</li>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+            {% if plan.max_sip_amount %}
+            <li><span class="fi y"><i class="fas fa-check"></i></span>Max SIP: &#8377;{{ "{:,}".format(plan.max_sip_amount) }}</li>
+            {% endif %}
+            <li><span class="fi y"><i class="fas fa-check"></i></span>Algo Investment: {{ 'Yes' if plan.has_copy_trading else 'No' }}</li>
+          {% endif %}
+        </ul>
+      </div>
+
+      <div class="card-cta">
+        <a href="{{ url_for('select_plan', plan_id=plan.id) }}?timeframe={{ current_timeframe }}&price={{ plan.current_price }}"
+           class="plan-btn {{ 'fill' if is_feat else 'ghost' }} btn-choose">
+          Get {{ plan.name }}
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- All Pricing Options -->
+  <div class="box">
+    <div class="box-head"><i class="fas fa-tags"></i> All Pricing Options</div>
+    <div class="pricing-cols">
+      {% for plan in plans %}
+      <div class="pcol">
+        <h6>{{ plan.name }}</h6>
+        <div class="prow"><span>Monthly</span><strong>&#8377;{{ plan.monthly_price|round|int }}</strong></div>
+        <div class="prow"><span>Quarterly</span><strong>&#8377;{{ plan.quarterly_price|round|int }}</strong></div>
+        <div class="prow"><span>Half-Yearly</span><strong>&#8377;{{ plan.half_yearly_price|round|int }}</strong></div>
+        <div class="prow"><span>Annually</span><strong>&#8377;{{ plan.annually_price|round|int }}</strong></div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Comparison Table -->
+  <div class="box">
+    <div class="box-head"><i class="fas fa-table"></i> Plan Comparison</div>
+    <div class="tbl-scroll">
+      <table class="ctbl">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            {% for p in plans %}<th>{{ p.name }}</th>{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Monthly Price</td>
+            {% for p in plans %}<td>&#8377;{{ p.monthly_price|round|int }}</td>{% endfor %}
+          </tr>
+          <tr>
+            <td>Max Monthly SIP</td>
+            {% for p in plans %}
+            <td>{% if p.max_sip_amount %}<strong>&#8377;{{ "{:,}".format(p.max_sip_amount) }}</strong>{% else %}&mdash;{% endif %}</td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <td>Max Brokers</td>
+            {% for p in plans %}<td>{{ p.max_brokers or '&mdash;' }}</td>{% endfor %}
+          </tr>
+          <tr>
+            <td>Algo Investment</td>
+            {% for p in plans %}
+            <td>{% if p.has_copy_trading %}<i class="fas fa-check" style="color:var(--ok)"></i>{% else %}<i class="fas fa-times" style="color:#D1D5DB"></i>{% endif %}</td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <td>Automated Investing</td>
+            {% for p in plans %}<td><i class="fas fa-check" style="color:var(--ok)"></i></td>{% endfor %}
+          </tr>
+          <tr>
+            <td>Performance Reports</td>
+            {% for p in plans %}<td><i class="fas fa-check" style="color:var(--ok)"></i></td>{% endfor %}
+          </tr>
+          <tr>
+            <td>Monthly Summary</td>
+            {% for p in plans %}
+            {% set pn = p.name|lower %}
+            <td>{% if pn in ['growth','premium'] %}<i class="fas fa-check" style="color:var(--ok)"></i>{% else %}<i class="fas fa-times" style="color:#D1D5DB"></i>{% endif %}</td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <td>Support Level</td>
+            {% for p in plans %}
+            {% set pn = p.name|lower %}
+            <td>
+              {% if pn == 'basic' %}<span class="badge" style="background:#F3F4F6;color:#374151;font-weight:600">Standard</span>
+              {% elif pn == 'growth' %}<span class="badge" style="background:#EDE9FE;color:var(--p);font-weight:600">Priority</span>
+              {% elif pn == 'premium' %}<span class="badge" style="background:#D1FAE5;color:#065F46;font-weight:600">Urgent</span>
+              {% else %}Standard{% endif %}
+            </td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <td>Early Feature Access</td>
+            {% for p in plans %}
+            <td>{% if p.name|lower == 'premium' %}<i class="fas fa-check" style="color:var(--ok)"></i>{% else %}<i class="fas fa-times" style="color:#D1D5DB"></i>{% endif %}</td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <td>Dedicated Manager</td>
+            {% for p in plans %}
+            <td>{% if p.name|lower == 'premium' %}<i class="fas fa-check" style="color:var(--ok)"></i>{% else %}<i class="fas fa-times" style="color:#D1D5DB"></i>{% endif %}</td>
+            {% endfor %}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:1rem 0 .5rem">
+    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+    </a>
+  </div>
+
+</div>
+
+<script>
+document.querySelectorAll('.btn-choose').forEach(function(b) {
+  b.addEventListener('click', function() {
+    this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Loading...';
+    this.style.pointerEvents = 'none';
+    this.style.opacity = '.75';
+  });
+});
+</script>
+{% endblock %}

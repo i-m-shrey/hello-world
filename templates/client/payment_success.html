@@ -1,0 +1,95 @@
+{% extends "layout.html" %}
+
+{% block title %}Payment Successful - SmartETF{% endblock %}
+
+{% block additional_styles %}
+<style>
+:root { --p:#6D28D9; --p2:#9333EA; --ok:#059669; --cr:1.2rem; --sh:0 4px 20px rgba(109,40,217,.10); }
+
+.outcome-wrap {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+.outcome-card {
+  background: #fff;
+  border-radius: 1.5rem;
+  box-shadow: var(--sh);
+  padding: 3rem 2.5rem;
+  text-align: center;
+  max-width: 480px;
+  width: 100%;
+  animation: popIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes popIn {
+  from { opacity: 0; transform: scale(.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.outcome-icon {
+  width: 90px; height: 90px;
+  margin: 0 auto 1.5rem;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #D1FAE5, #A7F3D0);
+  animation: bounceIn .6s .2s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes bounceIn {
+  from { opacity: 0; transform: scale(.5); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.outcome-icon i { font-size: 2.75rem; color: var(--ok); }
+.outcome-card h1 { font-size: 1.75rem; font-weight: 800; color: #1e1b4b; margin-bottom: .75rem; }
+.outcome-card p { color: #6B7280; font-size: 1rem; margin-bottom: 2rem; line-height: 1.6; }
+.confetti-dots {
+  display: flex; justify-content: center; gap: .4rem; margin-bottom: 1.5rem;
+}
+.confetti-dots span {
+  width: 8px; height: 8px; border-radius: 50%;
+  animation: confettiBounce 1s infinite;
+}
+.confetti-dots span:nth-child(1) { background: var(--p); animation-delay: 0s; }
+.confetti-dots span:nth-child(2) { background: #EC4899; animation-delay: .15s; }
+.confetti-dots span:nth-child(3) { background: var(--ok); animation-delay: .3s; }
+.confetti-dots span:nth-child(4) { background: #F59E0B; animation-delay: .45s; }
+.confetti-dots span:nth-child(5) { background: #3B82F6; animation-delay: .6s; }
+@keyframes confettiBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.btn-dashboard {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: linear-gradient(135deg, var(--p), var(--p2));
+  color: #fff; padding: .9rem 2rem; border-radius: .875rem;
+  font-weight: 700; font-size: 1rem; text-decoration: none;
+  box-shadow: 0 4px 16px rgba(109,40,217,.30);
+  transition: all .25s;
+}
+.btn-dashboard:hover { box-shadow: 0 8px 28px rgba(109,40,217,.45); transform: translateY(-2px); color: #fff; }
+
+@media (max-width: 480px) {
+  .outcome-card { padding: 2rem 1.5rem; }
+  .outcome-icon { width: 72px; height: 72px; }
+  .outcome-icon i { font-size: 2.2rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="outcome-wrap">
+  <div class="outcome-card">
+    <div class="outcome-icon">
+      <i class="fas fa-check"></i>
+    </div>
+    <div class="confetti-dots">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <h1>Payment Successful!</h1>
+    <p>Your subscription has been activated successfully. You're all set to start investing smarter.</p>
+    <a href="{{ url_for('dashboard') }}" class="btn-dashboard">
+      <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+    </a>
+  </div>
+</div>
+{% endblock %}

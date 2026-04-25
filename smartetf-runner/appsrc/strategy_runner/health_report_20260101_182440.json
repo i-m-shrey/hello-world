@@ -1,0 +1,69 @@
+{
+  "timestamp": "2026-01-01 18:24:20.150607",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 5,
+    "failed": []
+  },
+  "low_balance_alerts": {
+    "threshold_percent": 20,
+    "alerts": [
+      {
+        "customer_id": "smartetf_user_10001",
+        "broker": "FINVASIA",
+        "balance": 1381.38,
+        "threshold": 1600.0
+      },
+      {
+        "customer_id": "smartetf_user_10006",
+        "broker": "FINVASIA",
+        "balance": 3362.63,
+        "threshold": 4000.0
+      }
+    ]
+  },
+  "session_check": {
+    "status": "PASS",
+    "total_clients": 6,
+    "active_sessions": 5,
+    "failed_sessions": 1,
+    "success_rate": 83.33333333333334,
+    "broker_breakdown": {
+      "FINVASIA": {
+        "active": 5,
+        "failed": 0
+      },
+      "DHAN": {
+        "active": 0,
+        "failed": 1
+      }
+    },
+    "failed_clients": [
+      {
+        "client_id": "smartetf_user_10007",
+        "broker": "DHAN",
+        "error": "Missing DHAN credentials: need client_id, api_key, api_secret, pin, mobile",
+        "timestamp": "2026-01-01 18:24:22.036027",
+        "email": "nitimajain91@gmail.com"
+      }
+    ],
+    "timestamp": "2026-01-01 18:24:22.036027"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "PASS",
+    "test_url": "https://www.google.com",
+    "page_title": "Google",
+    "test_time_seconds": 4.232679605484009,
+    "timestamp": "2026-01-01 18:24:36.912569"
+  },
+  "overall_status": "HEALTHY",
+  "critical_issues": [],
+  "warnings": [
+    "1 client sessions failed"
+  ],
+  "recommendations": []
+}

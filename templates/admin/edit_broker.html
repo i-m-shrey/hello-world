@@ -1,0 +1,276 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Broker - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+        <h2>Edit Broker: {{ broker.broker_name }}</h2>
+        <div>
+            <a href="{{ url_for('view_broker', broker_id=broker.id) }}" class="btn btn-outline-info me-2">
+                <i class="fas fa-eye me-1"></i> View Broker
+            </a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header">
+        <h5 class="mb-0">Broker Details</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-4">
+                <label class="form-label">Broker Type</label>
+                <input type="text" class="form-control" value="{{ broker.broker_name }}" disabled>
+                <small class="text-muted">Broker type cannot be changed</small>
+            </div>
+            
+            <div class="mb-4">
+                <label for="user_id_broker" class="form-label">User ID / Client ID</label>
+                <input type="text" class="form-control" id="user_id_broker" name="user_id_broker" 
+                       value="{{ broker.user_id_broker }}" required>
+                <small class="text-muted">This is the user ID or client ID you use to log in to your broker's platform.</small>
+            </div>
+            
+            <div class="mb-4">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-group">
+                    <input type="password" class="form-control" id="password" name="password" 
+                           placeholder="Enter new password (leave empty to keep current)">
+                    <button type="button" class="btn btn-outline-secondary toggle-password" data-target="#password">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <small class="text-muted">Leave empty to keep your current password.</small>
+            </div>
+            
+            <!-- Broker-specific fields -->
+            {% if supported_broker.requires_totp %}
+            <div class="mb-3">
+                <label for="totp_secret" class="form-label">TOTP Secret <a href="#" class="ms-2 small" data-help="totp">How to find?</a></label>
+                <input type="text" class="form-control" id="totp_secret" name="totp_secret" 
+                       value="{{ broker.totp_secret }}" placeholder="Enter TOTP secret">
+                <small class="text-muted">The secret key for generating time-based one-time passwords.</small>
+            </div>
+            {% endif %}
+            
+            {% if supported_broker.requires_api_key %}
+            <div class="mb-3">
+                <label for="api_key" class="form-label">API Key <a href="#" class="ms-2 small" data-help="api_key">How to find?</a></label>
+                <input type="text" class="form-control" id="api_key" name="api_key" 
+                       value="{{ broker.api_key }}" placeholder="Enter API key">
+                <small class="text-muted">API key provided by your broker.</small>
+            </div>
+            {% endif %}
+            
+            {% if supported_broker.requires_api_secret %}
+            <div class="mb-3">
+                <label for="api_secret" class="form-label">API Secret <a href="#" class="ms-2 small" data-help="api_secret">How to find?</a></label>
+                <input type="text" class="form-control" id="api_secret" name="api_secret" 
+                       value="{{ broker.api_secret }}" placeholder="Enter API secret">
+                <small class="text-muted">API secret provided by your broker.</small>
+            </div>
+            {% endif %}
+            
+            {% if supported_broker.requires_vendor_code %}
+            <div class="mb-3">
+                <label for="vendor_code" class="form-label">Vendor Code <a href="#" class="ms-2 small" data-help="vendor_code">How to find?</a></label>
+                <input type="text" class="form-control" id="vendor_code" name="vendor_code" 
+                       value="{{ broker.vendor_code }}" placeholder="Enter vendor code">
+                <small class="text-muted">Vendor code for API access.</small>
+            </div>
+            {% endif %}
+            
+            {% if supported_broker.requires_imei %}
+            <div class="mb-3">
+                <label for="imei" class="form-label">IMEI <a href="#" class="ms-2 small" data-help="imei">How to find?</a></label>
+                <input type="text" class="form-control" id="imei" name="imei" 
+                       value="{{ broker.imei }}" placeholder="Enter IMEI">
+                <small class="text-muted">IMEI number for mobile authentication.</small>
+            </div>
+            {% endif %}
+            
+            {% if supported_broker.requires_access_token %}
+            <div class="mb-3">
+                <label for="access_token" class="form-label">Access Token <a href="#" class="ms-2 small" data-help="access_token">How to find?</a></label>
+                <input type="text" class="form-control" id="access_token" name="access_token" 
+                       value="{{ broker.access_token }}" placeholder="Enter access token">
+                <small class="text-muted">Access token provided by your broker.</small>
+            </div>
+            {% endif %}
+
+            {% if supported_broker.requires_client_id %}
+            <div class="mb-3">
+                <label for="client_id" class="form-label">Client ID <a href="#" class="ms-2 small" data-help="client_id">How to find?</a></label>
+                <input type="text" class="form-control" id="client_id" name="client_id" 
+                       value="{{ broker.dhan_client_id }}" placeholder="Enter client ID">
+                <small class="text-muted">Client ID provided by your broker.</small>
+            </div>
+            {% endif %}
+
+            <div class="mb-3">
+                <label for="proxy_ip" class="form-label">
+                    Static Proxy IP
+                    <span class="badge bg-warning text-dark ms-1">SEBI Required</span>
+                </label>
+                <input type="text" class="form-control" id="proxy_ip" name="proxy_ip"
+                       value="{{ broker.proxy_ip or '' }}"
+                       placeholder="e.g. http://user:pass@123.45.67.89:8080">
+                <small class="text-muted">
+                    Static proxy for this client's order placement (SEBI circular compliance).
+                    Format: <code>http://username:password@host:port</code>
+                    &nbsp;|&nbsp; Leave blank if not using a proxy.
+                </small>
+            </div>
+
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Note:</strong> Your broker details will be securely stored and used only for trading purposes.
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{{ url_for('view_broker', broker_id=broker.id) }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                <button type="submit" class="btn btn-primary">Update Broker</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% block additional_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle password visibility
+        document.querySelectorAll('.toggle-password').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const passwordField = document.querySelector(targetId);
+                
+                const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordField.setAttribute('type', type);
+                
+                const icon = this.querySelector('i');
+                if (type === 'text') {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+        });
+
+        const helpMap = {{ help_map|tojson|safe }} || {};
+        const brokerKey = '{{ supported_broker.name if supported_broker else "" }}'.toUpperCase();
+
+        function normalized(u) {
+            if (!u) return '';
+            u = ('' + u).trim();
+            if (!u) return '';
+            if (u.startsWith('//')) u = 'https:' + u;
+            if (u.startsWith('http://')) u = 'https://' + u.slice(7);
+            try { new URL(u); } catch (e) { return ''; }
+            return u;
+        }
+
+        function toEmbed(u) {
+            u = normalized(u);
+            if (!u) return '';
+            try {
+                const url = new URL(u);
+                const h = url.hostname.toLowerCase();
+                if (h.includes('youtu.be')) {
+                    const id = url.pathname.split('/').filter(Boolean)[0] || '';
+                    if (id) return 'https://www.youtube.com/embed/' + id;
+                }
+                if (h.includes('youtube.com')) {
+                    const id = url.searchParams.get('v');
+                    if (id) return 'https://www.youtube.com/embed/' + id;
+                }
+                if (h.includes('drive.google.com')) {
+                    const m = url.pathname.match(/\/file\/d\/([^/]+)/);
+                    const id = m && m[1];
+                    if (id) return 'https://drive.google.com/file/d/' + id + '/preview';
+                }
+                return u;
+            } catch (e) {
+                return '';
+            }
+        }
+
+        function getHelp(key) {
+            return helpMap[key] || {};
+        }
+
+        function ensureHelpVideoModal() {
+            const id = 'helpVideoModal';
+            let modal = document.getElementById(id);
+            if (!modal) {
+                document.body.insertAdjacentHTML('beforeend', '\
+                <div class="modal fade" id="' + id + '" tabindex="-1">\
+                    <div class="modal-dialog modal-lg modal-dialog-centered">\
+                        <div class="modal-content">\
+                            <div class="modal-header">\
+                                <h5 class="modal-title">How to find this value</h5>\
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>\
+                            </div>\
+                            <div class="modal-body">\
+                                <div class="ratio ratio-16x9">\
+                                    <iframe id="helpVideoFrame" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>\
+                                </div>\
+                            </div>\
+                        </div>\
+                    </div>\
+                </div>');
+                modal = document.getElementById(id);
+                modal.addEventListener('hidden.bs.modal', function() {
+                    const frame = document.getElementById('helpVideoFrame');
+                    if (frame) frame.src = '';
+                });
+            }
+            return modal;
+        }
+
+        function openHelpVideo(kind) {
+            if (!brokerKey) {
+                alert('No broker help configured yet.');
+                return;
+            }
+            const help = getHelp(brokerKey);
+            const keyMap = {
+                api_key: 'video_api_key_url',
+                api_secret: 'video_api_secret_url',
+                vendor_code: 'video_vendor_code_url',
+                imei: 'video_imei_url',
+                totp: 'video_totp_url',
+                access_token: 'video_access_token_url'
+            };
+            const raw = help[keyMap[kind]] || '';
+            const embed = toEmbed(raw);
+            if (!embed) {
+                if (raw) {
+                    window.open(raw, '_blank');
+                    return;
+                }
+                alert('No help video available yet for this field.');
+                return;
+            }
+            const modal = ensureHelpVideoModal();
+            const frame = document.getElementById('helpVideoFrame');
+            frame.src = embed;
+            bootstrap.Modal.getOrCreateInstance(modal).show();
+        }
+
+        document.querySelectorAll('[data-help]').forEach(function(trigger) {
+            trigger.addEventListener('click', function(e) {
+                e.preventDefault();
+                openHelpVideo(this.getAttribute('data-help'));
+            });
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

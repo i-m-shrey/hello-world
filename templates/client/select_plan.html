@@ -1,0 +1,343 @@
+{% extends "layout.html" %}
+
+{% block title %}Confirm Plan - SmartETF{% endblock %}
+
+{% block additional_styles %}
+<style>
+:root { --p:#6D28D9; --p2:#9333EA; --p3:#EC4899; --ok:#059669; --cr:1.2rem; --sh:0 4px 20px rgba(109,40,217,.10); }
+
+/* Page header */
+.pg-header {
+  background: linear-gradient(135deg, var(--p) 0%, var(--p2) 55%, var(--p3) 100%);
+  border-radius: var(--cr);
+  padding: 1.75rem 1.75rem 1.5rem;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.pg-header::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 80% 20%, rgba(255,255,255,.12) 0%, transparent 60%);
+  pointer-events: none;
+}
+.pg-header h2 { color: #fff; font-weight: 800; font-size: 1.6rem; margin: 0; letter-spacing: -.02em; }
+.pg-header .btn-back {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.35);
+  color: #fff; padding: .5rem 1.1rem; border-radius: 2rem;
+  font-size: .875rem; font-weight: 600; text-decoration: none;
+  transition: background .2s; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.pg-header .btn-back:hover { background: rgba(255,255,255,.32); color: #fff; }
+
+/* Cards */
+.scard {
+  background: #fff;
+  border-radius: var(--cr);
+  box-shadow: var(--sh);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  border: none;
+}
+.scard-head {
+  padding: 1.1rem 1.5rem;
+  font-size: 1rem; font-weight: 700; color: #1e1b4b;
+  border-bottom: 1px solid #F3F4F6;
+  display: flex; align-items: center; gap: .5rem;
+}
+.scard-head i { color: var(--p); }
+.scard-head.gradient {
+  background: linear-gradient(135deg, var(--p), var(--p2));
+  color: #fff;
+}
+.scard-head.gradient i { color: rgba(255,255,255,.8); }
+.scard-body { padding: 1.5rem; }
+
+/* Detail table */
+.detail-table { width: 100%; border-collapse: collapse; }
+.detail-table th, .detail-table td { padding: .65rem .75rem; vertical-align: middle; font-size: .9rem; border-bottom: 1px solid #F3F4F6; }
+.detail-table tr:last-child th, .detail-table tr:last-child td { border-bottom: none; }
+.detail-table th { color: #6B7280; font-weight: 600; width: 40%; }
+.detail-table td { color: #1e1b4b; font-weight: 500; }
+
+/* Feature list */
+.feat-list { list-style: none; padding: 0; margin: 0; }
+.feat-list li { display: flex; align-items: flex-start; gap: .65rem; padding: .5rem 0; border-bottom: 1px solid #F9FAFB; font-size: .875rem; color: #374151; }
+.feat-list li:last-child { border-bottom: none; }
+.feat-list .fi { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; background: #D1FAE5; color: var(--ok); }
+.feat-list .fi i { font-size: .6rem; }
+
+/* Info blocks */
+.info-block {
+  display: flex; gap: 1rem; align-items: flex-start;
+  background: #F5F3FF; border: 1px solid #DDD6FE;
+  border-radius: .875rem; padding: 1.1rem 1.25rem; margin-bottom: 1rem;
+}
+.info-block.warn { background: #FFFBEB; border-color: #FDE68A; }
+.info-block .ib-icon { font-size: 1.25rem; margin-top: .1rem; flex-shrink: 0; }
+.info-block p { margin: 0; font-size: .9rem; color: #374151; }
+
+/* Price callout */
+.price-callout { text-align: center; padding: 1.5rem; border-top: 1px solid #F3F4F6; border-bottom: 1px solid #F3F4F6; margin: 1.25rem 0; }
+.price-callout .label { font-size: .875rem; color: #6B7280; margin-bottom: .25rem; }
+.price-callout .amount { font-size: 2.75rem; font-weight: 800; color: var(--p); line-height: 1; }
+.price-callout .curr { font-size: 1.5rem; font-weight: 700; vertical-align: super; }
+
+/* Action buttons */
+.action-stack { display: flex; flex-direction: column; gap: .75rem; }
+.btn-primary-grad {
+  display: block; width: 100%; padding: .9rem;
+  background: linear-gradient(135deg, var(--p), var(--p2));
+  color: #fff; font-weight: 700; font-size: 1rem;
+  border: none; border-radius: .75rem; cursor: pointer; text-align: center;
+  text-decoration: none; transition: all .25s;
+  box-shadow: 0 4px 14px rgba(109,40,217,.28);
+}
+.btn-primary-grad:hover { box-shadow: 0 8px 24px rgba(109,40,217,.4); transform: translateY(-2px); color: #fff; }
+.btn-ghost-secondary {
+  display: block; width: 100%; padding: .85rem;
+  background: transparent; color: #6B7280;
+  border: 2px solid #E5E7EB; border-radius: .75rem;
+  font-weight: 600; font-size: .95rem; text-align: center;
+  text-decoration: none; transition: all .2s;
+}
+.btn-ghost-secondary:hover { border-color: #9CA3AF; color: #374151; }
+
+/* Modal */
+.modal-content { border: none; border-radius: var(--cr); box-shadow: 0 20px 60px rgba(0,0,0,.2); overflow: hidden; }
+.modal-header.gradient { background: linear-gradient(135deg, var(--p), var(--p2)); border: none; padding: 1.25rem 1.5rem; }
+.modal-header.gradient .modal-title { color: #fff; font-weight: 700; }
+.modal-header.gradient .btn-close-white { filter: invert(1) brightness(2); }
+.modal-body { padding: 1.5rem; }
+.modal-footer { background: #FAFAFA; border-top: 1px solid #F3F4F6; }
+
+.upgrade-option {
+  background: #fff;
+  border: 2px solid #E5E7EB;
+  border-radius: var(--cr);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  transition: border-color .2s;
+}
+.upgrade-option:hover { border-color: var(--p); }
+.upgrade-option:last-child { margin-bottom: 0; }
+.upgrade-option .opt-icon {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; flex-shrink: 0;
+}
+.upgrade-option.success-opt { border-color: #A7F3D0; }
+.upgrade-option.success-opt:hover { border-color: var(--ok); }
+
+.price-tag {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: #F5F3FF; border: 1px solid #DDD6FE;
+  border-radius: .5rem; padding: .4rem .85rem;
+  font-size: 1.1rem; font-weight: 700; color: var(--p);
+  margin: .5rem 0;
+}
+.price-tag.green { background: #ECFDF5; border-color: #A7F3D0; color: var(--ok); }
+
+.btn-success-grad {
+  display: block; width: 100%; padding: .8rem;
+  background: linear-gradient(135deg, #059669, #10B981);
+  color: #fff; font-weight: 700; border: none; border-radius: .75rem;
+  cursor: pointer; text-align: center; text-decoration: none; transition: all .25s;
+  box-shadow: 0 4px 14px rgba(5,150,105,.25);
+}
+.btn-success-grad:hover { box-shadow: 0 8px 20px rgba(5,150,105,.4); transform: translateY(-2px); color: #fff; }
+.btn-secondary-grad {
+  display: block; width: 100%; padding: .8rem;
+  background: #6B7280; color: #fff; font-weight: 700;
+  border: none; border-radius: .75rem; cursor: pointer;
+  text-align: center; text-decoration: none; transition: all .25s;
+}
+.btn-secondary-grad:hover { background: #4B5563; transform: translateY(-1px); color: #fff; }
+
+@media (max-width: 767px) {
+  .pg-header { flex-direction: column; padding: 1.25rem; }
+  .pg-header h2 { font-size: 1.3rem; }
+  .price-callout .amount { font-size: 2.25rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="pg-header">
+  <h2><i class="fas fa-clipboard-check me-2" style="opacity:.8"></i>Confirm Plan Selection</h2>
+  <a href="{{ url_for('view_plans') }}" class="btn-back">
+    <i class="fas fa-arrow-left"></i> Back to Plans
+  </a>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-md-8">
+
+    <!-- Plan header -->
+    <div class="scard">
+      <div class="scard-head gradient">
+        <i class="fas fa-tag"></i>
+        {{ plan.name }} &mdash; {{ timeframe.title() }} Plan
+      </div>
+      <div class="scard-body">
+
+        <div class="row g-4 mb-3">
+          <div class="col-md-6">
+            <h6 style="font-weight:700;color:#1e1b4b;margin-bottom:.75rem;">Plan Details</h6>
+            <table class="detail-table">
+              <tr>
+                <th>Price</th>
+                <td style="font-size:1.05rem;color:var(--p);font-weight:700;">&#8377;{{ "%.2f"|format(current_price) }}</td>
+              </tr>
+              <tr>
+                <th>Duration</th>
+                <td>{{ duration }} days ({{ timeframe.title() }})</td>
+              </tr>
+              <tr>
+                <th>Algo Investment</th>
+                <td>
+                  {% if plan.has_copy_trading %}
+                    <span class="badge" style="background:#D1FAE5;color:#065F46;font-weight:600">Included</span>
+                  {% else %}
+                    <span class="badge" style="background:#F3F4F6;color:#6B7280;font-weight:600">Not included</span>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <th>Max Brokers</th>
+                <td>{{ plan.max_brokers }}</td>
+              </tr>
+            </table>
+          </div>
+          <div class="col-md-6">
+            <h6 style="font-weight:700;color:#1e1b4b;margin-bottom:.75rem;">Plan Features</h6>
+            <ul class="feat-list">
+              {% for feature in plan.features.split('\n') %}
+              {% if feature.strip() %}
+              <li>
+                <span class="fi"><i class="fas fa-check"></i></span>
+                {{ feature.strip() }}
+              </li>
+              {% endif %}
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+
+        <!-- What you get info -->
+        <div class="info-block">
+          <div class="ib-icon" style="color:var(--p)"><i class="fas fa-info-circle"></i></div>
+          <p>
+            This plan allows you to connect up to <strong>{{ plan.max_brokers }}</strong> broker accounts.
+            {% if plan.has_copy_trading %}
+              With Algo Investment functionality, trades executed in your master account will automatically be replicated across all your connected accounts.
+            {% else %}
+              To enable Algo Investment functionality, consider upgrading to a higher tier plan.
+            {% endif %}
+          </p>
+        </div>
+
+        {% if current_subscription and now() < current_subscription.expiry_date %}
+        <div class="info-block warn">
+          <div class="ib-icon" style="color:#D97706"><i class="fas fa-exclamation-triangle"></i></div>
+          <p>
+            <strong>Note:</strong> You already have an active subscription to the <strong>{{ current_subscription.plan_name }}</strong> plan
+            that expires on {{ current_subscription.expiry_date|datetime('%d %b, %Y') }}
+            ({{ (current_subscription.expiry_date - now()).days }} days left).
+          </p>
+        </div>
+        {% endif %}
+
+        <div class="price-callout">
+          <div class="label">Plan Price</div>
+          <div class="amount"><span class="curr">&#8377;</span>{{ "%.2f"|format(current_price) }}</div>
+        </div>
+
+        <div class="action-stack">
+          {% if can_upgrade %}
+            <button type="button" class="btn-primary-grad" data-bs-toggle="modal" data-bs-target="#upgradeModal">
+              <i class="fas fa-arrow-circle-up me-2"></i>Proceed to Payment
+            </button>
+          {% else %}
+            <a href="{{ url_for('checkout', plan_id=plan.id, billing_cycle=timeframe) }}" class="btn-primary-grad">
+              <i class="fas fa-lock me-2"></i>Proceed to Checkout
+            </a>
+          {% endif %}
+          <a href="{{ url_for('view_plans') }}" class="btn-ghost-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Go Back
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Upgrade Modal -->
+{% if can_upgrade %}
+<div class="modal fade" id="upgradeModal" tabindex="-1" aria-labelledby="upgradeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header gradient">
+        <h5 class="modal-title" id="upgradeModalLabel">
+          <i class="fas fa-arrow-circle-up me-2"></i>Choose Your Option
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-3" style="color:#6B7280;font-size:.9rem;">You're selecting a higher value plan. How would you like to proceed?</p>
+
+        <!-- Upgrade Now -->
+        <div class="upgrade-option success-opt">
+          <div class="d-flex align-items-start gap-3 mb-3">
+            <div class="opt-icon" style="background:var(--ok)"><i class="fas fa-rocket"></i></div>
+            <div>
+              <h6 style="font-weight:700;color:var(--ok);margin-bottom:.25rem;"><i class="fas fa-bolt me-1"></i>Upgrade Now</h6>
+              <p style="font-size:.875rem;color:#6B7280;margin-bottom:.5rem;">Start your new plan immediately. Your current plan will end now and the new plan begins right away.</p>
+              <div class="price-tag green">
+                <i class="fas fa-tag" style="font-size:.75rem;"></i>
+                &#8377;{{ "%.2f"|format(upgrade_price) }}
+                <small style="font-size:.75rem;font-weight:400;color:#059669"> discounted</small>
+              </div>
+            </div>
+          </div>
+          <a href="{{ url_for('checkout', plan_id=plan.id, billing_cycle=timeframe, upgrade=1) }}" class="btn-success-grad">
+            <i class="fas fa-check-circle me-2"></i>Upgrade Now
+          </a>
+        </div>
+
+        <!-- Queue Later -->
+        <div class="upgrade-option">
+          <div class="d-flex align-items-start gap-3 mb-3">
+            <div class="opt-icon" style="background:#6B7280"><i class="fas fa-clock"></i></div>
+            <div>
+              <h6 style="font-weight:700;color:#4B5563;margin-bottom:.25rem;"><i class="fas fa-calendar-check me-1"></i>Queue for Later</h6>
+              <p style="font-size:.875rem;color:#6B7280;margin-bottom:.5rem;">Keep your current plan active and start the new plan after it expires on {{ current_subscription.expiry_date|datetime('%d %b, %Y') }}.</p>
+              <div class="price-tag">
+                <i class="fas fa-tag" style="font-size:.75rem;"></i>
+                &#8377;{{ "%.2f"|format(current_price) }}
+                <small style="font-size:.75rem;font-weight:400;color:#6B7280"> full price</small>
+              </div>
+            </div>
+          </div>
+          <a href="{{ url_for('checkout', plan_id=plan.id, billing_cycle=timeframe, upgrade=0) }}" class="btn-secondary-grad">
+            <i class="fas fa-plus-circle me-2"></i>Queue for Later
+          </a>
+        </div>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <small style="color:#9CA3AF;"><i class="fas fa-shield-alt me-1"></i>Secure payment powered by Razorpay</small>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

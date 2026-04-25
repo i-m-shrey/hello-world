@@ -1,0 +1,38 @@
+{
+  "timestamp": "2026-04-09 12:07:22.271426",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 1,
+    "failed": []
+  },
+  "low_balance_alerts": {
+    "threshold_percent": 20,
+    "alerts": [
+      {
+        "customer_id": "smartetf_user_10001",
+        "broker": "FINVASIA",
+        "balance": 47.8,
+        "threshold": 5000.0
+      }
+    ]
+  },
+  "session_check": {
+    "status": "ERROR",
+    "error": "'MorningHealthChecker' object has no attribute '_verify_balance_with_retries'",
+    "timestamp": "2026-04-09 12:07:40.133127"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "N/A",
+    "note": "Selenium removed \u2014 pure API login"
+  },
+  "overall_status": "CRITICAL",
+  "critical_issues": [
+    "Session check error: 'MorningHealthChecker' object has no attribute '_verify_balance_with_retries'"
+  ],
+  "warnings": [],
+  "recommendations": []
+}

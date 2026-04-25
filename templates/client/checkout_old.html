@@ -1,0 +1,251 @@
+{% extends "layout.html" %}
+
+{% block title %}Checkout - ETF Trading Portal{% endblock %}
+
+{% block content %}
+{# Set display price based on upgrade status #}
+{% if is_upgrade and final_price %}
+    {% set display_price = final_price %}
+{% elif billing_cycle == 'monthly' %}
+    {% set display_price = plan.monthly_price or 0 %}
+{% elif billing_cycle == 'quarterly' %}
+    {% set display_price = plan.quarterly_price or 0 %}
+{% elif billing_cycle == 'half_yearly' %}
+    {% set display_price = plan.half_yearly_price or 0 %}
+{% elif billing_cycle == 'annually' %}
+    {% set display_price = plan.annually_price or 0 %}
+{% else %}
+    {% set display_price = plan.monthly_price or 0 %}
+{% endif %}
+
+<div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+        <h2>Checkout</h2>
+        <a href="{{ url_for('view_plans') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Plans
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Order Summary -->
+    <div class="col-md-4 order-md-2 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Order Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                    <h5 class="mb-0">{{ plan.name }}</h5>
+                    <span class="badge bg-primary p-2">{{ billing_cycle.title() }} Plan</span>
+                </div>
+
+                <ul class="list-group list-group-flush mb-4">
+                    {% for feature in plan.features.split('\n') %}
+                        <li class="list-group-item border-0 px-0 py-1">
+                            <i class="fas fa-check text-success me-2"></i> {{ feature }}
+                        </li>
+                    {% endfor %}
+                </ul>
+</ul>
+
+        <!-- ADD QUEUE INFORMATION HERE -->
+        {% set current_sub = current_subscription %}
+        {% set queued_subs = get_queued_subscriptions(user.id)|selectattr('plan_id', 'equalto', plan.id)|list %}
+
+        {% if current_sub and current_sub.plan_id == plan.id %}
+            <div class="alert alert-info mb-3">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Active Subscription:</strong> You already have an active subscription to this plan,
+                expiring on {{ current_sub.expiry_date|datetime('%d %b, %Y') }}.
+            </div>
+        {% endif %}
+
+        {% if queued_subs %}
+            <div class="alert alert-warning mb-3">
+                <i class="fas fa-clock me-2"></i>
+                <strong>Queued Subscription{% if queued_subs|length > 1 %}s{% endif %}:</strong>
+                <ul class="mb-0 ps-3">
+                    {% for sub in queued_subs %}
+                        <li>Starting {{ sub.start_date|datetime('%d %b, %Y') }}, ending {{ sub.expiry_date|datetime('%d %b, %Y') }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        {% if current_sub and current_sub.plan_id == plan.id or queued_subs %}
+            <div class="alert alert-success mb-3">
+                <i class="fas fa-calendar-plus me-2"></i>
+                <strong>New Subscription:</strong> If you purchase now, your new subscription will
+                {% if queued_subs %}
+                    start after your last queued subscription ends, on {{ queued_subs[-1].expiry_date|datetime('%d %b, %Y') }}.
+                {% else %}
+                    start after your current subscription ends, on {{ current_sub.expiry_date|datetime('%d %b, %Y') }}.
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <!-- Price information follows -->
+        <div class="d-flex justify-content-between mb-1">
+            <span>{% if is_upgrade %}Upgrade Price{% else %}Plan Price{% endif %}</span>
+            <span>₹{{ display_price|round(2) }}</span>
+        </div>
+        {% if is_upgrade %}
+        <div class="alert alert-success p-2 small mb-2">
+            <i class="fas fa-info-circle me-1"></i>Discounted price based on your remaining subscription value
+        </div>
+        {% endif %}
+
+<!--                <div class="d-flex justify-content-between mb-1">-->
+<!--                    <span>Plan Price</span>-->
+<!--                    <span>₹{% if billing_cycle == 'monthly' %}{{ plan.monthly_price|round(2) }}{% elif billing_cycle == 'quarterly' %}{{ plan.quarterly_price|round(2) }}{% elif billing_cycle == 'half_yearly' %}{{ plan.half_yearly_price|round(2) }}{% elif billing_cycle == 'annually' %}{{ plan.annually_price|round(2) }}{% else %}{{ plan.monthly_price|round(2) }}{% endif %}</span>-->
+<!--                </div>-->
+
+                <div class="d-flex justify-content-between py-3 border-top border-bottom mb-3">
+                    <h5 class="fw-bold mb-0">Total Amount</h5>
+                    <h5 class="fw-bold mb-0">₹{{ display_price|round(2) }}</h5>
+                </div>
+
+                {% if is_upgrade %}
+                <div class="alert alert-warning small mb-0">
+                    <i class="fas fa-bolt me-1"></i>
+                    <strong>Upgrade Mode:</strong> Your current subscription will end immediately and the new plan will start right away.
+                </div>
+                {% else %}
+                <div class="alert alert-info small mb-0">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Your subscription will be activated immediately upon successful payment.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Details -->
+    <div class="col-md-8 order-md-1">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0">Payment Details</h5>
+            </div>
+            <div class="card-body">
+                {% if razorpay_order %}
+                    <div class="alert alert-primary mb-4">
+                        <div class="d-flex">
+                            <div class="me-3">
+                                <i class="fas fa-shield-alt fa-2x text-primary"></i>
+                            </div>
+                            <div>
+                                <h5 class="alert-heading">Secure Payment</h5>
+                                <p class="mb-0">Your payment will be processed securely through Razorpay, India's trusted payment gateway.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Billing Information</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Name:</strong> {{ user.username }}</p>
+                                <p><strong>Email:</strong> {{ user.email }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Customer ID:</strong> {{ user.customer_id }}</p>
+                                <p><strong>Order ID:</strong> {{ razorpay_order.id }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="text-center mb-4">
+                        <img src="https://razorpay.com/assets/razorpay-logo.svg" alt="Razorpay" style="height: 30px; margin-bottom: 15px;">
+                        <p>Choose your preferred payment method on the next screen</p>
+                    </div>
+
+                    <div class="d-grid">
+                        <button id="rzp-button" class="btn btn-primary btn-lg">
+                            {% if is_upgrade %}<i class="fas fa-bolt me-2"></i>{% endif %}Pay ₹{{ display_price|round(2) }} Now
+                        </button>
+                    </div>
+                {% else %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <strong>Error:</strong> Unable to initialize payment. Please try again later or contact support.
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        <a href="{{ url_for('view_plans') }}" class="btn btn-outline-secondary">
+                            Back to Plans
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+{% if razorpay_order %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var options = {
+        "key": "{{ razorpay_key_id }}",
+        "amount": "{{ razorpay_order.amount }}",
+        "currency": "{{ razorpay_order.currency }}",
+        "name": "ETF Trading Portal",
+        "description": "{{ plan.name }} Subscription",
+        "image": "https://your-logo-url.com/logo.png", // Replace with your logo
+        "order_id": "{{ razorpay_order.id }}",
+        "handler": function (response){
+            // Create a form to submit the payment details
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{{ url_for('payment_verify') }}";
+
+            var fields = {
+                'razorpay_payment_id': response.razorpay_payment_id,
+                'razorpay_order_id': response.razorpay_order_id,
+                'razorpay_signature': response.razorpay_signature
+            };
+
+            for(var key in fields) {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = fields[key];
+                form.appendChild(input);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+        },
+        "prefill": {
+            "name": "{{ user.username }}",
+            "email": "{{ user.email }}",
+            "contact": "" // Add user phone if available
+        },
+        "notes": {
+            "user_id": "{{ user.id }}",
+            "plan_id": "{{ plan.id }}",
+            "customer_id": "{{ user.customer_id }}"
+        },
+        "theme": {
+            "color": "#3399cc"
+        },
+        "modal": {
+            "ondismiss": function(){
+                window.location.href = "{{ url_for('payment_cancel') }}";
+            }
+        }
+    };
+
+    var rzp = new Razorpay(options);
+    document.getElementById('rzp-button').onclick = function(e){
+        rzp.open();
+        e.preventDefault();
+    }
+});
+</script>
+{% endif %}
+{% endblock %}
+{% endblock %}

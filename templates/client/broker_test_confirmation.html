@@ -1,0 +1,797 @@
+{% extends "layout.html" %}
+
+{% block title %}Test Broker Configuration - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+        <h2>Test Your Broker Configuration</h2>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        {% if balance_verify_failed %}
+        <!-- Auto-verification failed notice -->
+        <div class="alert alert-warning mb-4">
+            <h5 class="alert-heading"><i class="fas fa-wifi me-2"></i>Auto-Verification Unavailable</h5>
+            <p class="mb-1">We attempted to verify your broker instantly by checking your account balance, but it was not possible right now.</p>
+            {% if balance_verify_error %}
+            <p class="mb-1 small text-muted"><strong>Reason:</strong> {{ balance_verify_error }}</p>
+            {% endif %}
+            <p class="mb-0">Please complete the one-time test order below to verify your broker credentials and activate your account.</p>
+        </div>
+        {% else %}
+        <!-- Warning Alert -->
+        <div class="alert alert-warning mb-4">
+            <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Important: Mandatory Test Required</h5>
+            <p class="mb-0">You must complete this test and confirm successful order placement before you can use your broker account for live trading. This ensures your broker credentials and API settings are configured correctly.</p>
+        </div>
+        {% endif %}
+
+        <!-- Broker Info Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Broker Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-2">
+                        <strong>Broker Name:</strong>
+                    </div>
+                    <div class="col-md-8 mb-2">
+                        {{ broker.broker_name }}
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <strong>User ID:</strong>
+                    </div>
+                    <div class="col-md-8 mb-2">
+                        {{ broker.user_id_broker }}
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <strong>Test Order Symbol:</strong>
+                    </div>
+                    <div class="col-md-8 mb-2">
+                        <span class="badge bg-info">{{ test_symbol }}</span> (Quantity: {{ test_qty }})
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pre-Test Checklist -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>Pre-Test Checklist</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">Before running the test order, please ensure you have completed the following:</p>
+                
+                {% if supported_broker %}
+                    <div class="form-check mb-3">
+                        <input class="form-check-input checklist-item" type="checkbox" id="check_api_activation">
+                        <label class="form-check-label" for="check_api_activation">
+                            <strong>I have contacted my broker's customer care and confirmed that API trading is activated on my account</strong>
+                        </label>
+                    </div>
+                    
+                    {% if supported_broker.requires_api_key %}
+                    <div class="form-check mb-3">
+                        <input class="form-check-input checklist-item" type="checkbox" id="check_api_key">
+                        <label class="form-check-label" for="check_api_key">
+                            <strong>I have verified that my API Key is correct and active</strong>
+                        </label>
+                    </div>
+                    {% endif %}
+                    
+                    {% if supported_broker.requires_api_secret %}
+                    <div class="form-check mb-3">
+                        <input class="form-check-input checklist-item" type="checkbox" id="check_api_secret">
+                        <label class="form-check-label" for="check_api_secret">
+                            <strong>I have verified that my API Secret is correctly entered</strong>
+                        </label>
+                    </div>
+                    {% endif %}
+                    
+                    {% if supported_broker.requires_totp %}
+                    <div class="form-check mb-3">
+                        <input class="form-check-input checklist-item" type="checkbox" id="check_totp">
+                        <label class="form-check-label" for="check_totp">
+                            <strong>I have verified that my TOTP Secret is correctly entered</strong>
+                        </label>
+                    </div>
+                    {% endif %}
+                    
+                    {% if supported_broker.requires_vendor_code %}
+                    <div class="form-check mb-3">
+                        <input class="form-check-input checklist-item" type="checkbox" id="check_vendor">
+                        <label class="form-check-label" for="check_vendor">
+                            <strong>I have verified that my Vendor Code is correct</strong>
+                        </label>
+                    </div>
+                    {% endif %}
+                    
+                    {% if supported_broker.requires_imei %}
+                    <div class="form-check mb-3">
+                        <input class="form-check-input checklist-item" type="checkbox" id="check_imei">
+                        <label class="form-check-label" for="check_imei">
+                            <strong>I have verified that my IMEI is correctly entered</strong>
+                        </label>
+                    </div>
+                    {% endif %}
+                    
+                    {% if supported_broker.requires_access_token %}
+                    <div class="form-check mb-3">
+                        <input class="form-check-input checklist-item" type="checkbox" id="check_access_token">
+                        <label class="form-check-label" for="check_access_token">
+                            <strong>I have verified that my Access Token is correct and active</strong>
+                        </label>
+                    </div>
+                    {% endif %}
+                    
+                    {% if supported_broker.requires_client_id %}
+                    <div class="form-check mb-3">
+                        <input class="form-check-input checklist-item" type="checkbox" id="check_client_id">
+                        <label class="form-check-label" for="check_client_id">
+                            <strong>I have verified that my Client ID is correctly entered</strong>
+                        </label>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="form-check mb-3">
+                        <input class="form-check-input checklist-item" type="checkbox" id="check1">
+                        <label class="form-check-label" for="check1">
+                            <strong>I have contacted my broker's customer care and confirmed that API trading is activated</strong>
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input checklist-item" type="checkbox" id="check2">
+                        <label class="form-check-label" for="check2">
+                            <strong>I have verified that all my credentials are correctly entered</strong>
+                        </label>
+                    </div>
+                {% endif %}
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input checklist-item" type="checkbox" id="check_balance">
+                    <label class="form-check-label" for="check_balance">
+                        <strong>I have sufficient balance in my broker account to place a test order</strong>
+                    </label>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input checklist-item" type="checkbox" id="check_understand">
+                    <label class="form-check-label" for="check_understand">
+                        <strong>I understand that a real BUY order will be placed in my broker account</strong>
+                    </label>
+                </div>
+
+                <div class="alert alert-secondary mt-4">
+                    <h6><i class="fas fa-info-circle me-2"></i>Need Help?</h6>
+                    <ul class="mb-0">
+                        <li>Check your broker's API documentation for activation steps</li>
+                        {% if supported_broker and (supported_broker.video_api_key_url or supported_broker.api_activation_url) %}
+                        <li><a href="javascript:void(0)" onclick="showApiActivationVideo()"><i class="fas fa-play-circle me-1"></i>Watch {{ broker.broker_name }} API Activation Video</a></li>
+                        {% endif %}
+                        <li>Ensure all credentials match exactly with your broker's portal</li>
+                        <li>Verify that your account has trading permissions enabled</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Action Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-play-circle me-2"></i>Run Test Order</h5>
+            </div>
+            <div class="card-body">
+                <p>Click the button below to place a test order. This will:</p>
+                <ul>
+                    <li>Attempt to place a BUY order for <strong>{{ test_symbol }}</strong> (Qty: {{ test_qty }})</li>
+                    <li>Verify your broker credentials and API configuration</li>
+                    <li>Test the complete order execution flow</li>
+                </ul>
+
+                <div class="d-grid gap-2 mt-4">
+                    <button type="button" id="runTestBtn" class="btn btn-success btn-lg" disabled>
+                        <i class="fas fa-vial me-2"></i>Run Test Order
+                    </button>
+                </div>
+
+                <div id="testResult" class="mt-3" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Attempts Counter -->
+        {% if broker.test_order_attempts > 0 %}
+        <div class="alert alert-info">
+            <i class="fas fa-history me-2"></i>Test attempts: {{ broker.test_order_attempts }}
+            {% if broker.test_order_last_attempt %}
+            | Last attempt: {{ broker.test_order_last_attempt|datetime('%d %b, %Y %I:%M %p') }}
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmTestModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Confirm Test Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>You are about to place a REAL order in your broker account:</strong></p>
+                <ul>
+                    <li>Symbol: <strong>{{ test_symbol }}</strong></li>
+                    <li>Quantity: <strong>{{ test_qty }}</strong></li>
+                    <li>Type: <strong>BUY (Market Order)</strong></li>
+                </ul>
+                <p class="mb-0 text-danger">This is a real order and will be executed in your broker account. Are you sure you want to continue?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="confirmTestBtn">Yes, Run Test Order</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feedback Modal -->
+<div class="modal fade" id="feedbackModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-comment-dots me-2"></i>Test Order Feedback</h5>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Please check your broker account and confirm:</p>
+                <h6 class="mb-3">Was the test order placed successfully in your broker account?</h6>
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-success btn-lg" id="successBtn">
+                        <i class="fas fa-check-circle me-2"></i>Yes, Order Placed Successfully
+                    </button>
+                    <button type="button" class="btn btn-danger btn-lg" id="failureBtn">
+                        <i class="fas fa-times-circle me-2"></i>No, Order Failed or Not Visible
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AMO/GTT Option Modal -->
+<div class="modal fade" id="amoModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title"><i class="fas fa-clock me-2"></i>Markets Closed?</h5>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">If the markets are closed, you can try placing an <strong>After Market Order (AMO)</strong>{% if broker.broker_name == 'ZERODHA' %} or <strong>GTT order</strong>{% endif %} instead.</p>
+                <p class="mb-3"><strong>Are the markets currently closed?</strong></p>
+                <div class="alert alert-info">
+                    <small><i class="fas fa-info-circle me-1"></i>Market hours: Monday-Friday, 9:15 AM - 3:30 PM IST</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="tryAmoBtn">
+                    <i class="fas fa-moon me-2"></i>Yes, Try {% if broker.broker_name == 'ZERODHA' %}GTT{% else %}AMO{% endif %} Order
+                </button>
+                <button type="button" class="btn btn-secondary" id="skipAmoBtn">
+                    <i class="fas fa-times me-2"></i>No, Markets are Open
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Failed - Initial Notification Modal -->
+<div class="modal fade" id="orderFailedModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-times-circle me-2"></i>Test Order Failed</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger mb-3">
+                    <h6 class="mb-2"><i class="fas fa-exclamation-triangle me-2"></i>Order Placement Unsuccessful</h6>
+                    <p class="mb-0">The test order could not be placed in your broker account.</p>
+                </div>
+                
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="fas fa-info-circle me-2 text-primary"></i>Error Details</h6>
+                        <p class="card-text" id="failureErrorMessage">-</p>
+                    </div>
+                </div>
+                
+                <p class="mb-2"><strong>Don't worry!</strong> This is a common issue and can usually be fixed quickly.</p>
+                
+                <h6 class="mb-2">Most Common Causes:</h6>
+                <ul class="mb-0">
+                    <li>API trading not activated with your broker</li>
+                    <li>Incorrect API credentials or settings</li>
+                    <li>Insufficient account balance</li>
+                    <li>Trading permissions not enabled</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Close
+                </button>
+                <button type="button" class="btn btn-primary" id="viewTroubleshootingBtn">
+                    <i class="fas fa-wrench me-1"></i>View Troubleshooting Guide
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Low Balance Warning Modal -->
+<div class="modal fade" id="lowBalanceModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Low Balance Detected</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning mb-3">
+                    <h6 class="mb-2"><i class="fas fa-check-circle me-2"></i>Good News: Broker Connected Successfully!</h6>
+                    <p class="mb-0">Your broker credentials are working correctly.</p>
+                </div>
+                
+                <div class="alert alert-danger">
+                    <h6 class="mb-2"><i class="fas fa-wallet me-2"></i>Low Balance Warning</h6>
+                    <p class="mb-2"><strong>Available Balance:</strong> <span id="currentBalance" class="text-danger">-</span></p>
+                    <p class="mb-2"><strong>Minimum Required:</strong> <span id="minimumRequired">-</span></p>
+                    <p class="mb-0">Please fund your account to place test orders and start automated trading.</p>
+                </div>
+                
+                <h6 class="mb-2">Next Steps:</h6>
+                <ol class="mb-0">
+                    <li>Log in to your broker account</li>
+                    <li>Add funds to your trading account</li>
+                    <li>Come back and run the test order again</li>
+                </ol>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">I'll Fund Later</button>
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal" onclick="location.reload()">
+                    <i class="fas fa-redo me-1"></i>I've Added Funds - Retry Test
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Failure Checklist Modal -->
+<div class="modal fade" id="failureChecklistModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-exclamation-circle me-2"></i>Order Failed - Troubleshooting</h5>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <strong>Don't worry!</strong> Let's identify the issue. Please verify the following:
+                </div>
+
+                <h6 class="mt-3 mb-3">Common Issues Checklist:</h6>
+                
+                <div class="accordion" id="troubleshootAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#issue1">
+                                <i class="fas fa-phone-alt me-2 text-danger"></i> API Not Activated with Broker
+                            </button>
+                        </h2>
+                        <div id="issue1" class="accordion-collapse collapse show" data-bs-parent="#troubleshootAccordion">
+                            <div class="accordion-body">
+                                <p><strong>Solution:</strong></p>
+                                <ul>
+                                    <li>Contact {{ broker.broker_name }} customer care</li>
+                                    <li>Request API trading activation on your account</li>
+                                    <li>Wait for confirmation email from broker</li>
+                                    <li>Try the test again after activation</li>
+                                </ul>
+                                {% if supported_broker and (supported_broker.video_api_key_url or supported_broker.api_activation_url) %}
+                                <button type="button" class="btn btn-sm btn-primary" onclick="showApiActivationVideo()">
+                                    <i class="fas fa-play-circle me-1"></i>Watch API Activation Video
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#issue2">
+                                <i class="fas fa-key me-2 text-warning"></i> Incorrect API Credentials
+                            </button>
+                        </h2>
+                        <div id="issue2" class="accordion-collapse collapse" data-bs-parent="#troubleshootAccordion">
+                            <div class="accordion-body">
+                                <p><strong>Solution:</strong></p>
+                                <ul>
+                                    <li>Log in to your broker's portal</li>
+                                    <li>Navigate to API settings section</li>
+                                    <li>Verify your credentials match exactly (no extra spaces)</li>
+                                    <li>{% if broker.id %}<a href="{{ url_for('edit_broker', broker_id=broker.id) }}">Edit your broker credentials</a>{% else %}<a href="{{ url_for('add_broker') }}">Re-enter your credentials</a>{% endif %} if needed</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#issue4">
+                                <i class="fas fa-wallet me-2 text-success"></i> Insufficient Balance
+                            </button>
+                        </h2>
+                        <div id="issue4" class="accordion-collapse collapse" data-bs-parent="#troubleshootAccordion">
+                            <div class="accordion-body">
+                                <p><strong>Solution:</strong></p>
+                                <ul>
+                                    <li>Check your broker account balance</li>
+                                    <li>Ensure you have sufficient funds to place the order</li>
+                                    <li>Add funds if needed and try again</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#issue5">
+                                <i class="fas fa-ban me-2 text-secondary"></i> Trading Permissions Not Enabled
+                            </button>
+                        </h2>
+                        <div id="issue5" class="accordion-collapse collapse" data-bs-parent="#troubleshootAccordion">
+                            <div class="accordion-body">
+                                <p><strong>Solution:</strong></p>
+                                <ul>
+                                    <li>Check if your account has trading permissions</li>
+                                    <li>Verify that equity segment is activated</li>
+                                    <li>Contact broker if permissions need to be enabled</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-4">
+                    <h6><i class="fas fa-lightbulb me-2"></i>Next Steps:</h6>
+                    <ol class="mb-0">
+                        <li>Review the checklist above and fix any issues</li>
+                        <li>Update your broker credentials if needed: {% if broker.id %}<a href="{{ url_for('edit_broker', broker_id=broker.id) }}">Edit Broker</a>{% else %}<a href="{{ url_for('add_broker') }}">Re-enter Details</a>{% endif %}</li>
+                        <li>Run the test order again</li>
+                        <li>Repeat until the order is placed successfully</li>
+                    </ol>
+                </div>
+            </div>
+            <div class="modal-footer">
+                {% if broker.id %}
+                <a href="{{ url_for('edit_broker', broker_id=broker.id) }}" class="btn btn-primary">
+                    <i class="fas fa-edit me-1"></i>Edit Broker Settings
+                </a>
+                {% else %}
+                <a href="{{ url_for('add_broker') }}" class="btn btn-primary">
+                    <i class="fas fa-edit me-1"></i>Re-enter Broker Details
+                </a>
+                {% endif %}
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal" onclick="location.reload()">
+                    <i class="fas fa-redo me-1"></i>Try Test Again
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('.checklist-item');
+    const runTestBtn = document.getElementById('runTestBtn');
+    const confirmTestModal = new bootstrap.Modal(document.getElementById('confirmTestModal'));
+    const feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+    const amoModal = new bootstrap.Modal(document.getElementById('amoModal'));
+    const failureChecklistModal = new bootstrap.Modal(document.getElementById('failureChecklistModal'));
+    const lowBalanceModal = new bootstrap.Modal(document.getElementById('lowBalanceModal'));
+    const orderFailedModal = new bootstrap.Modal(document.getElementById('orderFailedModal'));
+    
+    // Enable test button only when all checkboxes are checked
+    function updateTestButton() {
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        runTestBtn.disabled = !allChecked;
+    }
+    
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', updateTestButton);
+    });
+    
+    // Show confirmation modal when test button clicked
+    runTestBtn.addEventListener('click', function() {
+        confirmTestModal.show();
+    });
+    
+    // Handle test confirmation
+    document.getElementById('confirmTestBtn').addEventListener('click', function() {
+        confirmTestModal.hide();
+        runTestBtn.disabled = true;
+        runTestBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Running Test...';
+        
+        if (window.showLoadingSpinner) {
+            window.showLoadingSpinner();
+        }
+        
+        fetch('{% if broker.id %}{{ url_for("broker_test_confirmation", broker_id=broker.id) }}{% else %}{{ url_for("broker_test_confirmation") }}{% endif %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'action=run_test'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (window.hideLoadingSpinner) {
+                window.hideLoadingSpinner();
+            }
+            
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.style.display = 'block';
+            
+            if (data.status === 'success') {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        <h6><i class="fas fa-check-circle me-2"></i>Test Order Sent</h6>
+                        <p class="mb-0">${data.message}</p>
+                    </div>
+                `;
+                // Show feedback modal
+                setTimeout(() => {
+                    feedbackModal.show();
+                }, 1500);
+            } else if (data.status === 'low_balance') {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Low Balance Detected</h6>
+                        <p class="mb-0">${data.message}</p>
+                    </div>
+                `;
+                // Update modal with balance info
+                document.getElementById('currentBalance').textContent = '₹' + data.balance.toFixed(2);
+                document.getElementById('minimumRequired').textContent = '₹' + data.minimum_required.toFixed(2);
+                
+                runTestBtn.disabled = false;
+                runTestBtn.innerHTML = '<i class="fas fa-vial me-2"></i>Run Test Order';
+                
+                // Show low balance modal
+                setTimeout(() => {
+                    lowBalanceModal.show();
+                }, 1500);
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-times-circle me-2"></i>Test Order Failed</h6>
+                        <p class="mb-0">${data.message}</p>
+                    </div>
+                `;
+                // Update the failure modal with error message
+                document.getElementById('failureErrorMessage').textContent = data.message || 'Unknown error occurred';
+                
+                runTestBtn.disabled = false;
+                runTestBtn.innerHTML = '<i class="fas fa-vial me-2"></i>Run Test Order';
+                if (window.hideLoadingSpinner) {
+                    window.hideLoadingSpinner();
+                }
+                // Show initial failure modal first
+                setTimeout(() => {
+                    orderFailedModal.show();
+                }, 1500);
+            }
+        })
+        .catch(error => {
+            if (window.hideLoadingSpinner) {
+                window.hideLoadingSpinner();
+            }
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <h6><i class="fas fa-times-circle me-2"></i>Error</h6>
+                    <p class="mb-0">An error occurred: ${error.message}</p>
+                </div>
+            `;
+            runTestBtn.disabled = false;
+            runTestBtn.innerHTML = '<i class="fas fa-vial me-2"></i>Run Test Order';
+        });
+    });
+    
+    // Handle success confirmation
+    document.getElementById('successBtn').addEventListener('click', function() {
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+        
+        fetch('{% if broker.id %}{{ url_for("broker_test_confirmation", broker_id=broker.id) }}{% else %}{{ url_for("broker_test_confirmation") }}{% endif %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'action=confirm_success'
+        })
+        .then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else {
+                return response.text().then(text => {
+                    if (response.ok) {
+                        window.location.href = '{{ url_for("dashboard") }}';
+                    } else {
+                        alert('Error saving broker. Please try again.');
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Yes, Order Placed Successfully';
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error.message);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Yes, Order Placed Successfully';
+        });
+    });
+    
+    // Handle failure reporting - show AMO/GTT option first
+    document.getElementById('failureBtn').addEventListener('click', function() {
+        feedbackModal.hide();
+        setTimeout(() => {
+            amoModal.show();
+        }, 300);
+    });
+    
+    // Handle AMO test button
+    document.getElementById('tryAmoBtn').addEventListener('click', function() {
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Running AMO Test...';
+        
+        fetch('{% if broker.id %}{{ url_for("broker_test_confirmation", broker_id=broker.id) }}{% else %}{{ url_for("broker_test_confirmation") }}{% endif %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'action=run_amo_test'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                amoModal.hide();
+                setTimeout(() => {
+                    feedbackModal.show();
+                }, 300);
+            } else {
+                alert('AMO test order failed: ' + data.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-moon me-2"></i>Yes, Try AMO Order';
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error.message);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-moon me-2"></i>Yes, Try AMO Order';
+        });
+    });
+    
+    // Handle skip AMO button - go to troubleshooting
+    document.getElementById('skipAmoBtn').addEventListener('click', function() {
+        amoModal.hide();
+        setTimeout(() => {
+            failureChecklistModal.show();
+        }, 300);
+    });
+    
+    // Handle view troubleshooting button - transition from initial failure modal to detailed checklist
+    document.getElementById('viewTroubleshootingBtn').addEventListener('click', function() {
+        orderFailedModal.hide();
+        setTimeout(() => {
+            failureChecklistModal.show();
+        }, 300);
+    });
+    
+    // Video modal functionality
+    function normalized(u) {
+        if (!u) return '';
+        u = (''+u).trim();
+        if (!u) return '';
+        if (u.startsWith('//')) u = 'https:' + u;
+        if (u.startsWith('http://')) u = 'https://' + u.slice(7);
+        try { new URL(u); } catch(e) { return ''; }
+        return u;
+    }
+    
+    function toEmbed(u) {
+        u = normalized(u);
+        if (!u) return '';
+        try {
+            const url = new URL(u);
+            const h = url.hostname.toLowerCase();
+            if (h.includes('youtu.be')) {
+                const id = url.pathname.split('/').filter(Boolean)[0] || '';
+                if (id) return 'https://www.youtube.com/embed/' + id;
+            }
+            if (h.includes('youtube.com')) {
+                const id = url.searchParams.get('v');
+                if (id) return 'https://www.youtube.com/embed/' + id;
+            }
+            if (h.includes('drive.google.com')) {
+                const m = url.pathname.match(/\/file\/d\/([^/]+)/);
+                const id = m && m[1];
+                if (id) return 'https://drive.google.com/file/d/' + id + '/preview';
+            }
+            return u;
+        } catch(e) { return ''; }
+    }
+    
+    function ensureVideoModal() {
+        const id = 'apiVideoModal';
+        let m = document.getElementById(id);
+        if (!m) {
+            document.body.insertAdjacentHTML('beforeend', '\
+            <div class="modal fade" id="'+id+'" tabindex="-1">\
+                <div class="modal-dialog modal-lg modal-dialog-centered">\
+                    <div class="modal-content">\
+                        <div class="modal-header">\
+                            <h5 class="modal-title">API Activation Guide</h5>\
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>\
+                        </div>\
+                        <div class="modal-body">\
+                            <div class="ratio ratio-16x9">\
+                                <iframe id="apiVideoFrame" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>\
+                            </div>\
+                        </div>\
+                    </div>\
+                </div>\
+            </div>');
+            m = document.getElementById(id);
+            m.addEventListener('hidden.bs.modal', function() {
+                const f = document.getElementById('apiVideoFrame');
+                if (f) f.src = '';
+            });
+        }
+        return m;
+    }
+    
+    window.showApiActivationVideo = function() {
+        {% if supported_broker %}
+        const videoFromHelper = '{{ supported_broker.video_api_key_url or "" }}';
+        const apiActivationUrl = '{{ supported_broker.api_activation_url or "" }}';
+        const url = videoFromHelper || apiActivationUrl;
+        
+        if (!url) {
+            alert('No API activation video available for {{ broker.broker_name }}. Please contact support.');
+            return;
+        }
+        
+        const embed = toEmbed(url);
+        if (!embed) {
+            window.open(url, '_blank');
+            return;
+        }
+        
+        const m = ensureVideoModal();
+        const frame = document.getElementById('apiVideoFrame');
+        frame.src = embed;
+        bootstrap.Modal.getOrCreateInstance(m).show();
+        {% else %}
+        alert('Broker configuration not found.');
+        {% endif %}
+    };
+});
+</script>
+{% endblock %}

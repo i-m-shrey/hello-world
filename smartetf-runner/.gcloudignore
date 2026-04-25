@@ -1,0 +1,28 @@
+# Runner service specific ignores
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+
+# Logs
+logs/
+*.log
+health_report_*.json
+
+# Development
+.env
+.env.local
+*.swp
+*.swo
+
+# Test files
+test_*.py
+appsrc/test_*.py
+
+# Git
+.git/
+.gitignore

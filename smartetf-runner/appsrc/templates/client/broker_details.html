@@ -1,0 +1,311 @@
+{% extends "layout.html" %}
+
+{% block title %}Broker Details - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+        <h2>Broker Details</h2>
+<a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary me-2">
+        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+    </a>
+    <a href="{{ url_for('edit_broker', broker_id=broker.id) }}" class="btn btn-primary">
+        <i class="fas fa-edit me-1"></i> Edit Broker
+    </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">{{ broker.broker_name }} Account</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">User ID / Client ID:</div>
+                    <div class="col-md-8">{{ broker.user_id_broker }}</div>
+                </div>
+                
+                {% if broker.totp_secret %}
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">TOTP Secret:</div>
+                    <div class="col-md-8">
+                        <span class="text-muted">******</span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2 toggle-visibility" data-target="totp-secret">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <span id="totp-secret" class="d-none">{{ broker.totp_secret }}</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if broker.api_key %}
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">API Key:</div>
+                    <div class="col-md-8">
+                        <span class="text-muted">******</span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2 toggle-visibility" data-target="api-key">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <span id="api-key" class="d-none">{{ broker.api_key }}</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if broker.api_secret %}
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">API Secret:</div>
+                    <div class="col-md-8">
+                        <span class="text-muted">******</span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2 toggle-visibility" data-target="api-secret">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <span id="api-secret" class="d-none">{{ broker.api_secret }}</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if broker.vendor_code %}
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Vendor Code:</div>
+                    <div class="col-md-8">{{ broker.vendor_code }}</div>
+                </div>
+                {% endif %}
+                
+                {% if broker.imei %}
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">IMEI:</div>
+                    <div class="col-md-8">{{ broker.imei }}</div>
+                </div>
+                {% endif %}
+                
+                {% if broker.access_token %}
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Access Token:</div>
+                    <div class="col-md-8">
+                        <span class="text-muted">******</span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2 toggle-visibility" data-target="access-token">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <span id="access-token" class="d-none">{{ broker.access_token }}</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Created:</div>
+                    <div class="col-md-8">{{ broker.created_at|datetime('%d %b, %Y') }}</div>
+                </div>
+                
+                {% if broker.last_updated %}
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Last Updated:</div>
+                    <div class="col-md-8">{{ broker.last_updated|datetime('%d %b, %Y') }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Algo Investment Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3 text-center">
+                    {% if broker.is_master %}
+                        <div class="badge bg-primary p-2 fs-6 d-block mb-2">Master Account</div>
+                        <p class="mb-0">This is your master trading account. All trades from this account will be copied to your other accounts.</p>
+                    {% elif broker.copy %}
+                        <div class="badge bg-info p-2 fs-6 d-block mb-2">Copy Account</div>
+                        <p class="mb-0">This account will copy trades from your master account with a {{ broker.copy_multiplier }}x multiplier.</p>
+                    {% else %}
+                        <div class="badge bg-secondary p-2 fs-6 d-block mb-2">Algo Investment Disabled</div>
+                        <p class="mb-0">Algo Investment is disabled for this account.</p>
+                    {% endif %}
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Algo Investment settings are configured automatically based on your subscription plan.
+                </div>
+            </div>
+        </div>
+        
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Subscription</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-5 fw-bold">Status:</div>
+                    <div class="col-7">
+                        {% if broker.subscription_status == 'Active' %}
+                            <span class="badge bg-success">Active</span>
+                        {% elif broker.subscription_status == 'Pending' %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                        {% else %}
+                            <span class="badge bg-danger">{{ broker.subscription_status or 'Inactive' }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if broker.subscription_expiry %}
+                <div class="row mb-2">
+                    <div class="col-5 fw-bold">Expires:</div>
+                    <div class="col-7">
+                        {{ broker.subscription_expiry|datetime('%d %b, %Y') }}
+                        {% set days_left = (broker.subscription_expiry - now()).days %}
+                        {% if days_left > 0 %}
+                            <span class="text-muted">({{ days_left }} days left)</span>
+                        {% else %}
+                            <span class="text-danger">(Expired)</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if broker.plan %}
+                <div class="row mb-2">
+                    <div class="col-5 fw-bold">Plan:</div>
+                    <div class="col-7">{{ broker.plan.name }}</div>
+                </div>
+                {% endif %}
+                
+                {% if broker.subscription_status != 'Active' %}
+                <div class="d-grid mt-3">
+                    <a href="{{ url_for('view_plans') }}" class="btn btn-primary">
+                        <i class="fas fa-tags me-1"></i> Browse Plans
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0">Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('delete_broker', broker_id=broker.id) }}" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i> Delete Broker
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block additional_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle visibility for sensitive information
+        document.querySelectorAll('.toggle-visibility').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement.classList.contains('d-none')) {
+                    targetElement.classList.remove('d-none');
+                    this.querySelector('i').classList.remove('fa-eye');
+                    this.querySelector('i').classList.add('fa-eye-slash');
+                } else {
+                    targetElement.classList.add('d-none');
+                    this.querySelector('i').classList.remove('fa-eye-slash');
+                    this.querySelector('i').classList.add('fa-eye');
+                }
+            });
+        });
+    });
+</script>
+<script>
+// Standalone function for showing/hiding broker fields
+function initBrokerFieldsToggle() {
+    console.log("Initializing broker fields toggle");
+
+    // Get the broker select dropdown
+    const brokerSelect = document.getElementById('broker_name');
+    if (!brokerSelect) {
+        console.error("Broker select dropdown not found");
+        return;
+    }
+
+    console.log("Broker select found:", brokerSelect.value);
+
+    // Function to show/hide broker fields
+    function showBrokerFields(brokerName) {
+        console.log("Showing fields for broker:", brokerName);
+
+        // Hide all broker fields first
+        document.querySelectorAll('.broker-fields').forEach(function(field) {
+            field.classList.add('d-none');
+            console.log("Hidden field:", field.getAttribute('data-broker'));
+        });
+
+        // Then show fields for the selected broker
+        if (brokerName) {
+            const selectedFields = document.querySelector(`.broker-fields[data-broker="${brokerName}"]`);
+            if (selectedFields) {
+                selectedFields.classList.remove('d-none');
+                console.log("Showed fields for:", brokerName);
+            } else {
+                console.error("No fields found for broker:", brokerName);
+            }
+        }
+    }
+
+    // Attach change event listener
+    brokerSelect.addEventListener('change', function() {
+        console.log("Broker selection changed to:", this.value);
+        showBrokerFields(this.value);
+    });
+
+    // Show fields for initially selected broker (if any)
+    showBrokerFields(brokerSelect.value);
+
+    // Force show if a broker is already selected
+    if (brokerSelect.value) {
+        setTimeout(() => {
+            showBrokerFields(brokerSelect.value);
+        }, 100);
+    }
+
+    // Add debug button
+    const submitSection = document.querySelector('.d-grid.gap-2.d-md-flex.justify-content-md-end');
+    if (submitSection) {
+        const debugBtn = document.createElement('button');
+        debugBtn.type = 'button';
+        debugBtn.className = 'btn btn-secondary ms-2';
+        debugBtn.textContent = 'Debug Fields';
+        submitSection.appendChild(debugBtn);
+
+        debugBtn.addEventListener('click', function() {
+            // Force show all broker fields for debugging
+            document.querySelectorAll('.broker-fields').forEach(function(field) {
+                field.classList.remove('d-none');
+                console.log("Showing field:", field.getAttribute('data-broker'));
+            });
+            alert("All broker fields should now be visible");
+        });
+    }
+}
+
+// Call the function when the document is ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM fully loaded");
+    initBrokerFieldsToggle();
+});
+
+// Also call it now in case DOM is already loaded
+if (document.readyState === "complete" ||
+    document.readyState === "loaded" ||
+    document.readyState === "interactive") {
+    console.log("Document already loaded or interactive");
+    initBrokerFieldsToggle();
+}
+</script>
+{% endblock %}
+{% endblock %}

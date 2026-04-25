@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How ETF Automation Works With Your Broker | SmartETF</title>
+    <meta name="description" content="Learn how ETF automation works with brokers like Zerodha, Dhan, Groww, and Finvasia using OAuth, alerts, and approvals.">
+    <link rel="canonical" href="{{ request.url_root.rstrip('/') ~ request.path }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family:'Inter',sans-serif; background:#f8fafc; color:#0f172a; }
+        .hero { background:#0f172a; color:#fff; padding:70px 0; }
+        .card { border:1px solid #e2e8f0; border-radius:18px; box-shadow:0 18px 40px rgba(15,23,42,0.08); }
+        a { text-decoration:none; }
+        .brand-link { display:flex; align-items:center; gap:0.75rem; text-decoration:none; color:#fff; }
+        .brand-logo { height:44px; width:44px; border-radius:50%; box-shadow:0 10px 24px rgba(15,23,42,0.2); }
+        .brand-text { display:flex; flex-direction:column; line-height:1.1; }
+        .brand-title { font-weight:800; font-size:1.1rem; color:#fff; }
+        .brand-subtitle { font-size:0.75rem; color:#cbd5f5; font-weight:600; }
+    </style>
+</head>
+<body>
+    <header class="hero text-center">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <a href="/" class="brand-link">
+                    <img src="{{ url_for('static', filename='images/logo_smartetf.png') }}" alt="SmartETF Algo logo" class="brand-logo">
+                    <span class="brand-text">
+                        <span class="brand-title">SmartETF Algo</span>
+                        <span class="brand-subtitle">Automated ETF Investing</span>
+                    </span>
+                </a>
+            </div>
+            <p class="text-warning text-uppercase fw-semibold">Broker workflow</p>
+            <h1 class="fw-bold">How ETF automation works with your broker</h1>
+            <p class="mt-3">SmartETF connects to your broker for signals, approvals, and execution—while your money stays in your account.</p>
+            <div class="mt-4">
+                <a href="/" class="btn btn-light btn-sm me-2">← Back to Home</a>
+                <a href="/register" class="btn btn-warning btn-sm">Start SmartETF</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container py-5">
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="card p-4 h-100">
+                    <h2 class="fw-bold">Step 1: Secure broker connection</h2>
+                    <p>SmartETF uses OAuth or broker APIs (Zerodha, Dhan, Groww, Finvasia) to connect your account. You can revoke access anytime.</p>
+                    <ul>
+                        <li>No fund transfer to SmartETF.</li>
+                        <li>Tokens are encrypted and can be rotated.</li>
+                        <li>Only your broker executes trades.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card p-4 h-100">
+                    <h2 class="fw-bold">Step 2: Rule engine creates orders</h2>
+                    <p>The algorithm checks ETF signals, sector caps, and drawdown thresholds. When a signal hits, SmartETF prepares the order for approval.</p>
+                    <p class="mb-0">You set the limits—SIP amount, dip multiplier, and per-ETF caps.</p>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card p-4 h-100">
+                    <h2 class="fw-bold">Step 3: Alerts + approvals</h2>
+                    <p>Receive WhatsApp/email alerts for every purchase. Approve large orders before they execute.</p>
+                    <p class="mb-0">All transactions are logged with timestamp, ETF, and broker reference.</p>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card p-4 h-100">
+                    <h2 class="fw-bold">Step 4: Performance tracking</h2>
+                    <p>Track monthly performance, sector exposure, and diversification across Gold BeES, Silver BeES, IT, Infra, Realty, and MAFANG ETFs.</p>
+                    <a class="text-primary fw-semibold" href="/resources/sector-etf-diversification">See diversification guide →</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5">
+            <h3 class="fw-bold">Continue learning</h3>
+            <ul>
+                <li><a href="/resources/etf-automation-india">ETF automation in India</a></li>
+                <li><a href="/etf-automation">ETF automation landing page</a></li>
+                <li><a href="/resources/is-etf-algo-legal-india">Is ETF algo investing legal?</a></li>
+            </ul>
+        </div>
+    </main>
+</body>
+</html>

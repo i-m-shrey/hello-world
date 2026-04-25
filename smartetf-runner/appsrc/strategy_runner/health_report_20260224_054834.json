@@ -1,0 +1,113 @@
+{
+  "timestamp": "2026-02-24 05:47:31.252719",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 1,
+    "failed": [
+      {
+        "customer_id": "smartetf_user_10001",
+        "broker_name": "FINVASIA",
+        "reason": "no_amount_parsed"
+      },
+      {
+        "customer_id": "smartetf_user_10005",
+        "broker_name": "FINVASIA",
+        "reason": "no_amount_parsed"
+      },
+      {
+        "customer_id": "smartetf_user_10006",
+        "broker_name": "FINVASIA",
+        "reason": "no_amount_parsed"
+      },
+      {
+        "customer_id": "smartetf_user_10008",
+        "broker_name": "FINVASIA",
+        "reason": "no_amount_parsed"
+      },
+      {
+        "customer_id": "smartetf_user_10010",
+        "broker_name": "FINVASIA",
+        "reason": "no_amount_parsed"
+      },
+      {
+        "customer_id": "smartetf_user_10017",
+        "broker_name": "FINVASIA",
+        "reason": "no_amount_parsed"
+      },
+      {
+        "customer_id": "smartetf_user_10015",
+        "broker_name": "ZERODHA",
+        "reason": "no_amount_parsed"
+      }
+    ]
+  },
+  "low_balance_alerts": {
+    "threshold_percent": 20,
+    "alerts": [
+      {
+        "customer_id": "smartetf_user_10016",
+        "broker": "DHAN",
+        "balance": 1.48,
+        "threshold": 1700.0
+      }
+    ]
+  },
+  "session_check": {
+    "status": "PASS",
+    "total_clients": 9,
+    "active_sessions": 8,
+    "failed_sessions": 1,
+    "success_rate": 88.88888888888889,
+    "broker_breakdown": {
+      "FINVASIA": {
+        "active": 6,
+        "failed": 1
+      },
+      "DHAN": {
+        "active": 1,
+        "failed": 0
+      },
+      "ZERODHA": {
+        "active": 1,
+        "failed": 0
+      }
+    },
+    "failed_clients": [
+      {
+        "client_id": "smartetf_user_10019",
+        "broker": "FINVASIA",
+        "error": "Login failed for FN123919: No response from API",
+        "timestamp": "2026-02-24 05:47:42.416777",
+        "email": "menghranisbankmssg@gmail.com"
+      }
+    ],
+    "timestamp": "2026-02-24 05:47:50.107006"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "ERROR",
+    "error": "No module named 'selenium'",
+    "timestamp": "2026-02-24 05:48:24.212354"
+  },
+  "overall_status": "CRITICAL",
+  "critical_issues": [
+    "ChromeDriver error: No module named 'selenium'"
+  ],
+  "warnings": [
+    "1 client sessions failed"
+  ],
+  "recommendations": [],
+  "password_reset_failures": [
+    {
+      "customer_id": "smartetf_user_10019",
+      "broker_id": 37,
+      "old_password": "Rajesh@525",
+      "new_password": "Rajeshmenghrani1978@525",
+      "success": false,
+      "error": "change_or_verify_failed"
+    }
+  ]
+}

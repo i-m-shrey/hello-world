@@ -1,0 +1,70 @@
+{
+  "timestamp": "2026-01-05 13:46:56.696406",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 4,
+    "failed": [
+      {
+        "customer_id": "smartetf_user_10007",
+        "broker_name": "DHAN",
+        "reason": "no_amount_parsed"
+      }
+    ]
+  },
+  "low_balance_alerts": {
+    "threshold_percent": 20,
+    "alerts": [
+      {
+        "customer_id": "smartetf_user_10008",
+        "broker": "FINVASIA",
+        "balance": 0.0,
+        "threshold": 4000.0
+      }
+    ]
+  },
+  "session_check": {
+    "status": "PASS",
+    "total_clients": 6,
+    "active_sessions": 5,
+    "failed_sessions": 1,
+    "success_rate": 83.33333333333334,
+    "broker_breakdown": {
+      "FINVASIA": {
+        "active": 4,
+        "failed": 1
+      },
+      "DHAN": {
+        "active": 1,
+        "failed": 0
+      }
+    },
+    "failed_clients": [
+      {
+        "client_id": "smartetf_user_10006",
+        "broker": "FINVASIA",
+        "error": "Login failed for FN148473: No response from API",
+        "timestamp": "2026-01-05 13:47:00.695428",
+        "email": "care.mhrc@gmail.com"
+      }
+    ],
+    "password_rotations": [],
+    "timestamp": "2026-01-05 13:47:01.059122"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "PASS",
+    "test_url": "https://www.google.com",
+    "page_title": "Google",
+    "test_time_seconds": 8.564444303512573,
+    "timestamp": "2026-01-05 13:47:18.170857"
+  },
+  "overall_status": "HEALTHY",
+  "critical_issues": [],
+  "warnings": [
+    "1 client sessions failed"
+  ],
+  "recommendations": []
+}

@@ -1,0 +1,502 @@
+{% extends "layout.html" %}
+
+{% block title %}View User - ETF Trading Portal{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+        <h2>User Details</h2>
+        <div>
+            <a href="{{ url_for('admin_edit_user', user_id=user.id) }}" class="btn btn-primary">
+                <i class="fas fa-edit me-1"></i> Edit User
+            </a>
+            <a href="{{ url_for('admin_users') }}" class="btn btn-outline-primary ms-2">
+                <i class="fas fa-arrow-left me-1"></i> Back to Users
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="alert alert-danger" role="alert">
+    <strong><i class="fas fa-exclamation-triangle me-2"></i>Sensitive:</strong> Portal password is visible below for admin only. Handle with care.
+</div>
+<div class="card shadow mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">User Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">User ID:</div>
+                    <div class="col-md-8">{{ user.id }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Username:</div>
+                    <div class="col-md-8">{{ user.username }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Email:</div>
+                    <div class="col-md-8">{{ user.email }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Customer ID:</div>
+                    <div class="col-md-8">{{ user.customer_id }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Role:</div>
+                    <div class="col-md-8">
+                        {% if user.is_admin %}
+                            <span class="badge bg-danger">Admin</span>
+                        {% else %}
+                            <span class="badge bg-primary">User</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Created At:</div>
+                    <div class="col-md-8">{{ user.created_at|datetime('%d %b, %Y %H:%M:%S') }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Last Login:</div>
+                    <div class="col-md-8">
+                        {% if user.last_login %}
+                            {{ user.last_login|datetime('%d %b, %Y %H:%M:%S') }}
+                        {% else %}
+                            <span class="text-muted">Never logged in</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Full Name:</div>
+                    <div class="col-md-8">{{ user.full_name }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Mobile:</div>
+                    <div class="col-md-8">{{ user.mobile }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Address:</div>
+                    <div class="col-md-8">{{ user.address }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">State:</div>
+                    <div class="col-md-8">{{ user.state }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">City:</div>
+                    <div class="col-md-8">{{ user.city }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">PIN:</div>
+                    <div class="col-md-8">{{ user.pin }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Account Status:</div>
+                    <div class="col-md-8">
+                        {% if user.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Disclaimer Accepted:</div>
+                    <div class="col-md-8">
+                        {% if user.disclaimer_accepted %}
+                            <span class="badge bg-success">Yes</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">No</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3 align-items-center">
+                    <div class="col-md-4 fw-bold">Portal Password (admin):</div>
+                    <div class="col-md-8">
+                        {% if portal_password_plain %}
+                            <span id="pw-hidden" style="display:inline;">••••••••••</span>
+                            <code id="pw-visible" style="display:none;">{{ portal_password_plain }}</code>
+                            <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="togglePortalPw()">
+                                <i class="fas fa-eye"></i> Reveal
+                            </button>
+                        {% else %}
+                            <span class="text-muted">Not set or key missing</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Broker Connections</h5>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('admin_brokers') }}?user_id={{ user.id }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-external-link-alt me-1"></i> View All
+                    </a>
+                    {% if current_subscription and not max_brokers_reached %}
+                    <a href="{{ url_for('admin_create_user_broker', user_id=user.id) }}" class="btn btn-sm btn-success">
+                        <i class="fas fa-plus me-1"></i> Add Broker
+                    </a>
+                    {% else %}
+                    <button class="btn btn-sm btn-secondary" disabled title="{% if not current_subscription %}No active subscription{% else %}Broker limit reached ({{ max_brokers_allowed }}){% endif %}">
+                        <i class="fas fa-plus me-1"></i> Add Broker
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                {% if broker_connections %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Broker</th>
+                                    <th>User ID</th>
+                                    <th>Status</th>
+                                    <th>Algo Investment</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for broker in broker_connections %}
+                                <tr>
+                                    <td>{{ broker.broker_name }}</td>
+                                    <td>{{ broker.user_id_broker }}</td>
+                                    <td>
+                                        {% if broker.subscription_status == 'Active' %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">{{ broker.subscription_status or 'Inactive' }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if broker.is_master %}
+                                            <span class="badge bg-primary">Master</span>
+                                        {% elif broker.copy %}
+                                            <span class="badge bg-info">Copier ({{ broker.copy_multiplier }}x)</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Disabled</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('admin_view_broker', broker_id=broker.id) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-3">
+                        <p class="text-muted">No broker connections found</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Current Subscription</h5>
+            </div>
+            <div class="card-body">
+                {% if current_subscription %}
+                    <div class="text-center mb-3">
+                        <h4>{{ current_subscription.plan_name }}</h4>
+                        <span class="badge bg-success fs-6">{{ current_subscription.payment_status }}</span>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="row mb-2">
+                            <div class="col-5 fw-bold">Started:</div>
+                            <div class="col-7">{{ current_subscription.start_date|datetime('%d %b, %Y') }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-5 fw-bold">Expires:</div>
+                            <div class="col-7">
+                                {{ current_subscription.expiry_date|datetime('%d %b, %Y') }}
+                                {% set days_left = (current_subscription.expiry_date.date() - now().date()).days %}
+                                {% if days_left >= 0 %}
+                                    <span class="text-muted">({{ days_left }} days left)</span>
+                                {% else %}
+                                    <span class="text-danger">(Expired)</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-5 fw-bold">Price:</div>
+                            <div class="col-7">₹{{ "%.2f"|format(current_subscription.amount or 0) }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-5 fw-bold">Payment:</div>
+                            <div class="col-7">{{ current_subscription.payment_method }}</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="progress" style="height: 10px;">
+                            {% if current_subscription.expiry_date > now() %}
+                                {% set total_days = (current_subscription.expiry_date - current_subscription.start_date).days %}
+                                {% set days_passed = (now() - current_subscription.start_date).days %}
+                                {% set percentage = (days_passed / total_days * 100)|int %}
+                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ percentage }}%"></div>
+                            {% else %}
+                                <div class="progress-bar bg-danger" role="progressbar" style="width: 100%"></div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('admin_view_subscription', subscription_id=current_subscription.id) }}" class="btn btn-outline-primary">
+                            <i class="fas fa-eye me-1"></i> View Details
+                        </a>
+                        <!-- Renew Modal -->
+<div class="modal fade" id="renewModal" tabindex="-1" aria-labelledby="renewModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" action="{{ url_for('admin_renew_subscription', subscription_id=current_subscription.id) }}">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Renew Subscription</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Select a plan to renew for <strong>{{ user.username }}</strong>:</p>
+
+          <div class="mb-3">
+            <label for="plan_id" class="form-label">Plan</label>
+            <select class="form-select" name="plan_id" required>
+              {% for plan in available_plans %}
+              <option value="{{ plan.id }}">{{ plan.name }} (₹{{ plan.monthly_price }}, {{ plan.duration }} days)</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-warning">Renew</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+                    </div>
+
+                    <!-- Renew Modal -->
+                    <div class="modal fade" id="renewSubscriptionModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Renew Subscription</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Are you sure you want to renew the subscription for <strong>{{ user.username }}</strong>?</p>
+                                    <p>This will extend the subscription for another period with the same plan.</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <form action="{{ url_for('admin_renew_subscription', subscription_id=current_subscription.id) }}" method="POST">
+                                        <button type="submit" class="btn btn-warning">Renew</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-center py-3">
+                        <p class="text-muted">No active subscription</p>
+                        <a href="{{ url_for('admin_create_subscription') }}?user_id={{ user.id }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i> Add Subscription
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+{% if upcoming_subscriptions %}
+<div class="card shadow mt-3">
+    <div class="card-header">
+        <h5 class="mb-0">Upcoming Subscriptions</h5>
+    </div>
+    <div class="card-body">
+        {% for subscription in upcoming_subscriptions %}
+            <div class="{% if not loop.first %}border-top pt-3 mt-3{% endif %}">
+                <div class="row mb-2">
+                    <div class="col-4 fw-bold">Plan:</div>
+                    <div class="col-8">{{ subscription.plan_name }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-4 fw-bold">Starts:</div>
+                    <div class="col-8">
+                        {{ subscription.start_date.strftime('%d %b, %Y') }}
+                        {% set days_until = (subscription.start_date.date() - now().date()).days %}
+                        {% if days_until > 0 %}
+                            <span class="text-muted">(in {{ days_until }} day{{ 's' if days_until != 1 else '' }})</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-4 fw-bold">Expires:</div>
+                    <div class="col-8">{{ subscription.expiry_date.strftime('%d %b, %Y') }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-4 fw-bold">Amount:</div>
+                    <div class="col-8">₹{{ "%.2f"|format(subscription.amount or 0) }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-4 fw-bold">Status:</div>
+                    <div class="col-8">
+                        {% if subscription.is_queued %}
+                            <span class="badge bg-warning text-dark">Queued</span>
+                        {% else %}
+                            <span class="badge bg-info">Scheduled</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-4 fw-bold">Actions:</div>
+                    <div class="col-8">
+                        <a href="{{ url_for('admin_view_subscription', subscription_id=subscription.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye me-1"></i> View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0">Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('admin_edit_user', user_id=user.id) }}" class="btn btn-outline-primary">
+                        <i class="fas fa-edit me-1"></i> Edit User
+                    </a>
+                    {% if current_subscription %}
+                        <a href="{{ url_for('admin_view_subscription', subscription_id=current_subscription.id) }}" class="btn btn-outline-info">
+                            <i class="fas fa-file-invoice-dollar me-1"></i> View Subscription
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('admin_create_subscription') }}?user_id={{ user.id }}" class="btn btn-outline-success">
+                            <i class="fas fa-plus me-1"></i> Add Subscription
+                        </a>
+                    {% endif %}
+                    <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#setPasswordModal">
+                        <i class="fas fa-key me-1"></i> Set Portal Password
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal">
+                        <i class="fas fa-trash me-1"></i> Delete User
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePortalPw(){
+  const h = document.getElementById('pw-hidden');
+  const v = document.getElementById('pw-visible');
+  if(!h || !v) return;
+  const hidden = h.style.display !== 'none';
+  h.style.display = hidden ? 'none' : 'inline';
+  v.style.display = hidden ? 'inline' : 'none';
+}
+</script>
+
+<!-- Set Password Modal -->
+<div class="modal fade" id="setPasswordModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form method="POST" action="{{ url_for('admin_extra.admin_set_user_password', user_id=user.id) }}">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Set Portal Password</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">New Password</label>
+            <div class="input-group">
+              <input type="password" id="new_password" name="new_password" class="form-control" required minlength="6" autocomplete="new-password">
+              <button type="button" class="btn btn-outline-secondary" onclick="toggleInputVisibility('new_password','np_icon')">
+                <i id="np_icon" class="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Confirm Password</label>
+            <div class="input-group">
+              <input type="password" id="confirm_password" name="confirm_password" class="form-control" required minlength="6" autocomplete="new-password">
+              <button type="button" class="btn btn-outline-secondary" onclick="toggleInputVisibility('confirm_password','cp_icon')">
+                <i id="cp_icon" class="fas fa-eye"></i>
+              </button>
+            </div>
+            <div id="pw_msg" class="form-text text-danger" style="display:none;">Passwords do not match</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" id="btn-update-password" class="btn btn-warning" disabled>Update Password</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function toggleInputVisibility(id, iconId){
+  const input = document.getElementById(id);
+  const icon = document.getElementById(iconId);
+  if(!input) return;
+  const isPw = input.type === 'password';
+  input.type = isPw ? 'text' : 'password';
+  if(icon) icon.className = isPw ? 'fas fa-eye-slash' : 'fas fa-eye';
+}
+function validatePasswords(){
+  const np = document.getElementById('new_password');
+  const cp = document.getElementById('confirm_password');
+  const msg = document.getElementById('pw_msg');
+  const btn = document.getElementById('btn-update-password');
+  if(!np || !cp){ if(btn) btn.disabled = false; return; }
+  const okLen = (np.value || '').length >= 6;
+  const match = (np.value === cp.value) && okLen;
+  if(msg){ msg.style.display = match ? 'none' : 'block'; }
+  if(btn){ btn.disabled = !match; }
+}
+['new_password','confirm_password'].forEach(id => {
+  const el = document.getElementById(id);
+  if(el){ el.addEventListener('input', validatePasswords); }
+});
+document.addEventListener('DOMContentLoaded', validatePasswords);
+</script>
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete user <strong>{{ user.username }}</strong>?</p>
+                <p class="text-danger">This will delete all associated data including broker connections and subscriptions. This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('admin_delete_user', user_id=user.id) }}" method="POST">
+                    <button type="submit" class="btn btn-danger">Delete User</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{
+  "timestamp": "2026-01-02 11:52:50.332282",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 5,
+    "failed": []
+  },
+  "low_balance_alerts": {
+    "threshold_percent": 20,
+    "alerts": [
+      {
+        "customer_id": "smartetf_user_10005",
+        "broker": "FINVASIA",
+        "balance": 10.36,
+        "threshold": 3200.0
+      }
+    ]
+  },
+  "session_check": {
+    "status": "PASS",
+    "total_clients": 6,
+    "active_sessions": 6,
+    "failed_sessions": 0,
+    "success_rate": 100.0,
+    "broker_breakdown": {
+      "FINVASIA": {
+        "active": 5,
+        "failed": 0
+      },
+      "DHAN": {
+        "active": 1,
+        "failed": 0
+      }
+    },
+    "failed_clients": [],
+    "timestamp": "2026-01-02 11:52:53.284795"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "PASS",
+    "test_url": "https://www.google.com",
+    "page_title": "Google",
+    "test_time_seconds": 7.307384967803955,
+    "timestamp": "2026-01-02 11:55:09.276783"
+  },
+  "overall_status": "HEALTHY",
+  "critical_issues": [],
+  "warnings": [
+    "Balance update commit failed: (pg8000.dbapi.ProgrammingError) {'S': 'ERROR', 'V': 'ERROR', 'C': '57014', 'M': 'canceling statement due to statement timeout', 'W': 'while updating tuple (0,22) in relation \"broker\"', 'F': 'postgres.c', 'L': '3330', 'R': 'ProcessInterrupts'}\n[SQL: UPDATE broker SET available_balance=%s::FLOAT, balance_checked_at=%s::TIMESTAMP WITHOUT TIME ZONE WHERE broker.id = %s::INTEGER]\n[parameters: (10189.07, datetime.datetime(2026, 1, 2, 6, 22, 53, 920047), 5)]\n(Background on this error at: https://sqlalche.me/e/20/f405)"
+  ],
+  "recommendations": []
+}

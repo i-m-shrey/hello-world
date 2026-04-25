@@ -1,0 +1,424 @@
+{% extends "layout.html" %}
+
+{% block title %}Users - Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>User Management</h2>
+    <div class="d-flex">
+        <form class="me-2" action="{{ url_for('admin_users') }}" method="GET">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Search users..." name="search" id="search-users" value="{{ search }}">
+                <input type="hidden" name="per_page" value="{{ per_page }}">
+                <button class="btn btn-outline-secondary" type="submit">
+                    <i class="fas fa-search"></i>
+                </button>
+                {% if search %}
+                <a href="{{ url_for('admin_users', per_page=per_page) }}" class="btn btn-outline-danger" title="Clear search">
+                    <i class="fas fa-times"></i>
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Global Low-Balance Threshold Control -->
+<div class="card shadow mb-4">
+  <div class="card-body d-flex align-items-center justify-content-between">
+    <div>
+      <h6 class="mb-1">Low Balance Alert Threshold (%)</h6>
+      <small class="text-muted">Applies to all users. Clients are alerted if their available balance falls below this percentage of their Monthly SIP target (rounded up to the nearest ₹50).</small>
+    </div>
+    <form class="d-flex align-items-center" method="POST" action="{{ url_for('admin_update_low_balance_threshold') }}">
+      <input type="number" class="form-control me-2" name="low_balance_threshold_percent" min="0" max="100" value="{{ low_balance_threshold_percent or 20 }}" style="width: 120px;">
+      <button class="btn btn-primary" type="submit">Update</button>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">All Users</h5>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-secondary">{{ pagination.total }} users{% if search %} matching "{{ search }}"{% endif %}</span>
+            <form method="GET" action="{{ url_for('admin_users') }}" class="d-flex align-items-center gap-1">
+                <input type="hidden" name="search" value="{{ search }}">
+                <select name="per_page" class="form-select form-select-sm" style="width:auto" onchange="this.form.submit()">
+                    {% for n in [10, 20, 50, 100] %}
+                    <option value="{{ n }}" {{ 'selected' if per_page == n }}>{{ n }} / page</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Customer ID</th>
+                        <th>Plan Expiry</th>
+                        <th>Brokers</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for details in user_details %}
+                    <tr>
+                        <td>{{ details.user.username }}</td>
+                        <td>{{ details.user.email }}</td>
+                        <td>{{ details.user.customer_id }}</td>
+                        <td>
+                            {% if details.subscription %}
+                                {{ details.subscription.expiry_date|datetime('%d %b, %Y') }}
+                                {% if details.subscription.expiry_date > now() %}
+                                    <span class="badge bg-success ms-1">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger ms-1">Expired</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">No subscription</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if details.broker_count > 0 %}
+                                <span class="badge bg-info">{{ details.broker_count }}</span>
+                                <small class="ms-1">{{ details.broker_names }}</small>
+                            {% else %}
+                                <span class="text-muted">None</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if details.account_status == 'Active' %}
+                                <span class="badge bg-success">Active</span>
+                            {% elif details.account_status == 'No Subscription' %}
+                                <span class="badge bg-warning text-dark">No Subscription</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{{ url_for('admin_view_user', user_id=details.user.id) }}" class="btn btn-sm btn-info me-1" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('admin_edit_user', user_id=details.user.id) }}" class="btn btn-sm btn-primary me-1" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if details.brokers %}
+                                <button type="button" class="btn btn-sm btn-warning me-1" title="Place Test Order"
+                                        data-username="{{ details.user.username | e }}"
+                                        data-brokers='{{ details.brokers | tojson }}'
+                                        onclick="openTestOrderModal(this)">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                                {% endif %}
+                                <button type="button" class="btn btn-sm btn-danger" title="Delete"
+                                        onclick="confirmDeleteUser('{{ details.user.username }}', {{ details.user.id }})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if not user_details %}
+        <div class="text-center py-4">
+            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+            <p>No users found{% if search %} matching "{{ search }}"{% endif %}.</p>
+        </div>
+        {% endif %}
+
+        {% if pagination.pages > 1 %}
+        <nav class="mt-3" aria-label="Users pagination">
+          <ul class="pagination pagination-sm justify-content-center mb-0">
+
+            {# Prev #}
+            <li class="page-item {{ 'disabled' if not pagination.has_prev }}">
+              <a class="page-link" href="{{ url_for('admin_users', page=pagination.prev_num, per_page=per_page, search=search) if pagination.has_prev else '#' }}">
+                &laquo;
+              </a>
+            </li>
+
+            {# Page numbers with ellipsis #}
+            {% set cur  = pagination.page %}
+            {% set last = pagination.pages %}
+            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+              {% if p %}
+              <li class="page-item {{ 'active' if p == cur }}">
+                <a class="page-link" href="{{ url_for('admin_users', page=p, per_page=per_page, search=search) }}">{{ p }}</a>
+              </li>
+              {% else %}
+              <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+              {% endif %}
+            {% endfor %}
+
+            {# Next #}
+            <li class="page-item {{ 'disabled' if not pagination.has_next }}">
+              <a class="page-link" href="{{ url_for('admin_users', page=pagination.next_num, per_page=per_page, search=search) if pagination.has_next else '#' }}">
+                &raquo;
+              </a>
+            </li>
+
+          </ul>
+          <p class="text-center text-muted small mt-1 mb-0">
+            Page {{ pagination.page }} of {{ pagination.pages }}
+            &mdash; showing {{ user_details|length }} of {{ pagination.total }} users
+          </p>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Test Order Modal -->
+<div class="modal fade" id="testOrderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:520px">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff">
+                <h5 class="modal-title fw-bold"><i class="fas fa-paper-plane me-2"></i>Admin Test Order</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+
+                <!-- User + broker info -->
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
+                         style="width:42px;height:42px;background:#fef3c7;color:#d97706;font-size:18px;flex-shrink:0">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div>
+                        <div class="fw-semibold" id="toUsername" style="font-size:15px"></div>
+                        <div class="text-muted small">Placing: <strong>PHARMABEES</strong> &times; 1 qty (test order)</div>
+                    </div>
+                </div>
+
+                <!-- Broker select -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Select Broker</label>
+                    <select class="form-select" id="toBrokerSelect" onchange="resetToResult()"></select>
+                </div>
+
+                <!-- Progress area -->
+                <div id="toProgress" style="display:none" class="mb-3">
+                    <div class="d-flex align-items-center gap-2 text-muted small mb-2" id="toProgressMsg">
+                        <span class="spinner-border spinner-border-sm text-warning"></span>
+                        <span>Initialising...</span>
+                    </div>
+                    <div class="progress" style="height:6px">
+                        <div id="toProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-warning"
+                             style="width:0%"></div>
+                    </div>
+                </div>
+
+                <!-- Result card -->
+                <div id="toResult" style="display:none"></div>
+
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-warning btn-sm fw-semibold px-4" id="toPlaceBtn" onclick="placeTestOrder()">
+                    <i class="fas fa-paper-plane me-1"></i> Place Test Order
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete user <span id="usernameToDelete"></span>? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteUserForm" method="POST" action="">
+                    <button type="submit" class="btn btn-danger">Delete User</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+// ── Test Order ──────────────────────────────────────────────────────────────
+function openTestOrderModal(btn) {
+    var username = btn.getAttribute('data-username');
+    var brokers  = JSON.parse(btn.getAttribute('data-brokers'));
+
+    document.getElementById('toUsername').textContent = username;
+    resetToResult();
+
+    var sel = document.getElementById('toBrokerSelect');
+    sel.innerHTML = '';
+    brokers.forEach(function(b) {
+        var opt = document.createElement('option');
+        opt.value = b.id;
+        opt.textContent = b.broker_name + '  —  Client ID: ' + b.user_id_broker;
+        sel.appendChild(opt);
+    });
+
+    var placeBtn = document.getElementById('toPlaceBtn');
+    placeBtn.disabled = false;
+    placeBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Place Test Order';
+
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('testOrderModal')).show();
+}
+
+function resetToResult() {
+    document.getElementById('toResult').style.display = 'none';
+    document.getElementById('toResult').innerHTML = '';
+    document.getElementById('toProgress').style.display = 'none';
+    setProgress(0, 'Initialising...');
+}
+
+function setProgress(pct, msg) {
+    document.getElementById('toProgressBar').style.width = pct + '%';
+    document.getElementById('toProgressMsg').querySelector('span:last-child').textContent = msg;
+}
+
+function placeTestOrder() {
+    var brokerId = document.getElementById('toBrokerSelect').value;
+    if (!brokerId) return;
+
+    var brokerText = document.getElementById('toBrokerSelect').options[
+        document.getElementById('toBrokerSelect').selectedIndex
+    ].textContent;
+
+    var btn = document.getElementById('toPlaceBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Working...';
+
+    var prog = document.getElementById('toProgress');
+    prog.style.display = 'block';
+    document.getElementById('toResult').style.display = 'none';
+
+    // Animated progress steps
+    setProgress(15, 'Connecting to ' + brokerText.split('—')[0].trim() + '...');
+    var t1 = setTimeout(function() { setProgress(40, 'Refreshing session token...'); }, 800);
+    var t2 = setTimeout(function() { setProgress(65, 'Sending order to exchange...'); }, 2000);
+    var t3 = setTimeout(function() { setProgress(85, 'Waiting for order confirmation...'); }, 3500);
+
+    fetch('/admin/broker/' + brokerId + '/test-order', {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin'
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
+        setProgress(100, 'Done.');
+        setTimeout(function() {
+            prog.style.display = 'none';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-redo me-1"></i> Run Again';
+            showResult(data);
+        }, 400);
+    })
+    .catch(function(err) {
+        clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
+        prog.style.display = 'none';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Place Test Order';
+        showResult({ status: 'error', message: 'Network error: ' + err });
+    });
+}
+
+function showResult(data) {
+    var isOk = data.status === 'success';
+    var box  = document.getElementById('toResult');
+
+    var borderColor = isOk ? '#22c55e' : '#ef4444';
+    var bgColor     = isOk ? '#f0fdf4' : '#fef2f2';
+    var iconColor   = isOk ? '#16a34a' : '#dc2626';
+    var icon        = isOk ? 'fa-check-circle' : 'fa-times-circle';
+    var title       = isOk ? 'Order Placed Successfully' : 'Order Failed';
+
+    var orderIdRow = data.order_id
+        ? '<div class="d-flex justify-content-between py-1 border-bottom">' +
+          '<span class="text-muted small">Order ID</span>' +
+          '<code class="fw-bold" style="font-size:13px">' + data.order_id + '</code></div>'
+        : '';
+
+    var statusRow = data.order_status
+        ? '<div class="d-flex justify-content-between py-1 border-bottom">' +
+          '<span class="text-muted small">Order Status</span>' +
+          '<span class="badge" style="background:' + (isOk ? '#22c55e' : '#f97316') + '">' + data.order_status + '</span></div>'
+        : '';
+
+    var balanceRow = (data.balance !== null && data.balance !== undefined)
+        ? '<div class="d-flex justify-content-between py-1">' +
+          '<span class="text-muted small">Available Balance</span>' +
+          '<span class="fw-semibold text-success">₹' + Number(data.balance).toLocaleString('en-IN', {minimumFractionDigits:2}) + '</span></div>'
+        : '<div class="d-flex justify-content-between py-1">' +
+          '<span class="text-muted small">Available Balance</span>' +
+          '<span class="text-muted small">Not available</span></div>';
+
+    var html =
+        '<div style="border:1.5px solid ' + borderColor + ';border-radius:10px;background:' + bgColor + ';padding:14px 16px">'
+      + '  <div class="d-flex align-items-center mb-2">'
+      + '    <i class="fas ' + icon + ' me-2" style="font-size:20px;color:' + iconColor + '"></i>'
+      + '    <span class="fw-bold" style="color:' + iconColor + ';font-size:15px">' + title + '</span>'
+      + '  </div>'
+      + '  <p class="text-muted small mb-2" style="line-height:1.5">' + (data.message || '') + '</p>'
+      + '  <div style="border-top:1px solid #e5e7eb;margin-top:8px">'
+      + '    <div class="d-flex justify-content-between py-1 border-bottom">'
+      + '      <span class="text-muted small">Broker</span>'
+      + '      <span class="fw-semibold small">' + (data.broker_name || '') + '</span>'
+      + '    </div>'
+      + '    <div class="d-flex justify-content-between py-1 border-bottom">'
+      + '      <span class="text-muted small">Client ID</span>'
+      + '      <span class="fw-semibold small font-monospace">' + (data.user_id_broker || '') + '</span>'
+      + '    </div>'
+      + '    <div class="d-flex justify-content-between py-1 border-bottom">'
+      + '      <span class="text-muted small">Symbol / Qty</span>'
+      + '      <span class="fw-semibold small">' + (data.symbol || '') + ' &times; ' + (data.qty || '') + '</span>'
+      + '    </div>'
+      + orderIdRow + statusRow + balanceRow
+      + '  </div>'
+      + '</div>';
+
+    box.innerHTML = html;
+    box.style.display = 'block';
+}
+
+// ── Delete User ──────────────────────────────────────────────────────────────
+function confirmDeleteUser(username, userId) {
+    document.getElementById('usernameToDelete').textContent = username;
+    document.getElementById('deleteUserForm').action =
+        "{{ url_for('admin_delete_user', user_id=0) }}".replace('0', userId);
+    new bootstrap.Modal(document.getElementById('deleteUserModal')).show();
+}
+
+// ── Client-side search ───────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+    var s = document.getElementById('search-users');
+    if (s) {
+        s.addEventListener('keyup', function() {
+            var q = this.value.toLowerCase();
+            document.querySelectorAll('tbody tr').forEach(function(row) {
+                var match = false;
+                row.querySelectorAll('td:not(:last-child)').forEach(function(c) {
+                    if (c.textContent.toLowerCase().includes(q)) match = true;
+                });
+                row.style.display = match ? '' : 'none';
+            });
+        });
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,38 @@
+{
+  "timestamp": "2025-11-25 15:07:37.580120",
+  "subscription_activation": {
+    "activated_count": 0,
+    "activated": []
+  },
+  "balance_update": {
+    "updated_count": 0,
+    "failed": []
+  },
+  "session_check": {
+    "status": "PASS",
+    "total_clients": 4,
+    "active_sessions": 4,
+    "failed_sessions": 0,
+    "success_rate": 100.0,
+    "broker_breakdown": {
+      "FINVASIA": {
+        "active": 4,
+        "failed": 0
+      }
+    },
+    "failed_clients": [],
+    "timestamp": "2025-11-25 15:07:39.429941"
+  },
+  "etf_fetch_check": {},
+  "chrome_driver_check": {
+    "status": "PASS",
+    "test_url": "https://www.google.com",
+    "page_title": "Google",
+    "test_time_seconds": 6.613421201705933,
+    "timestamp": "2025-11-25 15:07:46.194143"
+  },
+  "overall_status": "HEALTHY",
+  "critical_issues": [],
+  "warnings": [],
+  "recommendations": []
+}

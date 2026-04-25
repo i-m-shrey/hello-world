@@ -1,0 +1,200 @@
+{% extends "layout.html" %}
+{% block title %}Lead Form — Publish Options{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+  <div class="col">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Admin</a></li>
+        <li class="breadcrumb-item active">Lead Form — Publish Options</li>
+      </ol>
+    </nav>
+    <h2 class="mb-0">📋 Publish Options for "SmartETF Algo Lead Form"</h2>
+    <p class="text-muted mt-1">Use the code below to embed the lead capture form on your website. Form submissions go directly to Zoho CRM.</p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-8">
+
+    <div class="card shadow border-0 mb-4">
+      <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+          <label class="fw-semibold mb-0">Publishing Format</label>
+          <select class="form-select form-select-sm" style="width:auto;" id="formatSelect" onchange="switchFormat(this.value)">
+            <option value="modal">Modal Trigger (Recommended)</option>
+            <option value="source">Full Source Code (Raw Embed)</option>
+          </select>
+        </div>
+        <button class="btn btn-sm btn-outline-primary" onclick="copyCode()">
+          <i class="fas fa-copy me-1"></i> Copy Code
+        </button>
+      </div>
+      <div class="card-body p-0">
+
+        <!-- Modal trigger snippet -->
+        <div id="code-modal">
+          <div class="px-3 pt-3 pb-1">
+            <div class="alert alert-success border-0 py-2 mb-2">
+              <i class="fas fa-check-circle me-1"></i>
+              <strong>Already embedded on smartetfalgo.com.</strong>
+              The modal trigger button is live in the navbar, hero section, and contact section.
+              Use the snippet below to add the trigger button anywhere on your site.
+            </div>
+          </div>
+          <pre id="code-modal-content" class="bg-dark text-light p-3 m-0" style="font-size:12px;overflow-x:auto;max-height:400px;"><code>&lt;!-- SmartETF Lead Form Trigger Button --&gt;
+&lt;button type="button"
+        class="btn btn-warning fw-semibold"
+        data-bs-toggle="modal"
+        data-bs-target="#leadFormModal"&gt;
+  📋 Book Free Consultation
+&lt;/button&gt;
+
+&lt;!-- Note: The modal (#leadFormModal) is already in the page footer of marketing/index.html.
+     This trigger button can be placed anywhere on the same page. --&gt;</code></pre>
+        </div>
+
+        <!-- Full source code snippet -->
+        <div id="code-source" style="display:none;">
+          <div class="px-3 pt-3 pb-1">
+            <div class="alert alert-warning border-0 py-2 mb-2">
+              <i class="fas fa-exclamation-triangle me-1"></i>
+              <strong>Raw embed:</strong> paste this inside a page's <code>&lt;body&gt;</code>.
+              The form ships with its own CSS — test on a staging copy first to avoid style conflicts.
+            </div>
+          </div>
+          <pre id="code-source-content" class="bg-dark text-light p-3 m-0" style="font-size:11px;overflow-x:auto;max-height:400px;"><code id="raw-source"><!-- loading... --></code></pre>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="alert alert-info">
+      <strong>Note:</strong> Form Location URL is set to <code>https://smartetfalgo.com</code> in Zoho CRM.
+      Zoho tracks analytics based on this URL — make sure the form is only embedded on pages under that domain.
+    </div>
+
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card shadow border-0 mb-3">
+      <div class="card-header bg-success text-white">
+        <h6 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Where it's live</h6>
+      </div>
+      <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item d-flex align-items-center gap-2">
+            <span class="badge bg-success">✓</span> Navbar — "Book Free Consultation" button
+          </li>
+          <li class="list-group-item d-flex align-items-center gap-2">
+            <span class="badge bg-success">✓</span> Hero Slide 1 — 3rd CTA button
+          </li>
+          <li class="list-group-item d-flex align-items-center gap-2">
+            <span class="badge bg-success">✓</span> Hero Slide 2 — 3rd CTA button
+          </li>
+          <li class="list-group-item d-flex align-items-center gap-2">
+            <span class="badge bg-success">✓</span> Contact Section — "Get Free Consultation"
+          </li>
+          <li class="list-group-item d-flex align-items-center gap-2">
+            <span class="badge bg-success">✓</span> Contact Info — replaces Google Form link
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card shadow border-0">
+      <div class="card-header">
+        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Zoho CRM Details</h6>
+      </div>
+      <div class="card-body small">
+        <table class="table table-sm mb-0">
+          <tr><td class="text-muted">Form Name</td><td><strong>SmartETF Algo Lead Form</td></tr>
+          <tr><td class="text-muted">Module</td><td>Leads</td></tr>
+          <tr><td class="text-muted">Location URL</td><td><code>https://smartetfalgo.com</code></td></tr>
+          <tr><td class="text-muted">Action URL</td><td><code>crm.zoho.in</code></td></tr>
+          <tr><td class="text-muted">Fields</td><td>First Name, Last Name, Email, Mobile</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mt-3">
+  <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+  </a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const RAW_SOURCE = `<!-- SmartETF Algo Lead Form — Zoho CRM Web-to-Lead -->
+<!-- Note: Do not remove lines marked "Do not remove this code" -->
+<div id='crmWebToEntityForm' class='zcwf_lblLeft crmWebToEntityForm' style='background-color:white;color:black;max-width:600px;'>
+<meta name='viewport' content='width=device-width,initial-scale=1.0'>
+<form id='webform1263492000000605020' action='https://crm.zoho.in/crm/WebToLeadForm'
+      name='WebToLeads1263492000000605020' method='POST'
+      onSubmit='javascript:document.charset="UTF-8";return checkMandatory1263492000000605020()'
+      accept-charset='UTF-8'>
+  <input type='text' style='display:none;' name='xnQsjsdp' value='846c45820b8b32a5c338de3680f90b6e21371f56903475a37fc17b6191653cf7'>
+  <input type='hidden' name='zc_gad' id='zc_gad' value=''>
+  <input type='text' style='display:none;' name='xmIwtLD' value='199e2f8281874aea25c5c8241a8d74e27f3bcb10de852f506496837cdf1163922aed52427183b4964a3a7657bbc40849'>
+  <input type='text' style='display:none;' name='actionType' value='TGVhZHM='>
+  <input type='text' style='display:none;' name='returnURL' value='null'>
+  <!-- Do not remove this code -->
+  <div class='zcwf_title'>SmartETF Algo Lead Form</div>
+  <div class='zcwf_row'>
+    <div class='zcwf_col_lab'><label for='First_Name'>First Name <span style='color:red;'>*</span></label></div>
+    <div class='zcwf_col_fld'><input type='text' id='First_Name' aria-required='true' name='First Name' maxlength='40'></div>
+  </div>
+  <div class='zcwf_row'>
+    <div class='zcwf_col_lab'><label for='Last_Name'>Last Name <span style='color:red;'>*</span></label></div>
+    <div class='zcwf_col_fld'><input type='text' id='Last_Name' aria-required='true' name='Last Name' maxlength='80'></div>
+  </div>
+  <div class='zcwf_row'>
+    <div class='zcwf_col_lab'><label for='Email'>Email <span style='color:red;'>*</span></label></div>
+    <div class='zcwf_col_fld'><input type='text' ftype='email' id='Email' aria-required='true' name='Email' maxlength='100'></div>
+  </div>
+  <div class='zcwf_row'>
+    <div class='zcwf_col_lab'><label for='Mobile'>Mobile <span style='color:red;'>*</span></label></div>
+    <div class='zcwf_col_fld'><input type='text' id='Mobile' aria-required='true' name='Mobile' maxlength='30'></div>
+  </div>
+  <input type='text' style='display:none;' name='aG9uZXlwb3Q' value=''>
+  <div class='zcwf_row'>
+    <div class='zcwf_col_lab'></div>
+    <div class='zcwf_col_fld'>
+      <input type='submit' class='formsubmit zcwf_button' value='Submit'>
+      <input type='reset' class='zcwf_button' name='reset' value='Reset'>
+    </div>
+  </div>
+  <!-- Do not remove this --- Analytics Tracking code starts -->
+  <script id='wf_anal' src='https://crm.zohopublic.in/crm/WebFormAnalyticsServeServlet?rid=346d07ccac0340b0ad1208066a0e8aea77a1363a82d45f376aa206d717aee14fcb67d4f85e396c6d4e8cc08bce2592b1gid2637d941b4aa342ddec6af7bb73ad556eb15e2032fb0151905e7000f3a0d2b96gide45c423d238187f0c4a0a780c00a1f0290cfcab4baa604bbc88661ef67d47a82gid7e4bd7f2e70468e31f0cd471b5bf7ce69b0358270448247221a1e66588273d05&tw=174ed4f736abbfc858fc6fb4d5cfb8498da1f5818e7accbde61a5558666a23e8'><\/script>
+  <!-- Do not remove this --- Analytics Tracking code ends -->
+</form>
+</div>`;
+
+document.getElementById('raw-source').textContent = RAW_SOURCE;
+
+function switchFormat(val) {
+  document.getElementById('code-modal').style.display  = (val === 'modal')  ? '' : 'none';
+  document.getElementById('code-source').style.display = (val === 'source') ? '' : 'none';
+}
+
+function copyCode() {
+  const sel = document.getElementById('formatSelect').value;
+  const text = sel === 'modal'
+    ? document.getElementById('code-modal-content').innerText
+    : RAW_SOURCE;
+  navigator.clipboard.writeText(text).then(function() {
+    const btn = document.querySelector('[onclick="copyCode()"]');
+    btn.innerHTML = '<i class="fas fa-check me-1"></i> Copied!';
+    btn.classList.replace('btn-outline-primary', 'btn-success');
+    setTimeout(function() {
+      btn.innerHTML = '<i class="fas fa-copy me-1"></i> Copy Code';
+      btn.classList.replace('btn-success', 'btn-outline-primary');
+    }, 2000);
+  });
+}
+</script>
+{% endblock %}

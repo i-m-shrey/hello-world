@@ -1,0 +1,133 @@
+gcloud run deploy smartetf-runner --image gcr.io/smartetf-hosting/smartetf-runner --platform managed --region us-central1 --memory 1Gi --cpu 1 --allow-unauthenticated --set-env-vars "DB_URL=postgresql+pg8000://postgres.qogfivsjxarodbyokfkn:P%40ssword123211600%26prince@aws-0-ap-south-1.pooler.supabase.com:6543/postgres,RUN_MODE=headless,WINDOW_MINUTES=3,LOCK_MINUTES=15"
+
+
+gcloud run deploy smartetf-runner --image gcr.io/smartetf-hosting/smartetf-runner --platform managed --region us-central1 --memory 1Gi --cpu 1 --timeout=600 --allow-unauthenticated --set-env-vars "DB_URL=postgresql+pg8000://postgres.qogfivsjxarodbyokfkn:P%40ssword123211600%26prince@aws-0-ap-south-1.pooler.supabase.com:6543/postgres,RUN_MODE=headless,WINDOW_MINUTES=3,LOCK_MINUTES=15,RUNNER_TOKEN=SET_A_SECRET"
+
+
+gcloud run services describe smartetf-runner --region us-central1 --format="yaml(spec.template.spec.containers[0].env)"
+
+
+
+gcloud run deploy smartetf-runner --image gcr.io/smartetf-hosting/smartetf-runner --platform managed --region us-central1 --memory 1Gi --cpu 1 --timeout=600 --concurrency=1 --allow-unauthenticated --set-env-vars "DB_URL=postgresql+pg8000://postgres.qogfivsjxarodbyokfkn:P%40ssword123211600%26prince@aws-0-ap-south-1.pooler.supabase.com:6543/postgres,RUN_MODE=headless,WINDOW_MINUTES=3,LOCK_MINUTES=15,RUNNER_TOKEN=SET_A_SECRET,GUNICORN_CMD_ARGS=--timeout 600 --graceful-timeout 120"
+
+
+
+If you changed etf_automated.py (or anything under strategy_runner/) for the runner
+
+Go to your local smartetf-runner folder (where Dockerfile, runner.py, requirements.txt live, and your SmartETF code is under appsrc/).
+
+Make sure your edits are inside appsrc/... (e.g., appsrc/strategy_runner/etf_automated.py).
+
+Build a new image:
+
+gcloud builds submit --tag gcr.io/smartetf-hosting/smartetf-runner
+
+
+(Optional, clearer versioning: --tag gcr.io/smartetf-hosting/smartetf-runner:v1 and bump the tag each time.)
+
+Deploy the new image:
+
+gcloud run deploy smartetf-runner --image gcr.io/smartetf-hosting/smartetf-runner --platform managed --region us-central1 --memory 1Gi --cpu 1 --timeout=600 --concurrency=1 --allow-unauthenticated --set-env-vars "DB_URL=postgresql+pg8000://postgres.qogfivsjxarodbyokfkn:P%40ssword123211600%26prince@aws-0-ap-south-1.pooler.supabase.com:6543/postgres,RUN_MODE=headless,WINDOW_MINUTES=3,LOCK_MINUTES=15,RUNNER_TOKEN=SET_A_SECRET,GUNICORN_CMD_ARGS=--timeout 600 --graceful-timeout 120"
+
+
+gcloud run deploy smartetf-runner --image gcr.io/smartetf-hosting/smartetf-runner --platform managed --region asia-south1 --memory 1Gi --cpu 1 --concurrency 1 --timeout 900 --allow-unauthenticated --min-instances 1 --set-env-vars "DB_URL=postgresql+pg8000://postgres.qogfivsjxarodbyokfkn:P%40ssword123211600%26prince@aws-0-ap-south-1.pooler.supabase.com:6543/postgres,RUNNER_TOKEN=SET_A_SECRET,ONCE_PER_DAY=1,WINDOW_MINUTES=3,LOCK_MINUTES=15,GUNICORN_CMD_ARGS=--timeout 600 --graceful-timeout 120"
+
+gcloud run services logs read smartetf-runner --region asia-south1 --limit 100
+
+
+
+Quick test:
+
+(Invoke-WebRequest -Uri "https://smartetf-runner-...a.run.app/run-now?token=SET_A_SECRET" -Method POST -Body "").Content
+
+
+Check logs:
+
+gcloud run services logs read smartetf-backend --region us-central1 --limit 100
+
+
+You do not need to touch Cloud Scheduler again; it will keep pinging /tick every minute.
+
+
+
+If you changed the website/admin code
+
+From your website project folder:
+
+gcloud builds submit --tag gcr.io/smartetf-hosting/smartetf-backend
+
+
+Deploy:
+
+gcloud run deploy smartetf-backend \
+  --image gcr.io/smartetf-hosting/smartetf-backend \
+  --platform managed --region us-central1 \
+  --allow-unauthenticated --timeout=300 \
+  --set-env-vars "RUNNER_URL=https://smartetf-runner-...a.run.app,RUNNER_TOKEN=SET_A_SECRET"
+
+
+gcloud builds submit --tag gcr.io/smartetf-hosting/smartetf-backend 
+
+gcloud run deploy smartetf-backend --image gcr.io/smartetf-hosting/smartetf-backend --platform managed --region us-central1 --allow-unauthenticated --timeout=300 --set-env-vars "RUNNER_URL=https://smartetf-runner-...a.run.app,RUNNER_TOKEN=SET_A_SECRET"
+
+
+gcloud run deploy smartetf-backend --image gcr.io/smartetf-hosting/smartetf-backend --platform managed --region us-central1 --allow-unauthenticated --set-env-vars DB_URL="postgresql+pg8000://postgres.qogfivsjxarodbyokfkn:P%40ssword123211600%26prince@aws-0-ap-south-1.pooler.supabase.com:6543/postgres,RUNNER_TOKEN=SET_A_SECRET,ONCE_PER_DAY=1,WINDOW_MINUTES=3,LOCK_MINUTES=15,GUNICORN_CMD_ARGS=--timeout 600 --graceful-timeout 120"
+
+
+gcloud run services update "smartetf-backend"  --region "us-central1" --project "smartetf-hosting" --set-env-vars RUNNER_URL="https://smartetf-runner-357053738415.asia-south1.run.app",RUNNER_TOKEN=SET_A_SECRET"
+
+
+gcloud builds submit smartetf-runner --tag gcr.io/smartetf-hosting/smartetf-runner 
+
+gcloud run deploy smartetf-runner --image gcr.io/smartetf-hosting/smartetf-runner:latest --platform managed --region asia-south1 --memory 1Gi --cpu 1 --concurrency 1 --timeout 900 --allow-unauthenticated --min-instances 1 --set-env-vars "DB_URL=postgresql+pg8000://postgres.qogfivsjxarodbyokfkn:P%40ssword123211600%26prince@aws-0-ap-south-1.pooler.supabase.com:6543/postgres,RUNNER_TOKEN=SET_A_SECRET,ONCE_PER_DAY=1,WINDOW_MINUTES=3,LOCK_MINUTES=15,GUNICORN_CMD_ARGS=--timeout 600 --graceful-timeout 120"
+
+gcloud run deploy smartetf-runner --image gcr.io/smartetf-hosting/smartetf-runner:latest --region asia-south1--allow-unauthenticated --set-env-vars DB_URL="...",RUN_MODE=headless,RUNNER_TOKEN="your-secret",GUNICORN_CMD_ARGS="--timeout 600 --graceful-timeout 120"
+
+
+
+
+If you only changed environment variables
+
+You can redeploy with the same image (no rebuild):
+
+gcloud run deploy smartetf-runner \
+  --image gcr.io/smartetf-hosting/smartetf-runner \
+  --platform managed --region us-central1 \
+  --set-env-vars "DB_URL=...,RUN_MODE=headless,WINDOW_MINUTES=3,LOCK_MINUTES=15,RUNNER_TOKEN=SET_A_STRONG_SECRET,GUNICORN_CMD_ARGS=--timeout 600 --graceful-timeout 120"
+
+Pro tips (optional)
+
+Version tags help you know what’s running:
+
+gcloud builds submit --tag gcr.io/smartetf-hosting/smartetf-runner:v2025-09-10-1
+gcloud run deploy smartetf-runner --image gcr.io/smartetf-hosting/smartetf-runner:v2025-09-10-1 --region us-central1
+
+
+See which revision is live:
+
+gcloud run services describe smartetf-runner --region us-central1 --format='value(status.latestReadyRevisionName)'
+
+gcloud run services logs read smartetf-runner --region asia-south1 --limit 100
+
+gcloud run services logs read smartetf-backend --region us-central1 --limit 100
+
+
+That’s it—edit locally → build → deploy → (optional) test /run-now.
+
+
+
+
+gcloud builds submit --tag gcr.io/smartetf-hosting/smartetf-backend
+
+gcloud run deploy smartetf-backend --image gcr.io/smartetf-hosting/smartetf-backend --platform managed --region us-central1 --allow-unauthenticated --set-env-vars DB_URL="postgresql+pg8000://postgres.qogfivsjxarodbyokfkn:P%40ssword123211600%26prince@aws-0-ap-south-1.pooler.supabase.com:6543/postgres,RUNNER_TOKEN=SET_A_STRONG_SECRET,ONCE_PER_DAY=1,WINDOW_MINUTES=3,LOCK_MINUTES=15,GUNICORN_CMD_ARGS=--timeout 600 --graceful-timeout 120"
+
+new:
+
+gcloud run deploy smartetf-backend --image gcr.io/smartetf-hosting/smartetf-backend --platform managed --region us-central1 --allow-unauthenticated --set-env-vars="DB_URL=postgresql+pg8000://postgres.qogfivsjxarodbyokfkn:P%40ssword123211600%26prince@aws-0-ap-south-1.pooler.supabase.com:6543/postgres,SECRET_KEY=your_flask_secret,RAZORPAY_KEY_ID=rzp_live_CDNXto4LhIReJJ,RAZORPAY_KEY_SECRET=BDQUmAId1MfIczo8S3vXP2pz,ADMIN_EMAIL=smartetfalgo@gmail.com,SMTP_SERVER=smtp.gmail.com,SMTP_PORT=587,SMTP_USER=smartetfalgo@gmail.com,SMTP_PASSWORD=eisa rolx gqaa uaxw"
+
+
+
+gcloud builds submit smartetf-runner --tag gcr.io/smartetf-hosting/smartetf-runner
+
+
+gcloud run deploy smartetf-runner --image gcr.io/smartetf-hosting/smartetf-runner:latest --platform managed --region asia-south1 --memory 1Gi --cpu 1 --concurrency 1 --timeout 900 --allow-unauthenticated --min-instances 1 --set-env-vars "DB_URL=postgresql+pg8000://postgres.qogfivsjxarodbyokfkn:P%40ssword123211600%26prince@aws-0-ap-south-1.pooler.supabase.com:6543/postgres,RUNNER_TOKEN=SET_A_STRONG_SECRET,ONCE_PER_DAY=1,WINDOW_MINUTES=3,LOCK_MINUTES=15,GUNICORN_CMD_ARGS=--timeout 600 --graceful-timeout 120"

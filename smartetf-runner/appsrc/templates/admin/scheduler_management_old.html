@@ -1,0 +1,218 @@
+{% extends "layout.html" %}
+
+{% block title %}Scheduler Management - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2>🕐 Scheduler Management</h2>
+        <p class="text-muted">Configure automated execution schedules and monitor system health</p>
+    </div>
+</div>
+
+<!-- Current Schedule Status -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">📊 Current Schedule Status</h5>
+                <span id="statusIndicator" class="badge bg-{% if schedule_status.failed_clients == 0 and not schedule_status.driver_issues %}success{% elif schedule_status.failed_clients < 3 %}warning{% else %}danger{% endif %}">
+                    {% if schedule_status.failed_clients == 0 and not schedule_status.driver_issues %}
+                        🟢 SYSTEM HEALTHY
+                    {% elif schedule_status.failed_clients < 3 %}
+                        🟡 MINOR ISSUES
+                    {% else %}
+                        🔴 CRITICAL ISSUES
+                    {% endif %}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6>Morning Health Check</h6>
+                            <h4 class="text-primary">{{ schedule_status.session_test_time }}</h4>
+                            <small class="text-muted">Session & Driver Tests</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6>Execution Time</h6>
+                            <h4 class="text-success">{{ schedule_status.execution_time }}</h4>
+                            <small class="text-muted">Order Placement</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6>Failed Clients</h6>
+                            <h4 class="{% if schedule_status.failed_clients > 0 %}text-danger{% else %}text-success{% endif %}">
+                                {{ schedule_status.failed_clients }}
+                            </h4>
+                            <small class="text-muted">Session Issues</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6>Selenium Driver</h6>
+                            <h4 class="{% if schedule_status.driver_issues %}text-danger{% else %}text-success{% endif %}">
+                                {% if schedule_status.driver_issues %}❌{% else %}✅{% endif %}
+                            </h4>
+                            <small class="text-muted">Chrome Driver</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule Configuration -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0">⏰ Schedule Configuration</h5>
+            </div>
+            <div class="card-body">
+                {% set tz = (schedule2.timezone if schedule2 and schedule2.timezone else 'Asia/Kolkata') %}
+                {% set hd = (schedule2.health_days if schedule2 and schedule2.health_days is not none else 31) %}
+                {% set ed = (schedule2.exec_days if schedule2 and schedule2.exec_days is not none else 31) %}
+                {% set he = (schedule2.health_enabled if schedule2 is defined else true) %}
+                {% set ee = (schedule2.exec_enabled if schedule2 is defined else true) %}
+
+                <form method="POST" action="{{ url_for('admin_update_scheduler_settings') }}">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="session_test_time" class="form-label"><strong>Morning Health Check Time</strong></label>
+                                <input type="time" class="form-control" id="session_test_time" name="session_test_time" value="{{ current_settings.session_test_time }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="execution_time" class="form-label"><strong>Execution Time</strong></label>
+                                <input type="time" class="form-control" id="execution_time" name="execution_time" value="{{ current_settings.execution_time }}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Timezone</strong></label>
+                                <select name="timezone" class="form-select">
+                                    <option value="Asia/Kolkata" {% if tz == 'Asia/Kolkata' %}selected{% endif %}>Asia/Kolkata (IST)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" id="health_enabled" name="health_enabled" {% if he %}checked{% endif %}>
+                                        <label class="form-check-label" for="health_enabled"><strong>Enable Morning Health</strong></label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" id="exec_enabled" name="exec_enabled" {% if ee %}checked{% endif %}>
+                                        <label class="form-check-label" for="exec_enabled"><strong>Enable Execution</strong></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Health Check — Days</strong></label>
+                            <div class="d-flex flex-wrap gap-3">
+                                {% set days = [
+                                    ('mon',1,'Mon'), ('tue',2,'Tue'), ('wed',4,'Wed'), ('thu',8,'Thu'), ('fri',16,'Fri'), ('sat',32,'Sat'), ('sun',64,'Sun')
+                                ] %}
+                                {% for key,bit,label in days %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="health_days" value="{{ key }}" id="hd_{{ key }}" {% if (hd & bit) != 0 %}checked{% endif %}>
+                                        <label class="form-check-label" for="hd_{{ key }}">{{ label }}</label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Execution — Days</strong></label>
+                            <div class="d-flex flex-wrap gap-3">
+                                {% for key,bit,label in days %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="exec_days" value="{{ key }}" id="ed_{{ key }}" {% if (ed & bit) != 0 %}checked{% endif %}>
+                                        <label class="form-check-label" for="ed_{{ key }}">{{ label }}</label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="driver_check_enabled" name="driver_check_enabled" {% if current_settings.driver_check_enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="driver_check_enabled"><strong>Enable Driver Checks</strong></label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="password_check_enabled" name="password_check_enabled" {% if current_settings.password_check_enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="password_check_enabled"><strong>Enable Password Checks</strong></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="email_notifications_enabled" name="email_notifications_enabled" {% if current_settings.email_notifications_enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="email_notifications_enabled"><strong>Enable Email Notifications</strong></label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="max_failed_clients_threshold" class="form-label"><strong>Failed Clients Threshold</strong></label>
+                                <input type="number" class="form-control" id="max_failed_clients_threshold" name="max_failed_clients_threshold" value="{{ current_settings.max_failed_clients_threshold }}" min="1" max="50" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">Update Schedule Settings</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0">🎮 Manual Controls</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-primary" onclick="triggerHealthCheck()">Run Health Check Now</button>
+                    <button type="button" class="btn btn-outline-success" onclick="triggerExecution()">Execute Strategy Now</button>
+                    <button type="button" class="btn btn-outline-warning" onclick="testDriverUpdate()">Test Driver Update</button>
+                    <button type="button" class="btn btn-outline-info" onclick="sendTestAlert()">Send Test Alert</button>
+                </div>
+                <hr>
+                <h6>📋 Quick Info</h6>
+                <ul class="list-unstyled small">
+                    <li><strong>Server Time:</strong> {{ current_time }}</li>
+                    <li><strong>Next Health Check:</strong> Tomorrow {{ current_settings.session_test_time }}</li>
+                    <li><strong>Next Execution:</strong> Today {{ current_settings.execution_time }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,191 @@
+{% extends "layout.html" %}
+
+{% block title %}Login - ETF Trading Portal{% endblock %}
+
+{% block additional_styles %}
+<style>
+    .auth-page {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        padding: 3rem 0;
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.08), rgba(14, 165, 233, 0.08));
+    }
+    .auth-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        box-shadow: 0 24px 50px rgba(15, 23, 42, 0.12);
+        overflow: hidden;
+    }
+    .auth-card-header {
+        background: linear-gradient(135deg, #0f172a, #1d4ed8);
+        color: #fff;
+        padding: 1.8rem 2rem;
+    }
+    .auth-card-body {
+        padding: 2rem;
+        background: #fff;
+    }
+    .auth-side {
+        background: #0f172a;
+        color: #e2e8f0;
+        border-radius: 20px;
+        padding: 2.5rem;
+    }
+    .auth-side h2 {
+        font-weight: 700;
+    }
+    .auth-highlight {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: rgba(14, 165, 233, 0.2);
+        color: #38bdf8;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #1e3a8a, #0ea5e9);
+        border: none;
+        font-weight: 600;
+        padding: 0.6rem 1.5rem;
+    }
+    .btn-outline-secondary {
+        border-color: #94a3b8;
+    }
+    .form-label {
+        font-weight: 600;
+    }
+    .verification-notice {
+        background: linear-gradient(135deg, #dcfce7, #a7f3d0);
+        border: 2px solid #10b981;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .verification-notice h5 {
+        color: #065f46;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+    .verification-notice p {
+        color: #047857;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+    .verification-notice ul {
+        color: #047857;
+        font-size: 0.9rem;
+        margin-bottom: 0;
+        padding-left: 1.5rem;
+    }
+    .verification-notice ul li {
+        margin-bottom: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="auth-page">
+    <div class="container">
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-6">
+                <div class="auth-side h-100">
+                    <span class="auth-highlight">SmartETF Client Portal</span>
+                    <h2>Welcome back to SmartETF Algo</h2>
+                    <p class="mt-3">Track your ETF automation, review dip-buying signals, and monitor diversification across sector ETFs, Gold BeES, Silver BeES, and MAFANG.</p>
+                    <ul class="mt-4">
+                        <li>Broker-connected automation</li>
+                        <li>Real-time execution alerts</li>
+                        <li>Monthly performance summaries</li>
+                    </ul>
+                    <a href="/" class="btn btn-outline-light mt-3">← Back to homepage</a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="auth-card">
+                    <div class="auth-card-header">
+                        <h3 class="mb-1">Login to your account</h3>
+                        <p class="mb-0">Secure access to your SmartETF dashboard.</p>
+                    </div>
+                    <div class="auth-card-body">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    {% if category == 'success' %}
+                                        <div class="verification-notice">
+                                            <h5>
+                                                <i class="fas fa-check-circle me-2"></i>
+                                                Registration Successful!
+                                            </h5>
+                                            <p class="mb-2"><strong>{{ message }}</strong></p>
+                                            <p class="mb-2"><strong>Next Steps:</strong></p>
+                                            <ul>
+                                                <li>Check your email inbox for the verification link</li>
+                                                <li>Click the verification link to activate your account</li>
+                                                <li>After verification, you can login below</li>
+                                            </ul>
+                                            <p class="mb-0 mt-2"><small><i class="fas fa-info-circle"></i> Didn't receive the email? Check your spam folder or <a href="{{ url_for('resend_verification') }}">resend verification link</a></small></p>
+                                        </div>
+                                    {% else %}
+                                        <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show">
+                                            {{ message }}
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <form method="POST" action="{{ url_for('login') }}">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username or Email</label>
+                                <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username or email address" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="toggleLoginPassword()">
+                                        <i class="fas fa-eye" id="login-password-icon"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a href="{{ url_for('forgot_password') }}" class="small">Forgot password?</a>
+                                <button type="submit" class="btn btn-primary">Login</button>
+                            </div>
+                        </form>
+                        <div class="mt-4 text-center">
+                            <p class="mb-2">Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+                            <p class="small mb-0">Didn't receive verification email? <a href="{{ url_for('resend_verification') }}">Resend verification link</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block additional_scripts %}
+<script>
+function toggleLoginPassword() {
+    const passwordField = document.getElementById('password');
+    const icon = document.getElementById('login-password-icon');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        passwordField.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+</script>
+{% endblock %}
