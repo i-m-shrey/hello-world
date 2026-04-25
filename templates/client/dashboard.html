@@ -88,6 +88,37 @@
 </div>
 {% endif %}
 
+{% if algo_subscription %}
+<div class="subscription-card" style="border-color:#0d9488;">
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h6 style="color:#0f766e;"><i class="fas fa-robot me-2"></i>ETF Trading Algo Add-on</h6>
+            <div class="sub-detail">
+                <small>Status</small>
+                <strong class="text-success">Active</strong>
+            </div>
+            <div class="sub-detail">
+                <small>Billing</small>
+                <strong>{{ algo_subscription.billing_cycle|title }}</strong>
+            </div>
+            <div class="sub-detail">
+                <small>Started</small>
+                <strong>{{ algo_subscription.start_date.strftime('%d %b %Y') }}</strong>
+            </div>
+            <div class="sub-detail">
+                <small>Expires</small>
+                <strong>{{ algo_subscription.expiry_date.strftime('%d %b %Y') }}</strong>
+            </div>
+        </div>
+        <span class="badge rounded-pill bg-success" style="font-size:.85rem;padding:.5rem .9rem;">Investment Plan + ETF Trading Algo</span>
+    </div>
+</div>
+{% elif current_subscription %}
+<div style="margin-bottom:1.5rem;padding:.75rem 1rem;background:#f8fafc;border-radius:.75rem;border:1px solid #e2e8f0;font-size:.85rem;color:#64748b;">
+    <i class="fas fa-info-circle me-1"></i> Your current plan includes <strong>Investment Plan only</strong>. You can add the ETF Trading Algo add-on during checkout.
+</div>
+{% endif %}
+
 <div class="row">
     <div class="col-md-8">
         <div class="card shadow mb-4">

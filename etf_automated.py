@@ -1438,6 +1438,23 @@ def fetch_and_filter_etfs(mode: str = 'headless'):
     print(f"   Failed Orders: {execution_result['failed_orders']}")
     print(f"   Total Investment: ₹{execution_result['total_investment']:,.2f}")
 
+    # ── ETF Trading Algo (add-on subscribers only) ──────────────────────────
+    # This runs AFTER the regular SIP investment flow and only affects clients
+    # who have purchased the ETF Trading Algo add-on. Failures here do NOT
+    # affect the main execution result.
+    try:
+        from etf_trading_algo import run_all_trading_algo, get_app as _get_algo_app
+        logger.info('Running ETF Trading Algo for add-on subscribers...')
+        algo_etf_snapshot = _normalize_etf_snapshot(etf_data) if etf_data is not None else {}
+        with app.app_context():
+            run_all_trading_algo(algo_etf_snapshot)
+        logger.info('ETF Trading Algo completed.')
+    except Exception as algo_err:
+        import traceback as _tb
+        logger.error(f'ETF Trading Algo execution failed (non-critical): {algo_err}')
+        logger.error(_tb.format_exc())
+    # ────────────────────────────────────────────────────────────────────────
+
     if os.getenv('ENABLE_RUN_LOGS', '0').lower() in ('1', 'true', 'yes') and run_id is not None:
         with app.app_context():
             try:

@@ -564,3 +564,95 @@ class EmailSettings(db.Model):
                 'use_ssl': self.gmail_smtp_port == 465,
                 'sender_name': sender_name,
             }
+
+
+class TradingAlgoSettings(db.Model):
+    """Singleton admin config table for ETF Trading Algo add-on. Always use id=1."""
+    __tablename__ = 'trading_algo_settings'
+    __table_args__ = {'extend_existing': True}
+
+    id = db.Column(db.Integer, primary_key=True)
+    is_enabled = db.Column(db.Boolean, default=True)
+
+    monthly_price = db.Column(db.Float, default=0.0)
+    quarterly_price = db.Column(db.Float, default=0.0)
+    half_yearly_price = db.Column(db.Float, default=0.0)
+    annually_price = db.Column(db.Float, default=0.0)
+
+    selected_etfs = db.Column(JSON, default=list)
+
+    fall_mode = db.Column(db.String(20), default='average')
+    global_fall_percent = db.Column(db.Float, default=3.0)
+
+    global_profit_percent = db.Column(db.Float, default=3.0)
+
+    apply_globally = db.Column(db.Boolean, default=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    updated_by = db.Column(db.String(50))
+
+    etf_configs = db.relationship('TradingAlgoETFConfig', backref='settings', lazy=True, cascade='all, delete-orphan')
+
+
+class TradingAlgoETFConfig(db.Model):
+    """Per-ETF fall/profit config — only used when TradingAlgoSettings.apply_globally=False."""
+    __tablename__ = 'trading_algo_etf_config'
+    __table_args__ = {'extend_existing': True}
+
+    id = db.Column(db.Integer, primary_key=True)
+    settings_id = db.Column(db.Integer, db.ForeignKey('trading_algo_settings.id'), nullable=False)
+    etf_symbol = db.Column(db.String(50), nullable=False)
+    fall_mode = db.Column(db.String(20), default='average')
+    fall_percent = db.Column(db.Float, default=3.0)
+    profit_percent = db.Column(db.Float, default=3.0)
+
+
+class TradingAlgoSubscription(db.Model):
+    """Tracks which users have purchased the ETF Trading Algo add-on."""
+    __tablename__ = 'trading_algo_subscription'
+    __table_args__ = {'extend_existing': True}
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    subscription_id = db.Column(db.Integer, db.ForeignKey('subscription.id'), nullable=False)
+    billing_cycle = db.Column(db.String(20), nullable=False)
+    amount_paid = db.Column(db.Float, nullable=False)
+    payment_id = db.Column(db.String(100))
+    is_active = db.Column(db.Boolean, default=True)
+    start_date = db.Column(db.DateTime, nullable=False)
+    expiry_date = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    user = db.relationship('User', backref=db.backref('algo_subscriptions', lazy=True))
+    subscription = db.relationship('Subscription', backref=db.backref('algo_subscription', uselist=False))
+
+
+class TradingAlgoPosition(db.Model):
+    """Per-ETF trading state for each client with the algo add-on. Reset after each sell cycle."""
+    __tablename__ = 'trading_algo_position'
+    __table_args__ = (
+        db.UniqueConstraint('customer_id', 'broker_id', 'etf_symbol', name='uq_algo_position'),
+        {'extend_existing': True}
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    customer_id = db.Column(db.String(50), nullable=False)
+    broker_id = db.Column(db.Integer, db.ForeignKey('broker.id'), nullable=False)
+    etf_symbol = db.Column(db.String(50), nullable=False)
+
+    is_day0_complete = db.Column(db.Boolean, default=False)
+    cycle_active = db.Column(db.Boolean, default=False)
+
+    avg_buy_price = db.Column(db.Float, default=0.0)
+    total_qty = db.Column(db.Integer, default=0)
+    total_invested = db.Column(db.Float, default=0.0)
+    buy_count = db.Column(db.Integer, default=0)
+
+    last_buy_date = db.Column(db.Date)
+    last_sell_date = db.Column(db.Date)
+
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    broker = db.relationship('Broker', backref=db.backref('algo_positions', lazy=True))

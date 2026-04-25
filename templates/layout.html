@@ -50,6 +50,10 @@
         <li><a class="dropdown-item" href="{{ url_for('profile') }}">Profile Settings</a></li>
         <li><a class="dropdown-item" href="{{ url_for('investment_preferences') }}">Investment Preferences</a></li>
         <li><a class="dropdown-item" href="{{ url_for('notifications') }}">Notification Settings</a></li>
+        {% if current_user and current_user.is_admin %}
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="{{ url_for('admin_trading_algo_settings') }}">Trading Algo Settings</a></li>
+        {% endif %}
         <li><hr class="dropdown-divider"></li>
         <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
     </ul>

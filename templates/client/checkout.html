@@ -215,9 +215,16 @@
           <span>&#8377;{% if billing_cycle == 'monthly' %}{{ (plan.monthly_price or 0)|round(2) }}{% elif billing_cycle == 'quarterly' %}{{ (plan.quarterly_price or 0)|round(2) }}{% elif billing_cycle == 'half_yearly' %}{{ (plan.half_yearly_price or 0)|round(2) }}{% elif billing_cycle == 'annually' %}{{ (plan.annually_price or 0)|round(2) }}{% else %}{{ (plan.monthly_price or 0)|round(2) }}{% endif %}</span>
         </div>
 
+        {% if add_algo and algo_addon_price > 0 %}
+        <div class="price-row-item">
+          <span style="color:#6B7280">ETF Trading Algo</span>
+          <span>&#8377;{{ algo_addon_price|round(2) }}</span>
+        </div>
+        {% endif %}
+
         <div class="price-total">
           <span>Total</span>
-          <span>&#8377;{% if billing_cycle == 'monthly' %}{{ (plan.monthly_price or 0)|round(2) }}{% elif billing_cycle == 'quarterly' %}{{ (plan.quarterly_price or 0)|round(2) }}{% elif billing_cycle == 'half_yearly' %}{{ (plan.half_yearly_price or 0)|round(2) }}{% elif billing_cycle == 'annually' %}{{ (plan.annually_price or 0)|round(2) }}{% else %}{{ (plan.monthly_price or 0)|round(2) }}{% endif %}</span>
+          <span>&#8377;{{ display_price|round(2) }}</span>
         </div>
 
         <div class="info-block blue" style="margin-top:.75rem;margin-bottom:0">
@@ -226,6 +233,47 @@
         </div>
       </div>
     </div>
+
+    {% if algo_settings and algo_enabled %}
+    <div class="scard" id="algo-addon-card" style="border: 2px solid transparent; transition: border .2s;">
+      <div class="scard-head" style="background: linear-gradient(135deg,#0d9488,#0891b2); color:#fff;">
+        <i class="fas fa-robot"></i> Optional Add-on
+      </div>
+      <div class="scard-body">
+        <div class="d-flex align-items-start gap-3">
+          <div class="form-check mt-1">
+            <input class="form-check-input" type="checkbox" id="addAlgoCheckbox"
+                   {% if add_algo %}checked{% endif %}
+                   onchange="toggleAlgoAddon(this)">
+          </div>
+          <div>
+            <label for="addAlgoCheckbox" style="cursor:pointer;">
+              <strong style="color:#0f766e;">Add ETF Trading Algo</strong>
+              {% if add_algo %}
+              <span class="badge rounded-pill" style="background:#0d9488;color:#fff;font-size:.78rem;margin-left:.4rem;">+&#8377;{{ algo_addon_price|round(2) }}</span>
+              {% else %}
+              <span class="badge rounded-pill" style="background:#e2e8f0;color:#475569;font-size:.78rem;margin-left:.4rem;">+&#8377;
+                {% if billing_cycle == 'monthly' %}{{ (algo_settings.monthly_price or 0)|round(2) }}
+                {% elif billing_cycle == 'quarterly' %}{{ (algo_settings.quarterly_price or 0)|round(2) }}
+                {% elif billing_cycle == 'half_yearly' %}{{ (algo_settings.half_yearly_price or 0)|round(2) }}
+                {% elif billing_cycle == 'annually' %}{{ (algo_settings.annually_price or 0)|round(2) }}
+                {% endif %}
+              </span>
+              {% endif %}
+            </label>
+            <p style="font-size:.82rem;color:#64748b;margin:.3rem 0 0;">Automated fall/buy &amp; profit-booking logic for selected ETFs. Available only with an investment plan.</p>
+          </div>
+        </div>
+
+        {% if add_algo and algo_addon_price > 0 %}
+        <div class="info-block green mt-3 mb-0" style="margin-bottom:0!important;">
+          <div class="ib-icon" style="color:#059669"><i class="fas fa-check-circle"></i></div>
+          <p style="font-size:.85rem;"><strong>ETF Trading Algo added!</strong> &#8377;{{ algo_addon_price|round(2) }} included in your total.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
   </div>
 
   <!-- Payment Details (left on desktop) -->
@@ -272,7 +320,7 @@
 
           <button id="rzp-button" class="btn-pay">
             <i class="fas fa-lock me-2"></i>
-            Pay &#8377;{% if billing_cycle == 'monthly' %}{{ (plan.monthly_price or 0)|round(2) }}{% elif billing_cycle == 'quarterly' %}{{ (plan.quarterly_price or 0)|round(2) }}{% elif billing_cycle == 'half_yearly' %}{{ (plan.half_yearly_price or 0)|round(2) }}{% elif billing_cycle == 'annually' %}{{ (plan.annually_price or 0)|round(2) }}{% else %}{{ (plan.monthly_price or 0)|round(2) }}{% endif %} Now
+            Pay &#8377;{{ display_price|round(2) }} Now
           </button>
 
         {% else %}
@@ -347,6 +395,13 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
     }
 });
+</script>
+<script>
+function toggleAlgoAddon(checkbox) {
+    var url = new URL(window.location.href);
+    url.searchParams.set('add_algo', checkbox.checked ? '1' : '0');
+    window.location.href = url.toString();
+}
 </script>
 {% endif %}
 {% endblock %}
