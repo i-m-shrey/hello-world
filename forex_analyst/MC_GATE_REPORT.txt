@@ -1,0 +1,33 @@
+Building actual trade series (2019+ daily $, house mc_capital convention)...
+  DONCH_TR: 271 trades 2019+, risk/trade $36 @ATR18, max consecutive losses = 9 (= $324 straight)
+  VCX_A: 114 trades 2019+, risk/trade $45 @ATR18, max consecutive losses = 13 (= $585 straight)
+  VCX_B: 139 trades 2019+, risk/trade $36 @ATR18, max consecutive losses = 16 (= $576 straight)
+
+MC: 4000 paths, 5-day blocks, ATR $18 (stress $20 scales all $ by x1.11)
+
+config               horizon   E[30d]  maxDD p50      p90      p95      p99 |  gate: p95DD/5%   @ATR20
+DONCH_TR only            30d     +469        294      505      580      717 |         $11,610  $12,900
+DONCH_TR only            60d     +947        412      700      806     1036 |                         
+VCX_A only               30d     +393        310      547      637      829 |         $12,746  $14,163
+VCX_A only               60d     +773        411      693      822     1088 |                         
+VCX_B only               30d     +352        256      439      515      660 |         $10,305  $11,450
+VCX_B only               60d     +713        331      569      662      818 |                         
+DONCH_TR + VCX_A         30d     +629        428      743      860     1103 |         $17,191  $19,101
+DONCH_TR + VCX_A         60d    +1218        591     1035     1184     1536 |                         
+DONCH_TR + VCX_B         30d     +646        401      722      838     1054 |         $16,754  $18,616
+DONCH_TR + VCX_B         60d    +1262        568      958     1107     1424 |                         
+ALL THREE                30d     +772        557      985     1129     1446 |         $22,586  $25,095
+ALL THREE                60d    +1520        777     1350     1578     2007 |                         
+
+House-style dip table (30d, starting equity = the recommended gate):
+  DONCH_TR only        gate=$11,610: P(DD>5%E)= 5.0% P(DD>10%E)= 0.0% E[P&L 30d]=$+469
+  VCX_A only           gate=$12,746: P(DD>5%E)= 5.0% P(DD>10%E)= 0.0% E[P&L 30d]=$+393
+  VCX_B only           gate=$10,305: P(DD>5%E)= 5.0% P(DD>10%E)= 0.0% E[P&L 30d]=$+352
+  DONCH_TR + VCX_A     gate=$17,191: P(DD>5%E)= 5.0% P(DD>10%E)= 0.0% E[P&L 30d]=$+629
+  DONCH_TR + VCX_B     gate=$16,754: P(DD>5%E)= 5.0% P(DD>10%E)= 0.0% E[P&L 30d]=$+646
+  ALL THREE            gate=$22,586: P(DD>5%E)= 5.0% P(DD>10%E)= 0.0% E[P&L 30d]=$+772
+
+Marginal value of each addition (expected 30d $ vs p95 DD $):
+  DONCH_TR + VCX_A     adds E[P&L] +160$/30d for extra p95 DD +279$ (marginal ratio +0.57)
+  DONCH_TR + VCX_B     adds E[P&L] +177$/30d for extra p95 DD +257$ (marginal ratio +0.69)
+  ALL THREE            adds E[P&L] +304$/30d for extra p95 DD +549$ (marginal ratio +0.55)
