@@ -227,3 +227,28 @@ XAG H1 VCX W96 q0.25 rr3,reject,2x_cost_avg>0,,272,17.0934,0.0628,0.3088,1.085,9
 XAG H1 VCX W96 q0.25 trail4,PASS,,,265,45.3089,0.171,0.317,1.2668,35.5395,9.7694,9/16,-32.5573,0.0098,-0.0973
 XAG H4 DONCH96 trail4,PASS,,,155,20.6551,0.1333,0.2968,1.2085,8.7191,11.936,9/16,-21.8685,0.067,0.0164
 XAG H1 DONCH96-DOWN short trail4,reject,"avg>=floor,train+,holdout+,2x_cost_avg>0",,462,-42.7689,-0.0926,0.2771,0.8684,-26.0534,-16.7154,9/16,-70.3896,-0.1823,-0.2541
+XAG D1 DONCH20 trail3,PASS,,,77,14.3767,0.1867,0.3636,1.338,0.3234,14.0533,9/16,-13.2972,0.1699,0.1559
+XAG D1 DONCH55 trail3,reject,"n>=min,train+",,45,11.1982,0.2488,0.3111,1.4519,-1.9945,13.1927,6/16,-8.6887,0.2346,0.1947
+XAG D1 band-fade sd2 -> SMA20,reject,"avg>=floor,train+,holdout+,2x_cost_avg>0",,309,-35.0193,-0.1133,0.3981,0.8043,-32.1001,-2.9192,5/16,-39.5403,-0.1547,-0.1939
+XAG H4 DONCH96 trail4 + vol-expansion (atrp>=0.5),reject,"avg>=floor,train+,2x_cost_avg>0",,100,-12.8799,-0.1288,0.21,0.8186,-25.5828,12.7029,6/16,-42.8724,-0.1657,-0.1619
+XAG H1 DONCH96 trail4 + NY-hours filter,reject,"avg>=floor,2x_cost_avg>0",,389,1.4779,0.0038,0.2699,1.0056,0.4659,1.012,8/16,-43.0141,-0.0913,-0.164
+D1 band-fade EURUSD sd2 -> SMA20,reject,"avg>=floor,train+,2x_cost_avg>0",,333,-4.2272,-0.0127,0.4414,0.9759,-8.5549,4.3277,9/19,-19.0102,-0.0196,-0.0264
+D1 band-fade GBPUSD sd2 -> SMA20,reject,"avg>=floor,holdout+,2x_cost_avg>0",,342,2.0448,0.006,0.4298,1.0111,4.2342,-2.1894,10/19,-19.1902,-0.0009,-0.0077
+D1 band-fade USDCHF sd2 -> SMA20,reject,"avg>=floor,holdout+,2x_cost_avg>0",,324,-1.874,-0.0058,0.4198,0.9897,11.4509,-13.3248,11/19,-19.5588,-0.0161,-0.0264
+D1 band-fade USDCAD sd2 -> SMA20,reject,"avg>=floor,train+,2x_cost_avg>0",,255,-3.4077,-0.0134,0.4471,0.9745,-10.0113,6.6036,9/17,-19.6289,-0.0266,-0.0397
+D1 band-fade AUDUSD sd2 -> SMA20,reject,avg>=floor,,269,12.9819,0.0483,0.4684,1.0975,3.1073,9.8747,8/17,-26.8221,0.035,0.0219
+D1 band-fade NZDUSD sd2 -> SMA20,reject,"avg>=floor,train+,2x_cost_avg>0",,273,-2.1777,-0.008,0.4359,0.9847,-3.3705,1.1928,8/17,-16.7243,-0.0255,-0.0428
+D1 band-fade USDJPY sd2 -> SMA20,reject,"avg>=floor,holdout+,2x_cost_avg>0",,316,-2.107,-0.0067,0.4146,0.9877,3.1026,-5.2096,8/17,-26.1566,-0.0178,-0.0289
+BOLL-H1 AUDUSD quiet-hours fade,reject,"avg>=floor,train+,holdout+,2x_cost_avg>0",,1568,-137.2645,-0.0875,0.3686,0.8649,-133.3861,-3.8784,4/17,-157.1389,-0.1593,-0.2254
+DONCH96-H1 AUDUSD trail4 (law check: FX should fail),reject,"avg>=floor,train+,holdout+,2x_cost_avg>0",,603,-89.1356,-0.1478,0.262,0.7766,-84.753,-4.3826,5/17,-136.4724,-0.1869,-0.2217
+BOLL-H1 NZDUSD quiet-hours fade,reject,"avg>=floor,train+,holdout+,2x_cost_avg>0",,1488,-188.5012,-0.1267,0.373,0.8065,-154.4453,-34.0559,3/17,-196.7665,-0.222,-0.3076
+DONCH96-H1 NZDUSD trail4 (law check: FX should fail),reject,"avg>=floor,train+,holdout+,2x_cost_avg>0",,600,-104.7299,-0.1745,0.2517,0.7437,-79.5617,-25.1682,6/17,-133.0631,-0.2148,-0.2444
+BOLL-H1 USDJPY quiet-hours fade,reject,"avg>=floor,train+,holdout+,2x_cost_avg>0",,1465,-222.058,-0.1516,0.3433,0.7751,-166.5036,-55.5544,4/17,-225.0301,-0.218,-0.2793
+DONCH96-H1 USDJPY trail4 (law check: FX should fail),PASS,,,641,121.3558,0.1893,0.3214,1.3092,120.0656,1.2903,9/17,-41.2385,0.1518,0.1174
+H4 sweep-fade EURUSD 48-bar extremes -> mid,reject,"avg>=floor,holdout+,2x_cost_avg>0",,1186,-9.3161,-0.0079,0.3474,0.9878,2.6206,-11.9367,9/19,-47.5845,-0.0243,-0.0404
+H4 sweep-fade GBPUSD 48-bar extremes -> mid,reject,"avg>=floor,train+,2x_cost_avg>0",,1184,-37.0781,-0.0313,0.3446,0.9518,-38.1174,1.0393,6/19,-90.1824,-0.0472,-0.0627
+H4 sweep-fade USDCHF 48-bar extremes -> mid,reject,"avg>=floor,train+,holdout+,2x_cost_avg>0",,1196,-52.4396,-0.0438,0.347,0.9324,-47.1499,-5.2897,7/19,-93.7718,-0.0675,-0.0905
+H4 sweep-fade USDCAD 48-bar extremes -> mid,reject,"avg>=floor,train+,holdout+,2x_cost_avg>0",,1083,-41.035,-0.0379,0.3573,0.9412,-17.8164,-23.2186,10/17,-69.735,-0.0689,-0.0989
+H4 sweep-fade AUDUSD 48-bar extremes -> mid,reject,"avg>=floor,train+,holdout+,2x_cost_avg>0",,1067,-35.7798,-0.0335,0.3552,0.9478,-27.653,-8.1267,5/17,-47.6957,-0.0623,-0.0901
+H4 sweep-fade NZDUSD 48-bar extremes -> mid,reject,"avg>=floor,train+,holdout+,2x_cost_avg>0",,1114,-53.2487,-0.0478,0.351,0.9259,-48.3907,-4.858,6/17,-72.2728,-0.0872,-0.1249
+H4 sweep-fade USDJPY 48-bar extremes -> mid,reject,"avg>=floor,train+,2x_cost_avg>0",,976,7.0107,0.0072,0.3658,1.0113,-4.6417,11.6524,9/17,-39.9212,-0.0198,-0.046
