@@ -1,10 +1,14 @@
 --- /tmp/live_mt5_bot.orig.py	2026-07-15 15:14:41.688090080 +0000
-+++ live_mt5_bot.py	2026-07-15 15:16:27.227397686 +0000
-@@ -96,6 +96,12 @@
++++ live_mt5_bot.py	2026-07-15 16:14:03.471140888 +0000
+@@ -96,6 +96,16 @@
  # Enable / disable each strategy-symbol independently.
  ENABLE = {
      "XAUUSD_S5":  True,
-+    "XAUUSD_DONCH_TR": False,  # EXIT-UPGRADE twin of XAUUSD_DONCH (chandelier 4xATR
++    "XAUUSD_VCX_A": False,     # OWNER-SELECTED VCX cell A (q0.20 pad0.2 stop2.5 rr3).
++                               # ~96% open-time overlap with XAUUSD_DONCH and VCX_B —
++                               # these STACK the same gold longs (cap = MAX_STACKED_GOLD_LONGS).
++    "XAUUSD_VCX_B": False,     # OWNER-SELECTED VCX cell B (q0.25 pad0.1 stop2.0 rr3).
++    "XAUUSD_DONCH_TR": False,  # EXIT-UPGRADE twin of XAUUSD_DONCH (chandelier 5xATR
 +                               # trail, no TP; live_signals "XAUUSD-DONCH-TR").
 +                               # SAME ENTRIES as XAUUSD_DONCH -> enable exactly ONE
 +                               # of the two (+176.5R vs +125.8R fixed-rr3;
@@ -13,7 +17,7 @@
      "XAUUSD_S6":  True,     # RE-ENABLED as S6-R (July 2026): structure-gated rehab —
                              # bias5==+1 + disp 2.4xATR flips it to +54.6R, PF 1.18,
                              # maxDD -19.5R, 6/6 years (s6_rehab_lab.py). See S6R_* vars.
-@@ -305,6 +311,7 @@
+@@ -305,6 +315,7 @@
  NY = ZoneInfo("America/New_York")
  BTZ = ZoneInfo(BROKER_TZ)
  LIVE_ATR = {}   # symbol -> latest ATR50 of its trade TF (runner-trail fallback after restarts)
@@ -21,14 +25,14 @@
  
  
  def _half(sym_spread):  # stop pad = half the round-trip spread (mirrors the backtest)
-@@ -438,6 +445,20 @@
+@@ -438,6 +449,37 @@
                           stop_pad=_half(LS.FX_SPREADS["XAUUSD"]), equity_min=EQUITY_GATE_GOLD_TREND,
                           max_hold_bars=LS.FX_STRATS["XAUUSD-DONCH"]["max_hold"],
                           max_tpd=LS.FX_STRATS["XAUUSD-DONCH"]["max_tpd"], bar_seconds=3600),
-+    # EXIT-UPGRADE twin (July 2026): identical DONCH-96 entries, chandelier 4xATR trail
-+    # instead of the fixed 3R target (+176.5R vs +125.8R on TZ-correct 2008-2026, both
-+    # splits +, 3x-cost immune, whole trail grid 2.5-5.0 passes; verify_donch_trail.py).
-+    # exit="trail": no TP at entry; manage_positions raises the SL to close - 4xATR on
++    # EXIT-UPGRADE twin (July 2026): identical DONCH-96 entries, chandelier 5xATR trail
++    # (owner-selected cell) instead of the fixed 3R target (+205.8R vs +128.7R on
++    # TZ-correct 2008-2026, both splits +, 3x-cost immune; verify_donch_trail.py).
++    # exit="trail": no TP at entry; manage_positions raises the SL to close - 5xATR on
 +    # every CLOSED H1 bar (monotonic; the broker-side SL does the exiting).
 +    # DISABLED by default - mutually exclusive with XAUUSD_DONCH (same entries).
 +    "XAUUSD_DONCH_TR": dict(symbol="XAUUSD", feed="XAUUSD_H1", strat="DONCH", engine="fx",
@@ -39,10 +43,27 @@
 +                            max_hold_bars=LS.FX_STRATS["XAUUSD-DONCH-TR"]["max_hold"],
 +                            max_tpd=LS.FX_STRATS["XAUUSD-DONCH-TR"]["max_tpd"],
 +                            bar_seconds=3600),
++    # VCX cells (July 2026, owner-selected from the discovery ledger): compression
++    # box breakout, fixed rr3 target -> plain "trend" machinery, no new code paths.
++    # OVERLAP: ~96% with XAUUSD_DONCH / each other (they stack the same longs).
++    "XAUUSD_VCX_A": dict(symbol="XAUUSD", feed="XAUUSD_H1", strat="VCX", engine="fx",
++                         magic=53401, eval="fx", cfg=LS.FX_STRATS["XAUUSD-VCX-A"],
++                         exit="fixed", rr=None, be_r=None, risk_mode="trend",
++                         stop_pad=_half(LS.FX_SPREADS["XAUUSD"]),
++                         equity_min=EQUITY_GATE_GOLD_TREND,
++                         max_hold_bars=LS.FX_STRATS["XAUUSD-VCX-A"]["max_hold"],
++                         max_tpd=LS.FX_STRATS["XAUUSD-VCX-A"]["max_tpd"], bar_seconds=3600),
++    "XAUUSD_VCX_B": dict(symbol="XAUUSD", feed="XAUUSD_H1", strat="VCX", engine="fx",
++                         magic=53501, eval="fx", cfg=LS.FX_STRATS["XAUUSD-VCX-B"],
++                         exit="fixed", rr=None, be_r=None, risk_mode="trend",
++                         stop_pad=_half(LS.FX_SPREADS["XAUUSD"]),
++                         equity_min=EQUITY_GATE_GOLD_TREND,
++                         max_hold_bars=LS.FX_STRATS["XAUUSD-VCX-B"]["max_hold"],
++                         max_tpd=LS.FX_STRATS["XAUUSD-VCX-B"]["max_tpd"], bar_seconds=3600),
      "XAUUSD_MACROSS": dict(symbol="XAUUSD", feed="XAUUSD_H1", strat="MACROSS", engine="fx",
                             magic=54001, eval="fx", cfg=LS.FX_STRATS["XAUUSD-MACROSS"],
                             exit="fixed", rr=None, be_r=None, risk_mode="trend",
-@@ -1140,6 +1161,11 @@
+@@ -1140,6 +1182,11 @@
          _record_open(state, key, inst, ticket, direction, lot, fill, sl, None, atr=atr)
          log(f"{key}: ENTERED {direction} {lot} @ {fill:.5f} SL {sl:.5f} RUNNER (no TP)")
          return True
@@ -54,7 +75,7 @@
      if tp_abs is not None:
          tp = tp_abs                       # absolute target (e.g. BOLL fade -> SMA20)
      else:
-@@ -1495,6 +1521,16 @@
+@@ -1495,6 +1542,16 @@
              if is_runner(inst):
                  manage_runner(key, inst, pos, state)
                  continue
@@ -71,7 +92,7 @@
              be_r = inst.get("be_r") or 0
              if be_r > 0:
                  risk = abs(pos.price_open - pos.sl) if pos.sl else 0
-@@ -1848,6 +1884,19 @@
+@@ -1848,6 +1905,19 @@
          ok = send_market(key, inst, "long", throttled_base_lot(key, broker_sym(inst["symbol"])),
                           stop, None, atr=atr, state=state, tp_abs=tp_abs)
          return f"{note}{' EXECUTED' if ok else ' FAILED'}"
@@ -91,7 +112,7 @@
      if inst["risk_mode"] == "trend":
          # trend/crash family: structural stop at signal_close -/+ stop_atr*ATR; TP = entry
          # -/+ rr * risk (absolute). Rides broker-minimum 0.01 lot (throttle can't shrink it).
-@@ -2110,6 +2159,9 @@
+@@ -2110,6 +2180,9 @@
                      frame = LS.prep_h1_frame(df_main, df_bias, sc.get("pctile_win", 720))
                      frames = {sym: frame}
                      cur = frame.iloc[-1]

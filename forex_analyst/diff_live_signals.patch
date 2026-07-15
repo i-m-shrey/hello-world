@@ -1,23 +1,92 @@
 --- /tmp/live_signals.orig.py	2026-07-15 15:14:41.674591013 +0000
-+++ live_signals.py	2026-07-15 15:18:22.580114637 +0000
-@@ -98,6 +98,20 @@
++++ live_signals.py	2026-07-15 16:13:14.377297802 +0000
+@@ -98,6 +98,21 @@
      "XAUUSD-DONCH": dict(symbol="XAUUSD", family="DONCH", N=96, rr=3.0, stop_atr=2.0,
                           max_hold=96, max_tpd=2),
                           # close breaks the 96-bar high +0.1ATR -> ride; +95.4R avg +0.116.
 +    "XAUUSD-DONCH-TR": dict(symbol="XAUUSD", family="DONCH", N=96, rr=None, stop_atr=2.0,
-+                            trail_atr=4.0, max_hold=192, max_tpd=2),
++                            trail_atr=5.0, max_hold=192, max_tpd=2),
 +                            # EXIT-UPGRADE VARIANT (July 2026, discover_overlap.py):
 +                            # SAME entries as XAUUSD-DONCH (signal_DONCH N=96, structural
 +                            # 2xATR stop) but NO take-profit — a chandelier trail raises
-+                            # the SL to close - 4.0xATR(bar) on every CLOSED H1 bar,
-+                            # time exit 192 bars. Validated on TZ-correct 2008-2026 with
-+                            # the LIVE stop convention (signal_close - 2xATR):
-+                            # n=661 +182.8R avg +0.277 (vs fixed-rr3 +128.7R avg +0.144),
-+                            # train +116.8 / holdout +66.0, 2x +0.242 / 3x +0.217;
-+                            # whole trail grid 2.5..5.0 passes (plateau, not a tuned
-+                            # point — 4.0 is mid-plateau, best holdout).
++                            # the SL to close - 5.0xATR(bar) on every CLOSED H1 bar,
++                            # time exit 192 bars. OWNER-SELECTED cell (July 2026):
++                            # trail 5.0. Validated on TZ-correct 2008-2026 with the LIVE
++                            # stop convention (signal_close - 2xATR): n=609 +205.8R
++                            # avg +0.338, WR 32.8%, realized R:R 3.14, train +157.4 /
++                            # holdout +48.5, 2x +0.298 / 3x +0.273, maxDD -34.3R.
++                            # Whole trail grid 2.5..5.0 passes; 5.0 = highest avg,
++                            # NOTE: weaker holdout than trail 4.0 (+48.5 vs +66.0).
 +                            # MUTUALLY EXCLUSIVE with XAUUSD-DONCH: identical entries —
 +                            # enable exactly ONE of the two (owner's call).
      # ── INDEX TREND family (July 2026, idx_trend_lab.py — indices trend like gold) ──
      # Donchian-long replicated on 5/6 broker indices; CROSS-FEED VERIFIED on independent
      # HistData (WR matches to the point; Nikkei +61.4 vs +62.2, S&P +39.8 vs +41.8).
+@@ -108,6 +123,24 @@
+     "GER40-DONCH": dict(symbol="GER40", family="DONCH", N=96, rr=3.0, stop_atr=2.0,
+                         max_hold=96, max_tpd=2),
+                         # +62.9R, WR 32%, avg +0.192; ~$9 risk/trade at 0.01 lot.
++    # ── VCX family (July 2026, discover_trend/discover_overlap.py): volatility-
++    # contraction -> expansion breakout. The prior-96-bar box is at its tightest
++    # (range percentile <= q over 720 bars) AND the close breaks the box high
++    # + pad*ATR -> LONG, structural stop = close - stop_atr*ATR, TP = rr*risk.
++    # 27/27 neighbor cells passed the iron gate on TZ-correct 2008-2026.
++    # OVERLAP WARNING (measured): ~96% open-time overlap with XAUUSD-DONCH and
++    # with each other — these stack the same gold-long trades. The two cells
++    # below are OWNER-SELECTED; enable with the stacking cap in mind.
++    # No swing/pivot logic is used anywhere in this family. House rule for any
++    # future pivot logic: EXACTLY 5 closed candles left AND right (PIVOT_K=5).
++    "XAUUSD-VCX-A": dict(symbol="XAUUSD", family="VCX", W=96, q=0.20, pad=0.2,
++                         stop_atr=2.5, rr=3.0, max_hold=96, max_tpd=2),
++                         # n=273 +97.0R avg +0.356, WR 38.1%, R:R 2.56, train +79.8 /
++                         # holdout +17.3, 2x/3x +0.30/+0.25, maxDD -17.3R (live conv).
++    "XAUUSD-VCX-B": dict(symbol="XAUUSD", family="VCX", W=96, q=0.25, pad=0.1,
++                         stop_atr=2.0, rr=3.0, max_hold=96, max_tpd=2),
++                         # n=339 +110.0R avg +0.325, WR 34.5%, R:R 2.83, train +81.2 /
++                         # holdout +28.9, 2x/3x +0.27/+0.27, maxDD -16.6R (live conv).
+     "XAUUSD-MACROSS": dict(symbol="XAUUSD", family="MACROSS", fast=20, slow=50, rr=3.0,
+                            stop_atr=2.0, max_hold=96, max_tpd=2),
+                            # EMA20x50 cross up, H4-bias aligned -> continuation; +49.8R avg +0.110.
+@@ -427,6 +460,33 @@
+     return None
+ 
+ 
++def signal_VCX(e: pd.DataFrame, i: int, cfg: dict):
++    """Volatility-contraction -> expansion breakout, LONG-only (mirrors
++    discover_trend.vcx_sig EXACTLY): the prior-W-bar box range sits in its
++    tightest q-percentile of the past 720 bars AND the close breaks the box
++    high + pad*ATR. Stop = close - stop_atr*ATR, target = rr*risk. Fully
++    causal: box and percentile use bars [i-W, i-1] via shift(1) windows.
++    NO pivot/swing logic (house rule: future pivots use exactly 5L/5R)."""
++    W = cfg["W"]
++    if i < W + 250:
++        return None
++    atr = float(e["atr50"].iloc[i])
++    if not np.isfinite(atr):
++        return None
++    h = e["high"]; l = e["low"]
++    rng = h.shift(1).rolling(W).max() - l.shift(1).rolling(W).min()
++    tight = rng.rolling(720, min_periods=200).rank(pct=True)
++    tp = float(tight.iloc[i])
++    if not (np.isfinite(tp) and tp <= cfg["q"]):
++        return None
++    boxhi = float(h.iloc[i - W:i].max())
++    close = float(e["close"].iloc[i])
++    if close > boxhi + cfg["pad"] * atr:
++        return dict(direction="long", stop=close - cfg["stop_atr"] * atr,
++                    atr=atr, rr=cfg["rr"])
++    return None
++
++
+ def signal_MACROSS(e: pd.DataFrame, i: int, cfg: dict):
+     """Gold EMA-cross momentum, LONG-only (mirrors gold_discovery_lab EXACTLY): fast EMA
+     crosses ABOVE slow EMA on bar i AND the H4 bias is bullish -> continuation long,
+@@ -560,6 +620,8 @@
+         return signal_DONCH(e, i, cfg)      # dict(direction=long, stop, atr, rr) or None
+     if cfg["family"] == "MACROSS":
+         return signal_MACROSS(e, i, cfg)    # dict(direction=long, stop, atr, rr) or None
++    if cfg["family"] == "VCX":
++        return signal_VCX(e, i, cfg)        # dict(direction=long, stop, atr, rr) or None
+     if cfg["family"] == "CRASH":
+         return signal_CRASH(e, i, cfg)      # dict(direction=short, stop, atr, rr) or None
+     if cfg["family"] == "AVWAP":

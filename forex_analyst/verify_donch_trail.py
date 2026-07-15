@@ -2,10 +2,11 @@
 
 live == backtest by construction, proven three ways (house convention):
   [1] REFERENCE NUMBERS — the validated backtest reproduces exactly:
-      n=661, net +182.8R, train +116.8 / holdout +66.0 (TZ-correct 2008-2026,
+      n=609, net +205.8R, train +157.4 / holdout +48.5 (TZ-correct 2008-2026,
       cost 0.23 all-in, entries = signal_DONCH N=96, LIVE stop convention
-      stop = signal_close - 2xATR, chandelier SL = max(SL, close_j - 4.0xATR_j)
-      per closed bar, no TP, time exit 192 bars, max 2/day).
+      stop = signal_close - 2xATR, chandelier SL = max(SL, close_j - 5.0xATR_j)
+      per closed bar, no TP, time exit 192 bars, max 2/day — the owner-selected
+      trail-5.0 cell).
   [2] SIGNAL EQUALITY — live_signals.signal_at_last_bar with the DONCH-TR cfg
       fires identically to the validated signal on live-cache-sized truncated
       frames (sampled), and its signal set equals the deployed DONCH-96 set
@@ -53,9 +54,9 @@ def main():
     net = t["r"].sum()
     tr = t.loc[t.year <= 2023, "r"].sum()
     ho = t.loc[t.year >= 2024, "r"].sum()
-    verdict("reference", abs(net - 182.8) < 2 and abs(tr - 116.8) < 2
-            and abs(ho - 66.0) < 2,
-            f"n={len(t)} net={net:+.1f}R (ref +182.8) train={tr:+.1f} ho={ho:+.1f}")
+    verdict("reference", abs(net - 205.8) < 2 and abs(tr - 157.4) < 2
+            and abs(ho - 48.5) < 2,
+            f"n={len(t)} net={net:+.1f}R (ref +205.8) train={tr:+.1f} ho={ho:+.1f}")
 
     print("[2] signal equality (live cfg vs validated; windowed live-cache re-prep)")
     sig_dep = donch_sig(g, 96)
