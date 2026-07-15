@@ -1,5 +1,5 @@
 --- /tmp/live_mt5_bot.orig.py	2026-07-15 15:14:41.688090080 +0000
-+++ live_mt5_bot.py	2026-07-15 16:14:03.471140888 +0000
++++ live_mt5_bot.py	2026-07-15 16:38:22.139843737 +0000
 @@ -96,6 +96,16 @@
  # Enable / disable each strategy-symbol independently.
  ENABLE = {
@@ -17,7 +17,25 @@
      "XAUUSD_S6":  True,     # RE-ENABLED as S6-R (July 2026): structure-gated rehab —
                              # bias5==+1 + disp 2.4xATR flips it to +54.6R, PF 1.18,
                              # maxDD -19.5R, 6/6 years (s6_rehab_lab.py). See S6R_* vars.
-@@ -305,6 +315,7 @@
+@@ -195,6 +205,17 @@
+ # S6 was disabled at PF 0.99; the July-2026 rehab (s6_rehab_lab.py) fixed it with TWO
+ # changes, validated train +42.2 / holdout +12.4, 6/6 years, plateau disp 2.3-2.6:
+ S6R_DISP_ATR_MULT = 2.4    # displacement bar must be >= 2.4 x ATR50 (was 2.2)
++
++# ====================== 2e. GOLD-TREND $ RISK GUARD (July 2026, owner) =======
++# HARD per-trade $ cap for every XAUUSD instance in the "trend"/"trend_trail"
++# risk modes (DONCH / DONCH_TR / VCX / MACROSS / CRASH / BOS ride 0.01 lot,
++# where $1 of gold move = $1 P&L). If the SL distance in $ falls outside
++# [MIN, MAX], the trade is SKIPPED and logged. NOTE THE MATH at today's ATR
++# (~$16-20 H1): a 2xATR structural stop is $32-40, so MAX=20 blocks most
++# gold-trend entries until volatility halves — that is the intended,
++# owner-decided capital-preservation behavior, not a bug.
++XAUUSD_MIN_RISK_USD = 1.0
++XAUUSD_MAX_RISK_USD = 20.0
+ S6R_REQUIRE_BIAS5 = True   # 5m swing_bias must be +1 (structure gate — THE fix)
+ 
+ # ============================ 3. SAFETY SETTINGS ============================
+@@ -305,6 +326,7 @@
  NY = ZoneInfo("America/New_York")
  BTZ = ZoneInfo(BROKER_TZ)
  LIVE_ATR = {}   # symbol -> latest ATR50 of its trade TF (runner-trail fallback after restarts)
@@ -25,7 +43,7 @@
  
  
  def _half(sym_spread):  # stop pad = half the round-trip spread (mirrors the backtest)
-@@ -438,6 +449,37 @@
+@@ -438,6 +460,37 @@
                           stop_pad=_half(LS.FX_SPREADS["XAUUSD"]), equity_min=EQUITY_GATE_GOLD_TREND,
                           max_hold_bars=LS.FX_STRATS["XAUUSD-DONCH"]["max_hold"],
                           max_tpd=LS.FX_STRATS["XAUUSD-DONCH"]["max_tpd"], bar_seconds=3600),
@@ -63,7 +81,35 @@
      "XAUUSD_MACROSS": dict(symbol="XAUUSD", feed="XAUUSD_H1", strat="MACROSS", engine="fx",
                             magic=54001, eval="fx", cfg=LS.FX_STRATS["XAUUSD-MACROSS"],
                             exit="fixed", rr=None, be_r=None, risk_mode="trend",
-@@ -1140,6 +1182,11 @@
+@@ -1070,6 +1123,27 @@
+     return round(x, mt5.symbol_info(symbol).digits)
+ 
+ 
++def _gold_usd_risk_guard(key, inst, risk_points):
++    """OWNER RULE (July 2026): XAUUSD trend-family trades ride 0.01 lot, where
++    $1 of price = $1 P&L, so risk_$ == SL distance in points. Skip + LOG any
++    trade whose $ risk falls outside [XAUUSD_MIN_RISK_USD, XAUUSD_MAX_RISK_USD].
++    Returns a skip-reason string, or None when the trade may proceed."""
++    if inst["symbol"] != "XAUUSD":
++        return None
++    risk_usd = float(risk_points)          # $ at the 0.01 broker-minimum lot
++    if risk_usd > XAUUSD_MAX_RISK_USD:
++        log(f"{key}: SKIP — SL risk ${risk_usd:.2f} at 0.01 lot > "
++            f"XAUUSD_MAX_RISK_USD ${XAUUSD_MAX_RISK_USD:.2f} (no trade taken)")
++        return f"risk ${risk_usd:.2f} > ${XAUUSD_MAX_RISK_USD:.2f} cap — skipped"
++    if risk_usd < XAUUSD_MIN_RISK_USD:
++        log(f"{key}: SKIP — SL risk ${risk_usd:.2f} at 0.01 lot < "
++            f"XAUUSD_MIN_RISK_USD ${XAUUSD_MIN_RISK_USD:.2f} (no trade taken)")
++        return f"risk ${risk_usd:.2f} < ${XAUUSD_MIN_RISK_USD:.2f} floor — skipped"
++    log(f"{key}: risk guard OK — SL risk ${risk_usd:.2f} at 0.01 lot within "
++        f"[${XAUUSD_MIN_RISK_USD:.2f}, ${XAUUSD_MAX_RISK_USD:.2f}]")
++    return None
++
++
+ def is_runner(inst):
+     return inst["exit"] == "runner"
+ 
+@@ -1140,6 +1214,11 @@
          _record_open(state, key, inst, ticket, direction, lot, fill, sl, None, atr=atr)
          log(f"{key}: ENTERED {direction} {lot} @ {fill:.5f} SL {sl:.5f} RUNNER (no TP)")
          return True
@@ -75,7 +121,7 @@
      if tp_abs is not None:
          tp = tp_abs                       # absolute target (e.g. BOLL fade -> SMA20)
      else:
-@@ -1495,6 +1542,16 @@
+@@ -1495,6 +1574,16 @@
              if is_runner(inst):
                  manage_runner(key, inst, pos, state)
                  continue
@@ -92,7 +138,7 @@
              be_r = inst.get("be_r") or 0
              if be_r > 0:
                  risk = abs(pos.price_open - pos.sl) if pos.sl else 0
-@@ -1848,6 +1905,19 @@
+@@ -1848,6 +1937,22 @@
          ok = send_market(key, inst, "long", throttled_base_lot(key, broker_sym(inst["symbol"])),
                           stop, None, atr=atr, state=state, tp_abs=tp_abs)
          return f"{note}{' EXECUTED' if ok else ' FAILED'}"
@@ -105,6 +151,9 @@
 +        risk = est_entry - stop
 +        if risk <= 0 or not (0.3 * atr <= risk <= 4.0 * atr):
 +            return f"risk {risk:.2f} out of ATR bounds"
++        guard = _gold_usd_risk_guard(key, inst, risk)
++        if guard:
++            return guard
 +        ok = send_market(key, inst, "long",
 +                         throttled_base_lot(key, broker_sym(inst["symbol"])),
 +                         stop, None, atr=atr, state=state)
@@ -112,7 +161,17 @@
      if inst["risk_mode"] == "trend":
          # trend/crash family: structural stop at signal_close -/+ stop_atr*ATR; TP = entry
          # -/+ rr * risk (absolute). Rides broker-minimum 0.01 lot (throttle can't shrink it).
-@@ -2110,6 +2180,9 @@
+@@ -1864,6 +1969,9 @@
+             tp_abs = est_entry + sig["rr"] * risk
+         if risk <= 0 or not (0.3 * atr <= risk <= 4.0 * atr):
+             return f"risk {risk:.2f} out of ATR bounds"
++        guard = _gold_usd_risk_guard(key, inst, risk)
++        if guard:
++            return guard
+         ok = send_market(key, inst, sig["direction"],
+                          throttled_base_lot(key, broker_sym(inst["symbol"])),
+                          stop, None, atr=atr, state=state, tp_abs=tp_abs)
+@@ -2110,6 +2218,9 @@
                      frame = LS.prep_h1_frame(df_main, df_bias, sc.get("pctile_win", 720))
                      frames = {sym: frame}
                      cur = frame.iloc[-1]
