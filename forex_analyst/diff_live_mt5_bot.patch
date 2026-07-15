@@ -1,0 +1,103 @@
+--- /tmp/live_mt5_bot.orig.py	2026-07-15 15:14:41.688090080 +0000
++++ live_mt5_bot.py	2026-07-15 15:16:27.227397686 +0000
+@@ -96,6 +96,12 @@
+ # Enable / disable each strategy-symbol independently.
+ ENABLE = {
+     "XAUUSD_S5":  True,
++    "XAUUSD_DONCH_TR": False,  # EXIT-UPGRADE twin of XAUUSD_DONCH (chandelier 4xATR
++                               # trail, no TP; live_signals "XAUUSD-DONCH-TR").
++                               # SAME ENTRIES as XAUUSD_DONCH -> enable exactly ONE
++                               # of the two (+176.5R vs +125.8R fixed-rr3;
++                               # verify_donch_trail.py). Owner flips this together
++                               # with XAUUSD_DONCH -> False.
+     "XAUUSD_S6":  True,     # RE-ENABLED as S6-R (July 2026): structure-gated rehab —
+                             # bias5==+1 + disp 2.4xATR flips it to +54.6R, PF 1.18,
+                             # maxDD -19.5R, 6/6 years (s6_rehab_lab.py). See S6R_* vars.
+@@ -305,6 +311,7 @@
+ NY = ZoneInfo("America/New_York")
+ BTZ = ZoneInfo(BROKER_TZ)
+ LIVE_ATR = {}   # symbol -> latest ATR50 of its trade TF (runner-trail fallback after restarts)
++LIVE_TRAIL_BAR = {}  # feed -> dict(close, atr) of the last CLOSED bar (exit="trail")
+ 
+ 
+ def _half(sym_spread):  # stop pad = half the round-trip spread (mirrors the backtest)
+@@ -438,6 +445,20 @@
+                          stop_pad=_half(LS.FX_SPREADS["XAUUSD"]), equity_min=EQUITY_GATE_GOLD_TREND,
+                          max_hold_bars=LS.FX_STRATS["XAUUSD-DONCH"]["max_hold"],
+                          max_tpd=LS.FX_STRATS["XAUUSD-DONCH"]["max_tpd"], bar_seconds=3600),
++    # EXIT-UPGRADE twin (July 2026): identical DONCH-96 entries, chandelier 4xATR trail
++    # instead of the fixed 3R target (+176.5R vs +125.8R on TZ-correct 2008-2026, both
++    # splits +, 3x-cost immune, whole trail grid 2.5-5.0 passes; verify_donch_trail.py).
++    # exit="trail": no TP at entry; manage_positions raises the SL to close - 4xATR on
++    # every CLOSED H1 bar (monotonic; the broker-side SL does the exiting).
++    # DISABLED by default - mutually exclusive with XAUUSD_DONCH (same entries).
++    "XAUUSD_DONCH_TR": dict(symbol="XAUUSD", feed="XAUUSD_H1", strat="DONCH", engine="fx",
++                            magic=53101, eval="fx", cfg=LS.FX_STRATS["XAUUSD-DONCH-TR"],
++                            exit="trail", rr=None, be_r=None, risk_mode="trend_trail",
++                            stop_pad=_half(LS.FX_SPREADS["XAUUSD"]),
++                            equity_min=EQUITY_GATE_GOLD_TREND,
++                            max_hold_bars=LS.FX_STRATS["XAUUSD-DONCH-TR"]["max_hold"],
++                            max_tpd=LS.FX_STRATS["XAUUSD-DONCH-TR"]["max_tpd"],
++                            bar_seconds=3600),
+     "XAUUSD_MACROSS": dict(symbol="XAUUSD", feed="XAUUSD_H1", strat="MACROSS", engine="fx",
+                            magic=54001, eval="fx", cfg=LS.FX_STRATS["XAUUSD-MACROSS"],
+                            exit="fixed", rr=None, be_r=None, risk_mode="trend",
+@@ -1140,6 +1161,11 @@
+         _record_open(state, key, inst, ticket, direction, lot, fill, sl, None, atr=atr)
+         log(f"{key}: ENTERED {direction} {lot} @ {fill:.5f} SL {sl:.5f} RUNNER (no TP)")
+         return True
++    if inst.get("exit") == "trail":
++        # chandelier-trail instance: SL only; manage_positions raises it per closed bar.
++        _record_open(state, key, inst, ticket, direction, lot, fill, sl, None, atr=atr)
++        log(f"{key}: ENTERED {direction} {lot} @ {fill:.5f} SL {sl:.5f} TRAIL (no TP)")
++        return True
+     if tp_abs is not None:
+         tp = tp_abs                       # absolute target (e.g. BOLL fade -> SMA20)
+     else:
+@@ -1495,6 +1521,16 @@
+             if is_runner(inst):
+                 manage_runner(key, inst, pos, state)
+                 continue
++            if inst.get("exit") == "trail":
++                # chandelier: SL -> max(SL, close - trail_atr*ATR) of the last CLOSED bar
++                # of this instance's feed. Monotonic (never lowered); long-only family.
++                bar = LIVE_TRAIL_BAR.get(feed_of(inst))
++                if bar and pos.type == mt5.POSITION_TYPE_BUY:
++                    cand = bar["close"] - inst["cfg"]["trail_atr"] * bar["atr"]
++                    cur_sl = pos.sl or -10.0 ** 9
++                    if cand > cur_sl + RUNNER_MIN_SL_STEP:
++                        _modify_sl(key, broker_sym(inst["symbol"]), pos, cand, "trail")
++                continue
+             be_r = inst.get("be_r") or 0
+             if be_r > 0:
+                 risk = abs(pos.price_open - pos.sl) if pos.sl else 0
+@@ -1848,6 +1884,19 @@
+         ok = send_market(key, inst, "long", throttled_base_lot(key, broker_sym(inst["symbol"])),
+                          stop, None, atr=atr, state=state, tp_abs=tp_abs)
+         return f"{note}{' EXECUTED' if ok else ' FAILED'}"
++    if inst["risk_mode"] == "trend_trail":
++        # DONCH exit-upgrade twin: structural stop at signal_close - stop_atr*ATR like
++        # "trend", but NO take-profit - the chandelier trail in manage_positions owns the
++        # exit (close - trail_atr*ATR on every closed bar). LONG-only (signal_DONCH).
++        atr = sig["atr"]
++        stop = sig["stop"] - inst["stop_pad"]
++        risk = est_entry - stop
++        if risk <= 0 or not (0.3 * atr <= risk <= 4.0 * atr):
++            return f"risk {risk:.2f} out of ATR bounds"
++        ok = send_market(key, inst, "long",
++                         throttled_base_lot(key, broker_sym(inst["symbol"])),
++                         stop, None, atr=atr, state=state)
++        return f"{note}{' EXECUTED' if ok else ' FAILED'}"
+     if inst["risk_mode"] == "trend":
+         # trend/crash family: structural stop at signal_close -/+ stop_atr*ATR; TP = entry
+         # -/+ rr * risk (absolute). Rides broker-minimum 0.01 lot (throttle can't shrink it).
+@@ -2110,6 +2159,9 @@
+                     frame = LS.prep_h1_frame(df_main, df_bias, sc.get("pctile_win", 720))
+                     frames = {sym: frame}
+                     cur = frame.iloc[-1]
++                    if np.isfinite(float(cur.get("atr50", float("nan")))):
++                        LIVE_TRAIL_BAR[sym] = dict(close=float(cur["close"]),
++                                                   atr=float(cur["atr50"]))
+ 
+                 write_positions_snapshot()
+                 update_daily_pnl(cur["ny_date"])

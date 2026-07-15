@@ -1,0 +1,23 @@
+--- /tmp/live_signals.orig.py	2026-07-15 15:14:41.674591013 +0000
++++ live_signals.py	2026-07-15 15:18:22.580114637 +0000
+@@ -98,6 +98,20 @@
+     "XAUUSD-DONCH": dict(symbol="XAUUSD", family="DONCH", N=96, rr=3.0, stop_atr=2.0,
+                          max_hold=96, max_tpd=2),
+                          # close breaks the 96-bar high +0.1ATR -> ride; +95.4R avg +0.116.
++    "XAUUSD-DONCH-TR": dict(symbol="XAUUSD", family="DONCH", N=96, rr=None, stop_atr=2.0,
++                            trail_atr=4.0, max_hold=192, max_tpd=2),
++                            # EXIT-UPGRADE VARIANT (July 2026, discover_overlap.py):
++                            # SAME entries as XAUUSD-DONCH (signal_DONCH N=96, structural
++                            # 2xATR stop) but NO take-profit — a chandelier trail raises
++                            # the SL to close - 4.0xATR(bar) on every CLOSED H1 bar,
++                            # time exit 192 bars. Validated on TZ-correct 2008-2026 with
++                            # the LIVE stop convention (signal_close - 2xATR):
++                            # n=661 +182.8R avg +0.277 (vs fixed-rr3 +128.7R avg +0.144),
++                            # train +116.8 / holdout +66.0, 2x +0.242 / 3x +0.217;
++                            # whole trail grid 2.5..5.0 passes (plateau, not a tuned
++                            # point — 4.0 is mid-plateau, best holdout).
++                            # MUTUALLY EXCLUSIVE with XAUUSD-DONCH: identical entries —
++                            # enable exactly ONE of the two (owner's call).
+     # ── INDEX TREND family (July 2026, idx_trend_lab.py — indices trend like gold) ──
+     # Donchian-long replicated on 5/6 broker indices; CROSS-FEED VERIFIED on independent
+     # HistData (WR matches to the point; Nikkei +61.4 vs +62.2, S&P +39.8 vs +41.8).
