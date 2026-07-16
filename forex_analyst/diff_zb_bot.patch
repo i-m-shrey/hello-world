@@ -1,0 +1,124 @@
+--- /tmp/bot.pre_zb.py	2026-07-16 04:10:51.623523639 +0000
++++ live_mt5_bot.py	2026-07-16 04:14:14.426296171 +0000
+@@ -88,6 +88,9 @@
+     "US30_DONCH":    0.01,   # EQUITY-GATED ($600): validated, ~$15/trade at min lot
+     "JPN225_DONCH":  0.01,   # EQUITY-GATED ($800): validated, ~$17-21/trade at min lot
+     "HK50_MACROSS":  0.01,   # EQUITY-GATED ($800): validated, ~$15-20/trade at min lot
++    "XAUUSD_ZBPIV":  0.01,   # H4 pivot(K=5) zone breakout — +0.16 avg/18y, 3x +98.8
++    "XAGUSD_ZBBOX":  0.01,   # SILVER H1 Darvas-box breakout — first validated XAG edge
++    "SPX500_ZBPIV":  0.01,   # S&P D1 pivot(K=5) breakout — WR 47%, ~$4-8/trade min lot
+     "USDCHF_P1":  0.03,      # H1 opposing-FVG reversal — +16R avg+0.125, corr to CHF book -0.01
+     "EURUSD_BOLL15": 0.03,   # 15m BB fade LONG-only — +206R/18.5y, PF 1.15, 16/19 yrs
+     "GBPUSD_BOLL15": 0.03,   # 15m BB fade — +409R/18.5y, PF 1.15, 17/19 yrs, 3x-cost-immune
+@@ -96,6 +99,10 @@
+ # Enable / disable each strategy-symbol independently.
+ ENABLE = {
+     "XAUUSD_S5":  True,
++    "XAUUSD_ZBPIV": False,     # ZONE BREAKOUT (July 2026): ships OFF per house rule.
++    "XAGUSD_ZBBOX": False,     # ZONE BREAKOUT silver: ships OFF. NOTE: broker silver
++                               # symbol must exist (XAGUSD / check SYMBOL_OVERRIDE).
++    "SPX500_ZBPIV": False,     # ZONE BREAKOUT S&P D1: ships OFF.
+     "XAUUSD_VCX_A": False,     # OWNER-SELECTED VCX cell A (q0.20 pad0.2 stop2.5 rr3).
+                                # ~96% open-time overlap with XAUUSD_DONCH and VCX_B —
+                                # these STACK the same gold longs (cap = MAX_STACKED_GOLD_LONGS).
+@@ -566,6 +573,32 @@
+                          stop_pad=_half(LS.FX_SPREADS["HK50"]), equity_min=EQUITY_GATE_ASIA,
+                          max_hold_bars=LS.FX_STRATS["HK50-MACROSS"]["max_hold"],
+                          max_tpd=LS.FX_STRATS["HK50-MACROSS"]["max_tpd"], bar_seconds=3600),
++    # ── ZONE BREAKOUT family (zone_breakout_lab.py July 2026, magics 541xx-543xx).
++    # BOTH directions, entry-relative 2*ATR stop, fixed rr TP (risk_mode="zone").
++    # PIVOT_K=5 house rule enforced inside live_signals._pivot_arrays. All ship
++    # ENABLE=False. Gold instance sits under the XAUUSD_MIN/MAX_RISK_USD guard —
++    # at 2026 H4 ATR ($30-40) most gold H4 signals will be SKIPPED by the $20 cap.
++    "XAUUSD_ZBPIV": dict(symbol="XAUUSD", feed="XAUUSD_H4", strat="ZBPIV", engine="fx",
++                         magic=54101, eval="fx", cfg=LS.FX_STRATS["XAUUSD-ZBPIV"],
++                         exit="fixed", rr=None, be_r=None, risk_mode="zone",
++                         stop_pad=_half(LS.FX_SPREADS["XAUUSD"]),
++                         equity_min=EQUITY_GATE_GOLD_TREND,
++                         max_hold_bars=LS.FX_STRATS["XAUUSD-ZBPIV"]["max_hold"],
++                         max_tpd=LS.FX_STRATS["XAUUSD-ZBPIV"]["max_tpd"], bar_seconds=14400),
++    "XAGUSD_ZBBOX": dict(symbol="XAGUSD", feed="XAGUSD", strat="ZBBOX", engine="fx",
++                         magic=54201, eval="fx", cfg=LS.FX_STRATS["XAGUSD-ZBBOX"],
++                         exit="fixed", rr=None, be_r=None, risk_mode="zone",
++                         stop_pad=_half(LS.FX_SPREADS["XAGUSD"]),
++                         equity_min=400,   # ~$15-30 risk/trade at 0.01 lot (50oz)
++                         max_hold_bars=LS.FX_STRATS["XAGUSD-ZBBOX"]["max_hold"],
++                         max_tpd=LS.FX_STRATS["XAGUSD-ZBBOX"]["max_tpd"], bar_seconds=3600),
++    "SPX500_ZBPIV": dict(symbol="SPX500", feed="SPX500_D1", strat="ZBPIV", engine="fx",
++                         magic=54301, eval="fx", cfg=LS.FX_STRATS["SPX500-ZBPIV"],
++                         exit="fixed", rr=None, be_r=None, risk_mode="zone",
++                         stop_pad=_half(LS.FX_SPREADS["SPX500"]),
++                         equity_min=250,   # ~$4-8 risk/trade at 0.01 lot on D1 ATR
++                         max_hold_bars=LS.FX_STRATS["SPX500-ZBPIV"]["max_hold"],
++                         max_tpd=LS.FX_STRATS["SPX500-ZBPIV"]["max_tpd"], bar_seconds=86400),
+     "USDCHF_RSI30": dict(symbol="USDCHF", feed="USDCHF_30", strat="RSI30", engine="fx",
+                          magic=72001, eval="fx", cfg=LS.FX_STRATS["USDCHF-RSI30"],
+                          exit="fixed", rr=LS.FX_STRATS["USDCHF-RSI30"]["rr"], be_r=None,
+@@ -592,6 +625,16 @@
+     "XAUUSD_H1": dict(engine="fx", tf="H1", bias_tf="H4", bars=2500, bias_bars=2500,
+                       bar_min=60, bias_min=240, baseline=None, baseline_bias=None,
+                       market="XAUUSD"),
++    # ZONE BREAKOUT feeds (July 2026). ZBPIV/ZBBOX ignore htf_bias/atr_pctile, so the
++    # bias feed is only merge fodder; H4/D1 use themselves as bias (cheapest warm).
++    "XAUUSD_H4": dict(engine="fx", tf="H4", bias_tf="H4", bars=2500, bias_bars=2500,
++                      bar_min=240, bias_min=240, baseline=None, baseline_bias=None,
++                      market="XAUUSD"),
++    "XAGUSD": dict(engine="fx", tf="H1", bias_tf="H4", bars=2500, bias_bars=2500,
++                   bar_min=60, bias_min=240, baseline=None, baseline_bias=None),
++    "SPX500_D1": dict(engine="fx", tf="D1", bias_tf="D1", bars=1500, bias_bars=1500,
++                      bar_min=1440, bias_min=1440, baseline=None, baseline_bias=None,
++                      market="SPX500"),
+     "EURUSD_30": dict(engine="fx", tf="M30", bias_tf="H4", bars=3600, bias_bars=2500,
+                       bar_min=30, bias_min=240, baseline=None, baseline_bias=None,
+                       market="EURUSD", pctile_win=1440),
+@@ -631,9 +674,9 @@
+ }
+ # Symbols that trade at the broker-minimum 0.01 lot (cannot be dollar-risk-sized like FX):
+ # gold + index CFDs. Exempt from FX_MIN/MAX_RISK sizing and from the USD-direction cap.
+-MINLOT_SYMBOLS = ("XAUUSD", "SPX500", "GER40", "US30", "JPN225", "HK50")
++MINLOT_SYMBOLS = ("XAUUSD", "XAGUSD", "SPX500", "GER40", "US30", "JPN225", "HK50")
+ TF_MAP = {"M5": mt5.TIMEFRAME_M5, "M15": mt5.TIMEFRAME_M15, "M30": mt5.TIMEFRAME_M30,
+-          "H1": mt5.TIMEFRAME_H1, "H4": mt5.TIMEFRAME_H4}
++          "H1": mt5.TIMEFRAME_H1, "H4": mt5.TIMEFRAME_H4, "D1": mt5.TIMEFRAME_D1}
+ 
+ 
+ def feed_of(inst):
+@@ -1342,7 +1385,7 @@
+     from the per-USD concurrency cap; the TOTAL cap still applies to them)."""
+     if symbol in ("SPX500", "GER40", "US30", "JPN225", "HK50"):
+         return 0
+-    base_up_is_usd_down = symbol in ("EURUSD", "GBPUSD", "XAUUSD")
++    base_up_is_usd_down = symbol in ("EURUSD", "GBPUSD", "XAUUSD", "XAGUSD")
+     d = 1 if is_long else -1
+     return d if base_up_is_usd_down else -d
+ 
+@@ -1952,6 +1995,29 @@
+         ok = send_market(key, inst, "long", throttled_base_lot(key, broker_sym(inst["symbol"])),
+                          stop, None, atr=atr, state=state, tp_abs=tp_abs)
+         return f"{note}{' EXECUTED' if ok else ' FAILED'}"
++    if inst["risk_mode"] == "zone":
++        # ZONE BREAKOUT (ZBPIV/ZBBOX): entry-relative stop_atr*ATR stop, TP = entry
++        # +/- rr*risk — EXACTLY the zone_breakout_lab execution (stop pad plays the
++        # lab's cost/2 role). Both directions. Rides broker-minimum lot; the gold
++        # instance additionally passes the owner's XAUUSD_MIN/MAX_RISK_USD guard.
++        atr = sig["atr"]
++        if sig["direction"] == "long":
++            stop = est_entry - sig["stop_atr"] * atr - inst["stop_pad"]
++            risk = est_entry - stop
++            tp_abs = est_entry + sig["rr"] * risk
++        else:
++            stop = est_entry + sig["stop_atr"] * atr + inst["stop_pad"]
++            risk = stop - est_entry
++            tp_abs = est_entry - sig["rr"] * risk
++        if risk <= 0 or not (0.3 * atr <= risk <= 4.0 * atr):
++            return f"risk {risk:.2f} out of ATR bounds"
++        guard = _gold_usd_risk_guard(key, inst, risk)
++        if guard:
++            return guard
++        ok = send_market(key, inst, sig["direction"],
++                         throttled_base_lot(key, broker_sym(inst["symbol"])),
++                         stop, None, atr=atr, state=state, tp_abs=tp_abs)
++        return f"{note}{' EXECUTED' if ok else ' FAILED'}"
+     if inst["risk_mode"] == "trend_trail":
+         # DONCH exit-upgrade twin: structural stop at signal_close - stop_atr*ATR like
+         # "trend", but NO take-profit - the chandelier trail in manage_positions owns the

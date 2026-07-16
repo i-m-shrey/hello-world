@@ -1,0 +1,124 @@
+--- /tmp/ls.pre_zb.py	2026-07-16 04:10:51.632514413 +0000
++++ live_signals.py	2026-07-16 04:13:29.183477231 +0000
+@@ -191,6 +191,28 @@
+                          # feed (+59.7R 2020-26, holdout +27.2). LONG side drags — never add
+                          # it without a fresh side-split validation. Overlap vs E/P1: 2.6%/
+                          # 0.1% time, corr 0.00. Quiet-hours ESSENTIAL (all-hours -13.7R).
++    # ── ZONE BREAKOUT family (zone_breakout_lab.py, July 2026). Structural-zone
++    # momentum continuation, BOTH directions, entry-relative 2*ATR stop, fixed rr
++    # target. House rule enforced: every pivot uses EXACTLY 5 closed candles left
++    # AND right (pivot_k=5) — confirmed k bars AFTER the pivot bar (causal).
++    "XAUUSD-ZBPIV": dict(symbol="XAUUSD", family="ZBPIV", pivot_k=5, pad=0.25,
++                         stop_atr=2.0, rr=3.0, max_hold=60, max_tpd=2),
++                         # H4 pivot-S/R breakout: n=708/18y, WR 32.3%, realized R:R
++                         # 2.59, avg +0.16, train +87.9 / ho +23.7, 3x-stress +98.8,
++                         # 10/10 param plateau; corr to deployed book <=0.20.
++    "XAGUSD-ZBBOX": dict(symbol="XAGUSD", family="ZBBOX", N=24, tight=2.5, pad=0.1,
++                         stop_atr=2.0, rr=2.0, max_hold=96, max_tpd=2),
++                         # H1 Darvas box (24-bar box <= 2.5*ATR) breakout: n=125/15y,
++                         # WR 41.6%, realized R:R 1.91, avg +0.21, train +17.3 /
++                         # ho +9.0, 3x-stress +9.5, 10/10 plateau. FIRST validated
++                         # silver edge (costs killed every lower-TF attempt).
++    "SPX500-ZBPIV": dict(symbol="SPX500", family="ZBPIV", pivot_k=5, pad=0.1,
++                         stop_atr=2.0, rr=2.0, max_hold=30, max_tpd=2),
++                         # D1 pivot-S/R breakout: n=66/7y, WR 47.0% (highest-WR
++                         # survivor), realized R:R 1.63, avg +0.23, train +12.2 /
++                         # ho +2.7, 3x-stress +14.7, 10/10 plateau. D1 bars roll at
++                         # broker midnight = 17:00 NY (EET-DST broker), matching the
++                         # backtest day boundary exactly.
+     "USDCHF-RSI30": dict(symbol="USDCHF", family="RSI", rr=1.5, be_r=None,
+                          rsi_n=14, rsi_hi=75, stop_atr=1.0, atrp_max=0.70,
+                          hours=tuple(range(14, 24)), max_hold=24, max_tpd=3),
+@@ -205,6 +227,7 @@
+ # converted at pip value (measured from the user's own trade history 2026-07-06).
+ # Used for stop pads and the preflight 3x-cost warning — keep these HONEST.
+ FX_SPREADS = {"EURUSD": 0.00008, "GBPUSD": 0.00010, "USDCAD": 0.00014, "USDCHF": 0.00010,
++              "XAGUSD": 0.032,  # silver: 0.03 spread + $7/lot on 5000oz = 0.0014 commission
+               "XAUUSD": 0.23,   # gold: 0.16 spread + $7/lot(100oz) = 0.07 pts commission
+               "SPX500": 1.7, "GER40": 4.7,   # indices: live spread + $7/lot(contract 10)
+               "US30": 3.4, "JPN225": 13.5, "HK50": 8.3}
+@@ -583,6 +606,73 @@
+     return None
+ 
+ 
++def _pivot_arrays(h, l, k):
++    """Verbatim port of concepts_rank_lab.pivot_levels: causal pivot levels.
++    A pivot at bar i needs h[i] == max(h[i-k..i+k]) (EXACTLY k closed candles each
++    side, house PIVOT_K=5) and is only VISIBLE from bar i+k (confirmation bar).
++    Returns lvl_hi[t], lvl_lo[t] = most recent confirmed pivot high/low as of t."""
++    n = len(h)
++    lvl_hi = np.full(n, np.nan); lvl_lo = np.full(n, np.nan)
++    cur_hi = cur_lo = np.nan
++    for i in range(k, n - k):
++        cur_hi_new = h[i] if h[i] == h[i - k:i + k + 1].max() else None
++        cur_lo_new = l[i] if l[i] == l[i - k:i + k + 1].min() else None
++        t = i + k
++        if cur_hi_new is not None:
++            cur_hi = cur_hi_new
++        if cur_lo_new is not None:
++            cur_lo = cur_lo_new
++        if t < n:
++            lvl_hi[t] = cur_hi; lvl_lo[t] = cur_lo
++    lvl_hi = pd.Series(lvl_hi).ffill().to_numpy()
++    lvl_lo = pd.Series(lvl_lo).ffill().to_numpy()
++    return lvl_hi, lvl_lo
++
++
++def signal_ZBPIV(e: pd.DataFrame, i: int, cfg: dict):
++    """Pivot-S/R zone breakout (mirrors zone_breakout_lab.sig_piv5 EXACTLY):
++    close crosses the most recent CONFIRMED pivot high + pad*ATR -> long; below
++    pivot low - pad*ATR -> short. Cross = previous close was on/inside the level."""
++    if i < 2 * cfg["pivot_k"] + 2:
++        return None
++    h = e["high"].to_numpy(float); l = e["low"].to_numpy(float)
++    c = e["close"].to_numpy(float); atr = e["atr50"].to_numpy(float)
++    if not (np.isfinite(atr[i]) and np.isfinite(atr[i - 1])):
++        return None
++    hi, lo = _pivot_arrays(h[:i + 1], l[:i + 1], cfg["pivot_k"])
++    pad = cfg["pad"]
++    if np.isfinite(hi[i]) and np.isfinite(hi[i - 1])             and c[i] > hi[i] + pad * atr[i] and c[i - 1] <= hi[i - 1] + pad * atr[i - 1]:
++        return dict(direction="long", atr=float(atr[i]),
++                    stop_atr=cfg["stop_atr"], rr=cfg["rr"])
++    if np.isfinite(lo[i]) and np.isfinite(lo[i - 1])             and c[i] < lo[i] - pad * atr[i] and c[i - 1] >= lo[i - 1] - pad * atr[i - 1]:
++        return dict(direction="short", atr=float(atr[i]),
++                    stop_atr=cfg["stop_atr"], rr=cfg["rr"])
++    return None
++
++
++def signal_ZBBOX(e: pd.DataFrame, i: int, cfg: dict):
++    """Darvas/rectangle congestion breakout (mirrors zone_breakout_lab.sig_box
++    EXACTLY): the N CLOSED bars before i form a box (range <= tight*ATR); a close
++    beyond the box edge +/- pad*ATR is the expansion trigger. Both directions."""
++    N = cfg["N"]
++    if i < N + 1:
++        return None
++    h = e["high"].to_numpy(float); l = e["low"].to_numpy(float)
++    c = e["close"].to_numpy(float); atr = e["atr50"].to_numpy(float)
++    if not np.isfinite(atr[i]):
++        return None
++    bh = h[i - N:i].max(); bl = l[i - N:i].min()
++    if (bh - bl) > cfg["tight"] * atr[i]:
++        return None
++    if c[i] > bh + cfg["pad"] * atr[i]:
++        return dict(direction="long", atr=float(atr[i]),
++                    stop_atr=cfg["stop_atr"], rr=cfg["rr"])
++    if c[i] < bl - cfg["pad"] * atr[i]:
++        return dict(direction="short", atr=float(atr[i]),
++                    stop_atr=cfg["stop_atr"], rr=cfg["rr"])
++    return None
++
++
+ def signal_at_last_bar(e: pd.DataFrame, cfg: dict):
+     """Live entry point: evaluate the LAST (most recently closed) bar of frame `e`.
+     Returns dict(direction, stop, atr) or None — for family BOLL the dict instead
+@@ -626,6 +716,10 @@
+         return signal_CRASH(e, i, cfg)      # dict(direction=short, stop, atr, rr) or None
+     if cfg["family"] == "AVWAP":
+         return signal_AVWAP(e, i, cfg)      # BOLL-shaped dict(direction, target, atr, stop_atr)
++    if cfg["family"] == "ZBPIV":
++        return signal_ZBPIV(e, i, cfg)      # dict(direction, atr, stop_atr, rr) both sides
++    if cfg["family"] == "ZBBOX":
++        return signal_ZBBOX(e, i, cfg)      # dict(direction, atr, stop_atr, rr) both sides
+     if cfg["family"] == "BOS":
+         return signal_BOS(e, i, cfg)        # dict(direction=long, stop, atr, rr) or None
+     a = build_arrays(e)

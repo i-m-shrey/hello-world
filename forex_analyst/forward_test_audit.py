@@ -15,6 +15,17 @@ Logs:
     forward_tradebook.csv  every closed paper trade with M5-RESOLVED MAE/MFE
     forward_state.json     open paper positions (restart-proof)
 
+ZONE-BREAKOUT forward test (July 2026, short-history M15/M30 models routed
+here per owner directive — NEVER wire these live before 90 clean days):
+    ZB-CMPX-GER40-M30  : atr50 pctile(720) <= 0.25 AND close breaks the 48-bar
+                         extreme -> continuation, BOTH sides, stop 2*ATR
+                         entry-relative, TP 3R, time exit 96 M30 bars.
+    ZB-BOX-GBPUSD-M15  : 24-bar Darvas box (range <= 2.5*ATR); close beyond the
+                         box +/- 0.1*ATR -> continuation, BOTH sides, stop
+                         2*ATR, TP 3R, time exit 192 M15 bars.
+    Logs: forward_zb_signals.csv / forward_zb_tradebook.csv (M5-resolved MAE/
+    MFE per side), state under the "zb_*" keys. Max 2 signals/model/day.
+
 Run on the owner's machine (any terminal, read-only): python forward_test_audit.py
 Review weekly:                                        python forward_test_audit.py --report
 After 90 days: compare realized WR / avg R / MAE vs the backtest line
@@ -44,6 +55,17 @@ STOP_ATR = 2.0
 RR = 3.0
 POLL_SEC = 60
 PIVOT_K = 5   # house rule for any future pivot logic: exactly 5L/5R closed candles
+ZB_SIGNALS_CSV = "forward_zb_signals.csv"
+ZB_TRADEBOOK_CSV = "forward_zb_tradebook.csv"
+# ZONE-BREAKOUT paper models (exact zone_breakout_lab.py cells, short-history tier)
+ZB_MODELS = {
+    "ZB-CMPX-GER40-M30": dict(symbol="GER40", tf="M30", fam="CMPX", q=0.25, brk=48,
+                              stop_atr=2.0, rr=3.0, max_hold=96, bar_sec=1800,
+                              bars=1600, ref_avg_r=0.15),
+    "ZB-BOX-GBPUSD-M15": dict(symbol="GBPUSD", tf="M15", fam="BOX", N=24, tight=2.5,
+                              pad=0.1, stop_atr=2.0, rr=3.0, max_hold=192,
+                              bar_sec=900, bars=600, ref_avg_r=0.11),
+}
 
 
 def attach():
@@ -76,7 +98,8 @@ def load_state():
     try:
         return json.load(open(STATE_JSON))
     except Exception:
-        return {"open": [], "last_bar": {}, "per_day": {}}
+        return {"open": [], "last_bar": {}, "per_day": {},
+                "zb_open": [], "zb_last_bar": {}, "zb_per_day": {}}
 
 
 def save_state(st):
@@ -129,12 +152,160 @@ def signal_on_closed(df):
                 stop=float(row["close"] - STOP_ATR * row["atr50"]))
 
 
+def zb_frame(mt5, bsym, m):
+    tf = {"M30": mt5.TIMEFRAME_M30, "M15": mt5.TIMEFRAME_M15}[m["tf"]]
+    r = mt5.copy_rates_from_pos(bsym, tf, 0, m["bars"])
+    if r is None or len(r) < min(m["bars"] - 50, 250):
+        return None
+    df = pd.DataFrame(r)
+    prev = df["close"].shift(1)
+    tr = pd.concat([df["high"] - df["low"], (df["high"] - prev).abs(),
+                    (df["low"] - prev).abs()], axis=1).max(axis=1)
+    df["atr50"] = tr.rolling(50, min_periods=20).mean()
+    if m["fam"] == "CMPX":
+        df["atr_pctile"] = df["atr50"].rolling(720, min_periods=200).rank(pct=True)
+    return df
+
+
+def zb_signal_on_closed(df, m):
+    """Signal on the LAST CLOSED bar (index -2), mirroring zone_breakout_lab
+    sig_cmpx / sig_box EXACTLY. Returns dict(side=+1/-1, ...) or None."""
+    i = len(df) - 2
+    if i < max(60, m.get("N", 0) + 1, m.get("brk", 0) + 1):
+        return None
+    h = df["high"].to_numpy(float); l = df["low"].to_numpy(float)
+    c = df["close"].to_numpy(float); atr = df["atr50"].to_numpy(float)
+    if not np.isfinite(atr[i]):
+        return None
+    side = 0
+    if m["fam"] == "CMPX":
+        pct = df["atr_pctile"].to_numpy(float)
+        if not np.isfinite(pct[i]) or pct[i] > m["q"]:
+            return None
+        bh = h[i - m["brk"]:i].max(); bl = l[i - m["brk"]:i].min()
+        if c[i] > bh:
+            side = 1
+        elif c[i] < bl:
+            side = -1
+    else:
+        bh = h[i - m["N"]:i].max(); bl = l[i - m["N"]:i].min()
+        if (bh - bl) > m["tight"] * atr[i]:
+            return None
+        if c[i] > bh + m["pad"] * atr[i]:
+            side = 1
+        elif c[i] < bl - m["pad"] * atr[i]:
+            side = -1
+    if side == 0:
+        return None
+    return dict(bar_time=int(df["time"].iloc[i]), side=side, close=float(c[i]),
+                atr=float(atr[i]))
+
+
+def zb_step(mt5, names, st):
+    """One poll pass for every ZONE-BREAKOUT paper model (read-only)."""
+    for name, m in ZB_MODELS.items():
+        bsym = names.get(m["symbol"])
+        if not bsym:
+            continue
+        df = zb_frame(mt5, bsym, m)
+        if df is None:
+            continue
+        # --- manage open ZB paper trades on M5 (side-aware MAE/MFE) ---
+        for pos in list(st["zb_open"]):
+            if pos["model"] != name:
+                continue
+            m5 = mt5.copy_rates_range(bsym, mt5.TIMEFRAME_M5,
+                                      datetime.fromtimestamp(pos["last_seen"],
+                                                             tz=timezone.utc),
+                                      datetime.now(timezone.utc))
+            if m5 is None or len(m5) < 2:
+                continue
+            for b in pd.DataFrame(m5[:-1]).itertuples():
+                s = pos["side"]
+                pos["mae"] = min(pos["mae"], s * (float(b.low if s == 1 else -b.high)))
+                pos["mfe"] = max(pos["mfe"], s * (float(b.high if s == 1 else -b.low)))
+                pos["last_seen"] = int(b.time)
+                exit_px = reason = None
+                if s == 1 and b.low <= pos["stop"]:
+                    exit_px, reason = pos["stop"], "stop"
+                elif s == -1 and b.high >= pos["stop"]:
+                    exit_px, reason = pos["stop"], "stop"
+                elif s == 1 and b.high >= pos["tp"]:
+                    exit_px, reason = pos["tp"], "tp"
+                elif s == -1 and b.low <= pos["tp"]:
+                    exit_px, reason = pos["tp"], "tp"
+                elif (b.time - pos["entry_time"]) >= m["max_hold"] * m["bar_sec"]:
+                    exit_px, reason = float(b.close), "time"
+                if exit_px is not None:
+                    risk = abs(pos["entry"] - pos["stop"])
+                    r = (s * (exit_px - pos["entry"])) / risk
+                    append_csv(ZB_TRADEBOOK_CSV, [
+                        pos["signal_ts"], pos["entry_ts"], name, m["symbol"],
+                        "long" if s == 1 else "short", pos["entry"], pos["stop"],
+                        pos["tp"],
+                        datetime.fromtimestamp(b.time, tz=timezone.utc).isoformat(),
+                        exit_px, reason, round(r, 4),
+                        round((pos["mae"] - s * pos["entry"]) / risk, 4),
+                        round((pos["mfe"] - s * pos["entry"]) / risk, 4)],
+                        ["signal_ts", "entry_ts", "model", "symbol", "side",
+                         "entry", "stop", "tp", "exit_ts", "exit_px", "reason",
+                         "r", "mae_r", "mfe_r"])
+                    st["zb_open"].remove(pos)
+                    print(f"{name}: paper exit {reason} r={r:+.2f}")
+                    break
+        # --- fill pending at the new bar's open ---
+        for pos in st["zb_open"]:
+            if pos["model"] == name and pos.get("pending")                     and int(df["time"].iloc[-1]) > pos["signal_bar"]:
+                s = pos["side"]
+                pos["entry"] = float(df["open"].iloc[-1])
+                pos["entry_time"] = int(df["time"].iloc[-1])
+                pos["entry_ts"] = datetime.fromtimestamp(pos["entry_time"],
+                                                         tz=timezone.utc).isoformat()
+                pos["stop"] = pos["entry"] - s * m["stop_atr"] * pos["atr"]
+                risk = abs(pos["entry"] - pos["stop"])
+                if risk <= 0 or not (0.3 * pos["atr"] <= risk <= 4.0 * pos["atr"]):
+                    st["zb_open"].remove(pos); continue
+                pos["tp"] = pos["entry"] + s * m["rr"] * risk
+                pos["mae"] = s * pos["entry"]; pos["mfe"] = s * pos["entry"]
+                pos["last_seen"] = pos["entry_time"]
+                pos["pending"] = False
+                print(f"{name}: paper ENTRY {'long' if s == 1 else 'short'} "
+                      f"{pos['entry']:.5f} stop {pos['stop']:.5f} tp {pos['tp']:.5f}")
+        # --- new signal on a newly closed bar ---
+        closed_t = int(df["time"].iloc[-2])
+        if st["zb_last_bar"].get(name) == closed_t:
+            continue
+        st["zb_last_bar"][name] = closed_t
+        sig = zb_signal_on_closed(df, m)
+        if sig is None:
+            continue
+        day = datetime.fromtimestamp(closed_t, tz=timezone.utc).date().isoformat()
+        key = f"{name}|{day}"
+        st["zb_per_day"][key] = st["zb_per_day"].get(key, 0) + 1
+        taken = st["zb_per_day"][key] <= MAX_PER_DAY             and not any(p["model"] == name for p in st["zb_open"])
+        append_csv(ZB_SIGNALS_CSV, [
+            datetime.fromtimestamp(closed_t, tz=timezone.utc).isoformat(), name,
+            m["symbol"], "long" if sig["side"] == 1 else "short", sig["close"],
+            round(sig["atr"], 5), "taken" if taken else "skipped(day-cap/open)"],
+            ["signal_ts", "model", "symbol", "side", "close", "atr50", "status"])
+        if taken:
+            st["zb_open"].append(dict(
+                model=name, side=sig["side"], pending=True, signal_bar=closed_t,
+                atr=sig["atr"],
+                signal_ts=datetime.fromtimestamp(closed_t,
+                                                 tz=timezone.utc).isoformat()))
+            print(f"{name}: ZB SIGNAL logged (pending next-open entry)")
+
+
 def watch():
     mt5 = attach()
-    names = {s: broker_name(mt5, s) for s in SYMBOLS}
+    all_syms = tuple(sorted(set(SYMBOLS) | {m["symbol"] for m in ZB_MODELS.values()}))
+    names = {s: broker_name(mt5, s) for s in all_syms}
     names = {k: v for k, v in names.items() if v}
     print(f"forward test running (READ-ONLY, no orders): {names}")
     st = load_state()
+    for k, d in (("zb_open", []), ("zb_last_bar", {}), ("zb_per_day", {})):
+        st.setdefault(k, d)
     while True:
         try:
             for sym, bsym in names.items():
@@ -222,6 +393,7 @@ def watch():
                                                          tz=timezone.utc).isoformat(),
                         stop=sig["stop"]))
                     print(f"{sym}: SIGNAL logged (pending next-open entry)")
+            zb_step(mt5, names, st)
             save_state(st)
             time.sleep(POLL_SEC)
         except KeyboardInterrupt:
@@ -245,6 +417,17 @@ def report():
         print(f"  {sym}: n={len(g)} WR={(r > 0).mean():.0%} avg={r.mean():+.3f} "
               f"(backtest {ref.get(sym, float('nan')):+.3f}) net={r.sum():+.1f}R "
               f"medMAE={g['mae_r'].median():+.2f}R{drift}")
+    if os.path.exists(ZB_TRADEBOOK_CSV):
+        t = pd.read_csv(ZB_TRADEBOOK_CSV)
+        print(f"ZONE-BREAKOUT tradebook: {len(t)} closed paper trades")
+        for name, g in t.groupby("model"):
+            r = g["r"]; ref_r = ZB_MODELS[name]["ref_avg_r"]
+            drift = "  << DRIFT FLAG" if len(g) >= 20 \
+                and abs(r.mean() - ref_r) > 0.20 else ""
+            print(f"  {name}: n={len(g)} WR={(r > 0).mean():.0%} avg={r.mean():+.3f} "
+                  f"(backtest {ref_r:+.3f}) net={r.sum():+.1f}R "
+                  f"medMAE={g['mae_r'].median():+.2f}R "
+                  f"medMFE={g['mfe_r'].median():+.2f}R{drift}")
 
 
 if __name__ == "__main__":
