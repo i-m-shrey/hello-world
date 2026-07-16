@@ -1,7 +1,7 @@
 # ============================================================================
-# FINAL PRODUCTION FILE (July 16 2026 rev2 — LOTS KeyError hotfix).
-# Fix: DONCH_TR/VCX_A/VCX_B added to LOTS (0.01) + import-time completeness
-# asserts so a missing LOTS/ENABLE entry can never crash a live preflight.
+# FINAL PRODUCTION FILE (July 16 2026 rev3 — FX size step-up, owner approved).
+# Change vs rev2: nine FX instances 0.03 -> 0.04 lots + FX_MAX_RISK_USD 8 -> 10.5.
+# MC at this size: median ~45 trading days to $250, P(dip to $100 first) ~10%.
 # Fill the six <<<PASTE-...>>> lines, save as live_mt5_bot.py.
 # ============================================================================
 """
@@ -74,20 +74,20 @@ LOTS = {
     "XAUUSD_H1A": 0.01,     # gold H1 long-only (A family) — 12/18 years positive
     "XAUUSD_STRAD": 0.01,   # gold H1 breakout, long-only close-confirmed — PF 1.78, 13/18 yrs
     "XAUUSD_S3LO": 0.01,    # NY-morning FVG long — +26.6R PF 1.21, daily-corr to S5 only +0.26
-    "EURUSD_E":   0.03,
+    "EURUSD_E":   0.04,
     "EURUSD_BOLL30": 0.03,   # 30m quiet-hours fade — ~118 trades/yr, low-cost edge
     "EURUSD_P1_30": 0.03,    # 30m opposing-FVG reversal (limit entry) — ho +10R
-    "GBPUSD_P1":   0.03,     # H1 opposing-FVG reversal (limit entry) — PF 1.91, cost-immune
-    "GBPUSD_E":   0.03,
-    "USDCAD_A":   0.03,
-    "USDCHF_A":   0.03,
-    "USDCHF_RSI30": 0.03,    # 30m RSI fade, SHORT-only — PF 1.62, 9/9 yrs, corr to A -0.03
+    "GBPUSD_P1":   0.04,     # H1 opposing-FVG reversal (limit entry) — PF 1.91, cost-immune
+    "GBPUSD_E":   0.04,
+    "USDCAD_A":   0.04,
+    "USDCHF_A":   0.04,
+    "USDCHF_RSI30": 0.04,    # 30m RSI fade, SHORT-only — PF 1.62, 9/9 yrs, corr to A -0.03
     "XAUUSD_DONCH":  0.01,   # gold Donchian breakout LONG — +95R avg+0.116, corr to book +0.14
     "XAUUSD_MACROSS":0.01,   # gold EMA20x50 momentum LONG — +50R avg+0.110, corr +0.16
     "SPX500_DONCH":  0.01,   # S&P Donchian LONG — +41.8R WR33%, cross-feed verified, ~$2/trade
     "GER40_DONCH":   0.01,   # DAX Donchian LONG — +62.9R WR32%, cross-feed verified, ~$9/trade
     "XAUUSD_CRASH":  0.01,   # gold crash-insurance SHORT — +63.1R, pays in every bear window
-    "GBPUSD_AVWAP":  0.03,   # daily-AVWAP stretch fade SHORT — +123R/16y, avg +0.084, replaces
+    "GBPUSD_AVWAP":  0.04,   # daily-AVWAP stretch fade SHORT — +123R/16y, avg +0.084, replaces
                              # the benched BOLL15 fades with a 2x fatter per-trade edge
     "XAUUSD_BOS":    0.01,   # structure-break long rr5 — +267R/18y avg +0.170, 3x-cost immune
     "GER40_BOS":     0.01,   # DAX structure-break long rr3 — +51.6R/7y avg +0.070
@@ -100,8 +100,8 @@ LOTS = {
     "XAUUSD_ZBPIV":  0.01,   # H4 pivot(K=5) zone breakout — +0.16 avg/18y, 3x +98.8
     "XAGUSD_ZBBOX":  0.01,   # SILVER H1 Darvas-box breakout — first validated XAG edge
     "SPX500_ZBPIV":  0.01,   # S&P D1 pivot(K=5) breakout — WR 47%, ~$4-8/trade min lot
-    "EURUSD_BOLL30R": 0.03,  # refined M30 fade (long-only, atrp<=0.50) — live-cost PASS
-    "USDCHF_P1":  0.03,      # H1 opposing-FVG reversal — +16R avg+0.125, corr to CHF book -0.01
+    "EURUSD_BOLL30R": 0.04,  # refined M30 fade (long-only, atrp<=0.50) — live-cost PASS
+    "USDCHF_P1":  0.04,      # H1 opposing-FVG reversal — +16R avg+0.125, corr to CHF book -0.01
     "EURUSD_BOLL15": 0.03,   # 15m BB fade LONG-only — +206R/18.5y, PF 1.15, 16/19 yrs
     "GBPUSD_BOLL15": 0.03,   # 15m BB fade — +409R/18.5y, PF 1.15, 17/19 yrs, 3x-cost-immune
     "USDCHF_BOLL15": 0.03,   # 15m BB fade — +363R/18.5y, 19/19 yrs (feed-sensitive level)
@@ -321,7 +321,7 @@ MAX_CONCURRENT_PER_USD = 4
 # 0.01 lot risks more than the cap, the trade is SKIPPED when FX_MAX_RISK_SKIP=True
 # (backtest: this skips <2% of trades; verified not to dent the edge).
 FX_MIN_RISK_USD = 0.0   # floor OFF (was 7.0) — replaced by the MAX cap below
-FX_MAX_RISK_USD = 8.0   # hard per-trade $ risk ceiling for FX; 0 disables the cap
+FX_MAX_RISK_USD = 10.5  # raised 8.0 -> 10.5 July 16 2026 with the 0.04 lot step-up
 FX_MAX_RISK_SKIP = True # skip an FX trade if even 0.01 lot would exceed FX_MAX_RISK_USD
 # GOLD note: gold rides the 0.01-lot broker minimum and CANNOT be sized below it, so a
 # high-ATR gold trade can still risk ~$25-35. Capping gold would mean SKIPPING those
