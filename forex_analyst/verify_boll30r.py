@@ -6,7 +6,7 @@ boll15_refit_lab.py survivor cell EXACTLY before real money touches it.
   [2] Windowed live-signal parity — live_signals.signal_at_last_bar (BOLL family,
       long-only, atrp<=0.50) on 3600-bar live-cache windows over lab signal bars
       + quiet bars: same fires, zero false positives.
-  [3] Config cross-check — magic 55101, feed EURUSD_30, lot 0.03, params exact,
+  [3] Config cross-check — magic 55101, feed EURUSD_30, lot 0.04 (owner FX size step-up), params exact,
       legacy EURUSD_BOLL30 (81001) stays DISABLED (superseded).
 """
 import sys
@@ -74,7 +74,7 @@ def main():
     import live_mt5_bot as BOT
     inst = BOT.INSTANCES["EURUSD_BOLL30R"]
     check("config", inst["magic"] == 55101 and BOT.feed_of(inst) == "EURUSD_30"
-          and BOT.LOTS["EURUSD_BOLL30R"] == 0.03
+          and BOT.LOTS["EURUSD_BOLL30R"] == 0.04
           and cfg["atrp_max"] == 0.50 and cfg["sides"] == ("long",)
           and cfg["bb_len"] == 20 and cfg["sd_mult"] == 2.0 and cfg["stop_atr"] == 1.2
           and BOT.ENABLE.get("EURUSD_BOLL30") is False

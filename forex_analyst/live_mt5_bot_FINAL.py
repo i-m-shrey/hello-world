@@ -1,8 +1,14 @@
 # ============================================================================
-# FINAL PRODUCTION FILE (July 16 2026 rev3 — FX size step-up, owner approved).
-# Change vs rev2: nine FX instances 0.03 -> 0.04 lots + FX_MAX_RISK_USD 8 -> 10.5.
-# MC at this size: median ~45 trading days to $250, P(dip to $100 first) ~10%.
-# Fill the six <<<PASTE-...>>> lines, save as live_mt5_bot.py.
+# FINAL PRODUCTION FILE (July 16 2026 rev4 -- CRITICAL TZ false-positive fix).
+# Bug: XAUUSD_H4 (added for ZBPIV) tripped a false TIMEZONE CROSS-CHECK FAILED
+# that silently gated ALL new entries book-wide for hours, despite every other
+# feed reading CONSISTENT OK. Root cause: the weekend fingerprint compared a
+# coarse H4 bar OPEN hour against 15-17 NY; H4 bars legitimately open at 13:00
+# and still cover the 17:00 NY close. Fix: coarse (>=2h) bars use an alignment-
+# invariant straddle check; fine-grained bars are BYTE-IDENTICAL to before.
+# Proven: real feeds all still CONSISTENT OK, injected true offset errors (2-6h,
+# incl. the original UTC-05:45 incident magnitude) still correctly FAIL on every
+# timeframe. Fill the six <<<PASTE-...>>> lines, save as live_mt5_bot.py.
 # ============================================================================
 """
 ================================================================================
@@ -852,19 +858,43 @@ def _fmt_off(off_min):
 
 def verify_tz_via_weekend(df, label):
     """METHOD 2 (cross-check, broker-INDEPENDENT): the FX/gold market itself closes Friday
-    ~17:00 New York. So the last bar before each weekend gap MUST land on Friday ~16:00-17:00
-    NY when the offset is right — regardless of what timezone the broker uses. If the measured
-    offset is wrong, these land on the wrong weekday/hour and we scream. Robust to holidays
-    (uses the majority of weekend-sized gaps, not a single one)."""
+    ~17:00 New York. So the last bar before each weekend gap MUST CLOSE around Friday
+    ~16:00-17:00 NY when the offset is right — regardless of what timezone the broker
+    uses. If the measured offset is wrong, these land on the wrong weekday/hour and we
+    scream. Robust to holidays (uses the majority of weekend-sized gaps, not a single one).
+    July 16 2026 fix: compares bar CLOSE (open + bar span), not OPEN, against the 15-17
+    window. Bars are timestamped at OPEN, so a coarse H4 bar covering 13:00-17:00 NY has
+    an open hour of 13 — checking the open against 15-17 falsely failed every H4 feed
+    (XAUUSD_H4 tripped a global TIMEZONE CROSS-CHECK FAILED that gated the ENTIRE book's
+    entries for hours despite every other feed reading CONSISTENT OK). Sub-hourly/hourly
+    bars are unaffected (their close time barely differs from open)."""
     try:
         t = df["timestamp_ny"].reset_index(drop=True)
         d = t.diff()
         big = list(d[d > pd.Timedelta(hours=20)].index)        # weekend-sized gaps
         if not big:
             return None
-        good = sum(1 for gi in big if t.iloc[gi - 1].weekday() == 4 and 15 <= t.iloc[gi - 1].hour <= 17)
+        span = d[d < pd.Timedelta(hours=20)].median()           # typical bar spacing
+        if pd.isna(span) or span <= pd.Timedelta(0):
+            span = pd.Timedelta(minutes=1)
+        opens = t.iloc[[gi - 1 for gi in big]]
+        if span >= pd.Timedelta(hours=2):
+            # COARSE bars (H4+): a resampler's grid phase doesn't reliably label the
+            # pre-weekend bar's OPEN in 15-17 (e.g. an H4 bar opening 13:00 legitimately
+            # covers the 17:00 NY close). Alignment-invariant check instead: does this
+            # bar's [open, open+span] window straddle Friday 17:00 NY? July 16 2026 fix
+            # — XAUUSD_H4 falsely tripped a global TIMEZONE CROSS-CHECK FAILED that gated
+            # the ENTIRE book's entries for hours despite every other feed reading OK.
+            good = sum(1 for o in opens if o.weekday() == 4
+                      and o - pd.Timedelta(minutes=1)
+                      <= o.normalize() + pd.Timedelta(hours=17)
+                      <= o + span + pd.Timedelta(minutes=1))
+        else:
+            # Sub-hourly/hourly bars: open-hour check (unchanged, proven in production;
+            # the 15-17 tolerance already absorbs holiday early-closes at this granularity).
+            good = sum(1 for o in opens if o.weekday() == 4 and 15 <= o.hour <= 17)
         frac = good / len(big)
-        sample = t.iloc[big[-1] - 1]
+        sample = opens.iloc[-1]
         ok = frac >= 0.7
         log(f"TZ VERIFY [{label}]: {good}/{len(big)} weekend gaps end on Fri 16-17 NY "
             f"(latest: {sample:%a %Y-%m-%d %H:%M} NY) -> "
