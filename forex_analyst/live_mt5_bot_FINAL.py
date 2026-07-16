@@ -1,10 +1,8 @@
 # ============================================================================
-# FINAL PRODUCTION FILE (July 16 2026 — owner go-live pass).
-# ON : DONCH_TR(53101) VCX_B(53501) ZBPIV(54101) SPX_ZBPIV(54301) BOLL30R(55101)
-# OFF: S4(VOID) DONCH(swapped for TR) VCX_A ZBBOX(confirm broker XAGUSD symbol)
-#      BOLL15 trio / BOLL30 / P1_30 (cost) CRASH (insurance bleed)
-# Fill the six <<<PASTE-...>>> lines, save as live_mt5_bot.py, run
-# verify_zone_breakout.py + verify_boll30r.py + deployed_audit.py first.
+# FINAL PRODUCTION FILE (July 16 2026 rev2 — LOTS KeyError hotfix).
+# Fix: DONCH_TR/VCX_A/VCX_B added to LOTS (0.01) + import-time completeness
+# asserts so a missing LOTS/ENABLE entry can never crash a live preflight.
+# Fill the six <<<PASTE-...>>> lines, save as live_mt5_bot.py.
 # ============================================================================
 """
 ================================================================================
@@ -96,6 +94,9 @@ LOTS = {
     "US30_DONCH":    0.01,   # EQUITY-GATED ($600): validated, ~$15/trade at min lot
     "JPN225_DONCH":  0.01,   # EQUITY-GATED ($800): validated, ~$17-21/trade at min lot
     "HK50_MACROSS":  0.01,   # EQUITY-GATED ($800): validated, ~$15-20/trade at min lot
+    "XAUUSD_DONCH_TR": 0.01, # DONCH exit-upgrade twin (chandelier trail) — rides min lot
+    "XAUUSD_VCX_A":  0.01,   # VCX gold cell A (q0.20 pad0.2 stop2.5) — min lot
+    "XAUUSD_VCX_B":  0.01,   # VCX gold cell B (q0.25 pad0.1 stop2.0) — min lot
     "XAUUSD_ZBPIV":  0.01,   # H4 pivot(K=5) zone breakout — +0.16 avg/18y, 3x +98.8
     "XAGUSD_ZBBOX":  0.01,   # SILVER H1 Darvas-box breakout — first validated XAG edge
     "SPX500_ZBPIV":  0.01,   # S&P D1 pivot(K=5) breakout — WR 47%, ~$4-8/trade min lot
@@ -105,6 +106,9 @@ LOTS = {
     "GBPUSD_BOLL15": 0.03,   # 15m BB fade — +409R/18.5y, PF 1.15, 17/19 yrs, 3x-cost-immune
     "USDCHF_BOLL15": 0.03,   # 15m BB fade — +363R/18.5y, 19/19 yrs (feed-sensitive level)
 }
+# FAIL-FAST (July 16 2026, after a live KeyError): every INSTANCES key MUST have a
+# LOTS entry — checked at import so a missing lot can never crash a live preflight.
+# (The assert itself lives right after INSTANCES is defined, below.)
 # Enable / disable each strategy-symbol independently.
 ENABLE = {
     "XAUUSD_S5":  True,
@@ -714,6 +718,11 @@ def market_of(feed):
 
 
 # only manage feeds that have at least one enabled instance
+_missing_lots = [k for k in INSTANCES if k not in LOTS]
+assert not _missing_lots, f"config error: INSTANCES without LOTS entry: {_missing_lots}"
+_missing_enable = [k for k in INSTANCES if k not in ENABLE]
+assert not _missing_enable, f"config error: INSTANCES without ENABLE entry: {_missing_enable}"
+
 ACTIVE_SYMBOLS = sorted({feed_of(i) for k, i in INSTANCES.items() if ENABLE.get(k)})
 
 
