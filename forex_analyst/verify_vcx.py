@@ -126,9 +126,11 @@ def main():
     okB = (BOT.INSTANCES["XAUUSD_VCX_B"]["magic"] == 53501
            and BOT.INSTANCES["XAUUSD_VCX_B"]["risk_mode"] == "trend"
            and BOT.INSTANCES["XAUUSD_VCX_B"]["cfg"] is LS.FX_STRATS["XAUUSD-VCX-B"]
-           and BOT.ENABLE.get("XAUUSD_VCX_B") is False)
+           and BOT.ENABLE.get("XAUUSD_VCX_B") is True
+           and not (BOT.ENABLE.get("XAUUSD_VCX_A") and BOT.ENABLE.get("XAUUSD_VCX_B")))
     verdict("instances wired", okA and okB,
-            "magics 53401/53501, risk_mode=trend, cfg bound, ENABLE=False")
+            "magics 53401/53501, risk_mode=trend, cfg bound; owner go-live July 16: "
+            "VCX_B ON, VCX_A OFF (96% overlap — never both)")
 
     print()
     if FAILED:

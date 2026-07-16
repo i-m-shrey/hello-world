@@ -1,0 +1,21 @@
+--- /tmp/ls.pre_golive.py	2026-07-16 04:52:03.048207264 +0000
++++ live_signals.py	2026-07-16 04:52:03.056374960 +0000
+@@ -68,6 +68,18 @@
+                       # Opposing-FVG reversal on USDCHF H1 (fx_port_lab July 2026): +16R,
+                       # avg +0.125R, train +10/holdout +6 both splits +, survives 2x cost,
+                       # 8/17 yrs. Corr to existing USDCHF book -0.007 -> independent.
++    # ── BOLL30R refined variant (boll15_refit_lab.py July 2026). The BOLL15 refit
++    # proved the M15 family unsalvageable at the AUDITED live all-in cost (holdout
++    # >=2024 negative for all three symbols at 0.8-1.0p; no regime gate or exit fixes
++    # it — the leak is pure cost drag, not logic). The one live-cost survivor is the
++    # M30 migration on EURUSD, LONG-only, with the calm filter tightened 0.70->0.50:
++    # n=400/16y, WR 49.5%, avg +0.102, train +13.5 / holdout +27.4, 3x-stress +6.5.
++    # COST-FRAGILE by nature (plateau positive 17/18 neighbors but 3x-robust only at
++    # the center cells) — treat like BOLL30: disable if EURUSD all-in spread > ~1p.
++    "EURUSD-BOLL30R": dict(symbol="EURUSD", family="BOLL", be_r=None,
++                           bb_len=20, sd_mult=2.0, stop_atr=1.2, atrp_max=0.50,
++                           hours=tuple(range(14, 24)), max_hold=20, max_tpd=3,
++                           sides=("long",)),
+     # ── BOLL15 family (July 2026, m15_deep_validation.py on 18.5y HistData M15) ──
+     # Same quiet-hours Bollinger fade as BOLL30, one timeframe down. Validated on
+     # 2008-2026 (train <=2023 spans euro crisis/2014 USD/Brexit/COVID/2022 hikes).

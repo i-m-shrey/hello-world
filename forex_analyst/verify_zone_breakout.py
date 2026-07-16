@@ -161,7 +161,12 @@ def main():
     magics = {k: BOT.INSTANCES[k]["magic"] for k in CELLS}
     check("magics", magics == {"XAUUSD_ZBPIV": 54101, "XAGUSD_ZBBOX": 54201,
                                "SPX500_ZBPIV": 54301}, f"{magics}")
-    check("ENABLE all False", all(BOT.ENABLE.get(k) is False for k in CELLS),
+    # owner go-live July 16 2026: gold/SPX pivot breakouts ON (equity-gated $250);
+    # silver stays OFF until the broker's XAGUSD symbol is confirmed in Market Watch.
+    check("ENABLE go-live state",
+          BOT.ENABLE.get("XAUUSD_ZBPIV") is True
+          and BOT.ENABLE.get("SPX500_ZBPIV") is True
+          and BOT.ENABLE.get("XAGUSD_ZBBOX") is False,
           {k: BOT.ENABLE.get(k) for k in CELLS})
     p = LS.FX_STRATS
     check("params == matrix cells",

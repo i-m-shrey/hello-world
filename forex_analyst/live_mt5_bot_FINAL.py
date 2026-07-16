@@ -1,7 +1,10 @@
 # ============================================================================
-# FINAL PRODUCTION FILE (July 16 2026 — ZONE BREAKOUT wiring, all OFF).
-# New: XAUUSD_ZBPIV(54101) / XAGUSD_ZBBOX(54201) / SPX500_ZBPIV(54301), all
-# ENABLE=False. Fill the six <<<PASTE-...>>> lines, save as live_mt5_bot.py.
+# FINAL PRODUCTION FILE (July 16 2026 — owner go-live pass).
+# ON : DONCH_TR(53101) VCX_B(53501) ZBPIV(54101) SPX_ZBPIV(54301) BOLL30R(55101)
+# OFF: S4(VOID) DONCH(swapped for TR) VCX_A ZBBOX(confirm broker XAGUSD symbol)
+#      BOLL15 trio / BOLL30 / P1_30 (cost) CRASH (insurance bleed)
+# Fill the six <<<PASTE-...>>> lines, save as live_mt5_bot.py, run
+# verify_zone_breakout.py + verify_boll30r.py + deployed_audit.py first.
 # ============================================================================
 """
 ================================================================================
@@ -96,6 +99,7 @@ LOTS = {
     "XAUUSD_ZBPIV":  0.01,   # H4 pivot(K=5) zone breakout — +0.16 avg/18y, 3x +98.8
     "XAGUSD_ZBBOX":  0.01,   # SILVER H1 Darvas-box breakout — first validated XAG edge
     "SPX500_ZBPIV":  0.01,   # S&P D1 pivot(K=5) breakout — WR 47%, ~$4-8/trade min lot
+    "EURUSD_BOLL30R": 0.03,  # refined M30 fade (long-only, atrp<=0.50) — live-cost PASS
     "USDCHF_P1":  0.03,      # H1 opposing-FVG reversal — +16R avg+0.125, corr to CHF book -0.01
     "EURUSD_BOLL15": 0.03,   # 15m BB fade LONG-only — +206R/18.5y, PF 1.15, 16/19 yrs
     "GBPUSD_BOLL15": 0.03,   # 15m BB fade — +409R/18.5y, PF 1.15, 17/19 yrs, 3x-cost-immune
@@ -104,24 +108,30 @@ LOTS = {
 # Enable / disable each strategy-symbol independently.
 ENABLE = {
     "XAUUSD_S5":  True,
-    "XAUUSD_ZBPIV": False,     # ZONE BREAKOUT (July 2026): ships OFF per house rule.
+    "EURUSD_BOLL30R": True,    # ENABLED July 16 2026 (owner go-live): refit survivor at
+                               # audited live cost (ho +27.4R). COST-FRAGILE — disable if
+                               # EURUSD all-in spread exceeds ~1.0 pip.
+    "XAUUSD_ZBPIV": True,      # ENABLED July 16 2026 (owner go-live): H4 pivot breakout,
+                               # gated $250; the $20 XAUUSD risk cap will skip most
+                               # signals while H4 ATR is $30-40 (logged when it does).
     "XAGUSD_ZBBOX": False,     # ZONE BREAKOUT silver: ships OFF. NOTE: broker silver
                                # symbol must exist (XAGUSD / check SYMBOL_OVERRIDE).
-    "SPX500_ZBPIV": False,     # ZONE BREAKOUT S&P D1: ships OFF.
+    "SPX500_ZBPIV": True,      # ENABLED July 16 2026 (owner go-live): D1 pivot breakout
+                               # WR 47%, gated $250 (~$4-8 risk/trade).
     "XAUUSD_VCX_A": False,     # OWNER-SELECTED VCX cell A (q0.20 pad0.2 stop2.5 rr3).
                                # ~96% open-time overlap with XAUUSD_DONCH and VCX_B —
                                # these STACK the same gold longs (cap = MAX_STACKED_GOLD_LONGS).
-    "XAUUSD_VCX_B": False,     # OWNER-SELECTED VCX cell B (q0.25 pad0.1 stop2.0 rr3).
-    "XAUUSD_DONCH_TR": False,  # EXIT-UPGRADE twin of XAUUSD_DONCH (chandelier 5xATR
-                               # trail, no TP; live_signals "XAUUSD-DONCH-TR").
-                               # SAME ENTRIES as XAUUSD_DONCH -> enable exactly ONE
-                               # of the two (+176.5R vs +125.8R fixed-rr3;
-                               # verify_donch_trail.py). Owner flips this together
-                               # with XAUUSD_DONCH -> False.
+    "XAUUSD_VCX_B": True,      # ENABLED July 16 2026 (owner go-live): the MC-preferred
+                               # VCX cell (DONCH_TR+VCX_B best marginal ratio). Gated $250.
+                               # VCX_A stays OFF (96% overlap — never run both).
+    "XAUUSD_DONCH_TR": True,   # ENABLED July 16 2026 (owner go-live): replaces DONCH.
+                               # Gated $250 — arms automatically when equity crosses.
     "XAUUSD_S6":  True,     # RE-ENABLED as S6-R (July 2026): structure-gated rehab —
                             # bias5==+1 + disp 2.4xATR flips it to +54.6R, PF 1.18,
                             # maxDD -19.5R, 6/6 years (s6_rehab_lab.py). See S6R_* vars.
-    "XAUUSD_S4":  True,
+    "XAUUSD_S4":  False,    # DISABLED July 16 2026: TZ audit VOID — the session-boxed
+                            # pattern does not exist on true NY time (23->9 trades,
+                            # train -1.0R). Do not re-enable without fresh validation.
     "XAUUSD_H1A": True,
     "XAUUSD_STRAD": True,
     "XAUUSD_S3LO": True,
@@ -145,7 +155,9 @@ ENABLE = {
     "USDCAD_A":   True,
     "USDCHF_A":   True,
     "USDCHF_RSI30": True,
-    "XAUUSD_DONCH": True,
+    "XAUUSD_DONCH": False,  # SWAPPED July 16 2026 for XAUUSD_DONCH_TR (same entries,
+                            # validated chandelier-trail exit: avg R +0.116 -> +0.338).
+                            # MUTUAL EXCLUSION: never enable both DONCH and DONCH_TR.
     "XAUUSD_MACROSS": True,
     "SPX500_DONCH": True,
     "GER40_DONCH": True,
@@ -604,6 +616,15 @@ INSTANCES = {
                          equity_min=250,   # ~$4-8 risk/trade at 0.01 lot on D1 ATR
                          max_hold_bars=LS.FX_STRATS["SPX500-ZBPIV"]["max_hold"],
                          max_tpd=LS.FX_STRATS["SPX500-ZBPIV"]["max_tpd"], bar_seconds=86400),
+    # REFINED BOLL30 (boll15_refit_lab July 2026): EURUSD M30 long-only quiet-hours
+    # Bollinger fade, calm filter atrp<=0.50 (vs legacy 0.70/both-sides magic 81001).
+    # The only live-cost survivor of the BOLL15/30 refit — see lab header for numbers.
+    "EURUSD_BOLL30R": dict(symbol="EURUSD", feed="EURUSD_30", strat="BOLL30R", engine="fx",
+                           magic=55101, eval="fx", cfg=LS.FX_STRATS["EURUSD-BOLL30R"],
+                           exit="fixed", rr=None, be_r=None, risk_mode="boll",
+                           stop_pad=_half(LS.FX_SPREADS["EURUSD"]),
+                           max_hold_bars=LS.FX_STRATS["EURUSD-BOLL30R"]["max_hold"],
+                           max_tpd=LS.FX_STRATS["EURUSD-BOLL30R"]["max_tpd"], bar_seconds=1800),
     "USDCHF_RSI30": dict(symbol="USDCHF", feed="USDCHF_30", strat="RSI30", engine="fx",
                          magic=72001, eval="fx", cfg=LS.FX_STRATS["USDCHF-RSI30"],
                          exit="fixed", rr=LS.FX_STRATS["USDCHF-RSI30"]["rr"], be_r=None,
