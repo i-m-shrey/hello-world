@@ -1,14 +1,14 @@
 # ============================================================================
-# FINAL PRODUCTION FILE (July 16 2026 rev4 -- CRITICAL TZ false-positive fix).
-# Bug: XAUUSD_H4 (added for ZBPIV) tripped a false TIMEZONE CROSS-CHECK FAILED
-# that silently gated ALL new entries book-wide for hours, despite every other
-# feed reading CONSISTENT OK. Root cause: the weekend fingerprint compared a
-# coarse H4 bar OPEN hour against 15-17 NY; H4 bars legitimately open at 13:00
-# and still cover the 17:00 NY close. Fix: coarse (>=2h) bars use an alignment-
-# invariant straddle check; fine-grained bars are BYTE-IDENTICAL to before.
-# Proven: real feeds all still CONSISTENT OK, injected true offset errors (2-6h,
-# incl. the original UTC-05:45 incident magnitude) still correctly FAIL on every
-# timeframe. Fill the six <<<PASTE-...>>> lines, save as live_mt5_bot.py.
+# FINAL PRODUCTION FILE (July 18 2026 rev5 -- adds the HAVW strategy family).
+# rev4 base (H4 TZ false-positive fix, stale-tick guard, auto-recovering TZ
+# entry gate) UNCHANGED. New in rev5: XAUUSD_HAVW (H1) + EURUSD_HAVW/
+# GBPUSD_HAVW (H4) -- Heikin-Ashi flip + RSI pullback + volume-weighted MACD,
+# both directions, 3-ATR chandelier trail from the 22-bar extreme. Validated:
+# verify_gs_battery 7/7 + live-parity 120/120 signals + forward-bias audit on
+# all 16 generators; plateau 36/36; daily-R corr to gold book <= +0.05.
+# Engine deltas: trend_trail now handles shorts + FX dollar-sizing; the trail
+# ratchet manages shorts (never loosened); per-instance fx_max_risk_usd cap.
+# Fill the six <<<PASTE-...>>> lines, save as live_mt5_bot.py.
 # ============================================================================
 """
 ================================================================================
@@ -107,6 +107,9 @@ LOTS = {
     "XAGUSD_ZBBOX":  0.01,   # SILVER H1 Darvas-box breakout — first validated XAG edge
     "SPX500_ZBPIV":  0.01,   # S&P D1 pivot(K=5) breakout — WR 47%, ~$4-8/trade min lot
     "EURUSD_BOLL30R": 0.04,  # refined M30 fade (long-only, atrp<=0.50) — live-cost PASS
+    "XAUUSD_HAVW": 0.01,     # H1 Heikin-Ashi+VW-MACD trend — 36/36 plateau, corr<=0.05
+    "EURUSD_HAVW": 0.04,     # H4 HAVW — n=320/18y avg+0.277, sized down by $15 cap
+    "GBPUSD_HAVW": 0.04,     # H4 HAVW — n=335/18y avg+0.221, sized down by $15 cap
     "USDCHF_P1":  0.04,      # H1 opposing-FVG reversal — +16R avg+0.125, corr to CHF book -0.01
     "EURUSD_BOLL15": 0.03,   # 15m BB fade LONG-only — +206R/18.5y, PF 1.15, 16/19 yrs
     "GBPUSD_BOLL15": 0.03,   # 15m BB fade — +409R/18.5y, PF 1.15, 17/19 yrs, 3x-cost-immune
@@ -118,6 +121,12 @@ LOTS = {
 # Enable / disable each strategy-symbol independently.
 ENABLE = {
     "XAUUSD_S5":  True,
+    "XAUUSD_HAVW": True,       # ENABLED July 18 2026 (owner go-live): H1 Heikin-Ashi
+                               # flip + RSI pullback + VW-MACD, chandelier trail. 7/7
+                               # verify + 16-generator forward-bias audit clean. Gated $250.
+    "EURUSD_HAVW": True,       # ENABLED July 18 2026 (owner go-live): H4 twin, gated $300;
+                               # per-instance $15 risk cap (3xATR H4 stop > book $10.50).
+    "GBPUSD_HAVW": True,       # ENABLED July 18 2026 (owner go-live): H4 twin, gated $300.
     "EURUSD_BOLL30R": True,    # ENABLED July 16 2026 (owner go-live): refit survivor at
                                # audited live cost (ho +27.4R). COST-FRAGILE — disable if
                                # EURUSD all-in spread exceeds ~1.0 pip.
@@ -626,6 +635,33 @@ INSTANCES = {
                          equity_min=250,   # ~$4-8 risk/trade at 0.01 lot on D1 ATR
                          max_hold_bars=LS.FX_STRATS["SPX500-ZBPIV"]["max_hold"],
                          max_tpd=LS.FX_STRATS["SPX500-ZBPIV"]["max_tpd"], bar_seconds=86400),
+    # ── HAVW family (gs_battery_lab.py July 2026, magics 611xx-613xx). Heikin-Ashi
+    # flip + RSI pullback + VW-MACD cross, BOTH directions, entry-relative 3*ATR stop,
+    # 3-ATR chandelier trail from the 22-bar extreme (trail_basis=hh22 — manage_positions
+    # raises/lowers the broker SL on every CLOSED bar; no TP). Validated July 18 2026:
+    # verify_gs_battery 7/7, truncation audit on all 16 generators, 36/36 plateau
+    # neighbors positive, daily-R corr to the whole gold book <= +0.05.
+    "XAUUSD_HAVW": dict(symbol="XAUUSD", feed="XAUUSD_H1", strat="HAVW", engine="fx",
+                        magic=61101, eval="fx", cfg=LS.FX_STRATS["XAUUSD-HAVW"],
+                        exit="trail", rr=None, be_r=None, risk_mode="trend_trail",
+                        stop_pad=_half(LS.FX_SPREADS["XAUUSD"]),
+                        equity_min=EQUITY_GATE_GOLD_TREND,
+                        max_hold_bars=LS.FX_STRATS["XAUUSD-HAVW"]["max_hold"],
+                        max_tpd=LS.FX_STRATS["XAUUSD-HAVW"]["max_tpd"], bar_seconds=3600),
+    "EURUSD_HAVW": dict(symbol="EURUSD", feed="EURUSD_H4", strat="HAVW", engine="fx",
+                        magic=61201, eval="fx", cfg=LS.FX_STRATS["EURUSD-HAVW"],
+                        exit="trail", rr=None, be_r=None, risk_mode="trend_trail",
+                        stop_pad=_half(LS.FX_SPREADS["EURUSD"]),
+                        equity_min=300, fx_max_risk_usd=15.0,
+                        max_hold_bars=LS.FX_STRATS["EURUSD-HAVW"]["max_hold"],
+                        max_tpd=LS.FX_STRATS["EURUSD-HAVW"]["max_tpd"], bar_seconds=14400),
+    "GBPUSD_HAVW": dict(symbol="GBPUSD", feed="GBPUSD_H4", strat="HAVW", engine="fx",
+                        magic=61301, eval="fx", cfg=LS.FX_STRATS["GBPUSD-HAVW"],
+                        exit="trail", rr=None, be_r=None, risk_mode="trend_trail",
+                        stop_pad=_half(LS.FX_SPREADS["GBPUSD"]),
+                        equity_min=300, fx_max_risk_usd=15.0,
+                        max_hold_bars=LS.FX_STRATS["GBPUSD-HAVW"]["max_hold"],
+                        max_tpd=LS.FX_STRATS["GBPUSD-HAVW"]["max_tpd"], bar_seconds=14400),
     # REFINED BOLL30 (boll15_refit_lab July 2026): EURUSD M30 long-only quiet-hours
     # Bollinger fade, calm filter atrp<=0.50 (vs legacy 0.70/both-sides magic 81001).
     # The only live-cost survivor of the BOLL15/30 refit — see lab header for numbers.
@@ -678,6 +714,13 @@ SYMBOLS = {
                    bar_min=60, bias_min=240, baseline=None, baseline_bias=None),
     "GBPUSD": dict(engine="fx", tf="H1", bias_tf="H4", bars=2500, bias_bars=2500,
                    bar_min=60, bias_min=240, baseline=None, baseline_bias=None),
+    # H4 feeds for the HAVW family (July 2026): H4 bars with themselves as bias.
+    "EURUSD_H4": dict(engine="fx", tf="H4", bias_tf="H4", bars=2500, bias_bars=2500,
+                      bar_min=240, bias_min=240, baseline=None, baseline_bias=None,
+                      market="EURUSD"),
+    "GBPUSD_H4": dict(engine="fx", tf="H4", bias_tf="H4", bars=2500, bias_bars=2500,
+                      bar_min=240, bias_min=240, baseline=None, baseline_bias=None,
+                      market="GBPUSD"),
     "USDCAD": dict(engine="fx", tf="H1", bias_tf="H4", bars=2500, bias_bars=2500,
                    bar_min=60, bias_min=240, baseline=None, baseline_bias=None),
     "USDCHF": dict(engine="fx", tf="H1", bias_tf="H4", bars=2500, bias_bars=2500,
@@ -1428,12 +1471,13 @@ def fx_lot_for_min_risk(key, inst, direction, entry, stop):
     if FX_MIN_RISK_USD > 0:                             # lift small-stop trades UP to the floor
         target = FX_MIN_RISK_USD * throttle_m
         sized = max(sized, math.ceil(target / per_lot / step - 1e-9) * step)
-    if FX_MAX_RISK_USD > 0:                             # size wide-stop trades DOWN to the cap
-        cap_lot = math.floor(FX_MAX_RISK_USD / per_lot / step + 1e-9) * step
+    fx_cap = float(inst.get("fx_max_risk_usd") or FX_MAX_RISK_USD)  # instance override (HAVW H4)
+    if fx_cap > 0:                                      # size wide-stop trades DOWN to the cap
+        cap_lot = math.floor(fx_cap / per_lot / step + 1e-9) * step
         if cap_lot < vmin:                              # cannot fit the cap even at min lot
             if FX_MAX_RISK_SKIP:
                 log(f"{key}: SKIP — stop too wide, 0.01 lot risks "
-                    f"${per_lot * vmin:.2f} > cap ${FX_MAX_RISK_USD:.2f}")
+                    f"${per_lot * vmin:.2f} > cap ${fx_cap:.2f}")
                 return None
             sized = vmin                                # accept the overage at broker minimum
         else:
@@ -1698,14 +1742,26 @@ def manage_positions(now_utc, state):
                 manage_runner(key, inst, pos, state)
                 continue
             if inst.get("exit") == "trail":
-                # chandelier: SL -> max(SL, close - trail_atr*ATR) of the last CLOSED bar
-                # of this instance's feed. Monotonic (never lowered); long-only family.
+                # chandelier: monotonic SL ratchet on every CLOSED bar of this feed.
+                # basis "close" (DONCH_TR, validated): close -/+ trail_atr*ATR.
+                # basis "hh22" (HAVW, mirrors gs_battery_lab._walk): 22-bar extreme
+                # -/+ trail_atr*ATR. Longs raise the SL, shorts lower it — never loosened.
                 bar = LIVE_TRAIL_BAR.get(feed_of(inst))
-                if bar and pos.type == mt5.POSITION_TYPE_BUY:
-                    cand = bar["close"] - inst["cfg"]["trail_atr"] * bar["atr"]
-                    cur_sl = pos.sl or -10.0 ** 9
-                    if cand > cur_sl + RUNNER_MIN_SL_STEP:
-                        _modify_sl(key, broker_sym(inst["symbol"]), pos, cand, "trail")
+                if bar:
+                    basis = inst["cfg"].get("trail_basis", "close")
+                    ta = inst["cfg"]["trail_atr"] * bar["atr"]
+                    if pos.type == mt5.POSITION_TYPE_BUY:
+                        ref = bar.get("hi22", bar["close"]) if basis == "hh22" else bar["close"]
+                        cand = ref - ta
+                        cur_sl = pos.sl or -10.0 ** 9
+                        if cand > cur_sl + RUNNER_MIN_SL_STEP:
+                            _modify_sl(key, broker_sym(inst["symbol"]), pos, cand, "trail")
+                    else:
+                        ref = bar.get("lo22", bar["close"]) if basis == "hh22" else bar["close"]
+                        cand = ref + ta
+                        cur_sl = pos.sl or 10.0 ** 9
+                        if cand < cur_sl - RUNNER_MIN_SL_STEP:
+                            _modify_sl(key, broker_sym(inst["symbol"]), pos, cand, "trail")
                 continue
             be_r = inst.get("be_r") or 0
             if be_r > 0:
@@ -2084,19 +2140,30 @@ def try_enter(key, inst, frames, state):
                          stop, None, atr=atr, state=state, tp_abs=tp_abs)
         return f"{note}{' EXECUTED' if ok else ' FAILED'}"
     if inst["risk_mode"] == "trend_trail":
-        # DONCH exit-upgrade twin: structural stop at signal_close - stop_atr*ATR like
-        # "trend", but NO take-profit - the chandelier trail in manage_positions owns the
-        # exit (close - trail_atr*ATR on every closed bar). LONG-only (signal_DONCH).
+        # Chandelier-trail family: structural stop at signal_close -/+ stop_atr*ATR like
+        # "trend", but NO take-profit - the trail in manage_positions owns the exit.
+        # DONCH_TR emits long-only; HAVW emits BOTH directions (stop padded AWAY per
+        # side). Gold/index ride the broker-minimum lot (gold under the $ risk guard);
+        # FX instances (HAVW H4) are dollar-sized via fx_lot_for_min_risk.
         atr = sig["atr"]
-        stop = sig["stop"] - inst["stop_pad"]
-        risk = est_entry - stop
+        if sig["direction"] == "short":
+            stop = sig["stop"] + inst["stop_pad"]
+            risk = stop - est_entry
+        else:
+            stop = sig["stop"] - inst["stop_pad"]
+            risk = est_entry - stop
         if risk <= 0 or not (0.3 * atr <= risk <= 4.0 * atr):
             return f"risk {risk:.2f} out of ATR bounds"
         guard = _gold_usd_risk_guard(key, inst, risk)
         if guard:
             return guard
-        ok = send_market(key, inst, "long",
-                         throttled_base_lot(key, broker_sym(inst["symbol"])),
+        if inst["symbol"] in MINLOT_SYMBOLS:
+            lot = throttled_base_lot(key, broker_sym(inst["symbol"]))
+        else:
+            lot = fx_lot_for_min_risk(key, inst, sig["direction"], est_entry, stop)
+            if lot is None:
+                return "risk over cap — skipped"
+        ok = send_market(key, inst, sig["direction"], lot,
                          stop, None, atr=atr, state=state)
         return f"{note}{' EXECUTED' if ok else ' FAILED'}"
     if inst["risk_mode"] == "trend":
@@ -2390,7 +2457,9 @@ def main():
                     cur = frame.iloc[-1]
                     if np.isfinite(float(cur.get("atr50", float("nan")))):
                         LIVE_TRAIL_BAR[sym] = dict(close=float(cur["close"]),
-                                                   atr=float(cur["atr50"]))
+                                                   atr=float(cur["atr50"]),
+                                                   hi22=float(frame["high"].tail(22).max()),
+                                                   lo22=float(frame["low"].tail(22).min()))
 
                 write_positions_snapshot()
                 update_daily_pnl(cur["ny_date"])

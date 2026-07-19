@@ -233,6 +233,26 @@ FX_STRATS = {
                          # +23.5R, PF 1.62, WR 52%, maxDD -4.5R, positive 9/9 years,
                          # survives 3x cost; all threshold/stop/rr/hour neighbors positive).
                          # Overlap vs USDCHF-A: 1% time, daily-R corr -0.03 -> independent.
+    # ── HAVW family (gs_battery_lab.py July 2026): Heikin-Ashi color flip + RSI
+    # pullback + volume-weighted MACD cross, BOTH directions, 3-ATR chandelier
+    # trail from the 22-bar extreme (trail_basis=hh22). Validated verify_gs_battery
+    # 7/7 + 16-generator truncation audit; 36/36 parameter neighbors positive;
+    # daily-R corr to entire gold book <= +0.05.
+    "XAUUSD-HAVW": dict(symbol="XAUUSD", family="HAVW", rsi_n=14, rsi_lo=40,
+                        rsi_hi=60, rsi_look=10, stop_atr=3.0, trail_atr=3.0,
+                        trail_basis="hh22", max_hold=120, max_tpd=2),
+                        # H1: n=369/5.7y, WR 52.6%, avg +0.166, train +43.4/ho +17.9,
+                        # 3x +53.5, +every year 2020-25, maxDD -5.5R.
+    "EURUSD-HAVW": dict(symbol="EURUSD", family="HAVW", rsi_n=14, rsi_lo=40,
+                        rsi_hi=60, rsi_look=10, stop_atr=3.0, trail_atr=3.0,
+                        trail_basis="hh22", max_hold=120, max_tpd=2),
+                        # H4: n=320/18y, WR 63.1%, avg +0.277, train +71.3/ho +17.4,
+                        # 3x +84.3, maxDD -2.5R.
+    "GBPUSD-HAVW": dict(symbol="GBPUSD", family="HAVW", rsi_n=14, rsi_lo=40,
+                        rsi_hi=60, rsi_look=10, stop_atr=3.0, trail_atr=3.0,
+                        trail_basis="hh22", max_hold=120, max_tpd=2),
+                        # H4: n=335/18y, WR 56.7%, avg +0.221, train +66.0/ho +8.1,
+                        # 3x +69.9, maxDD -3.2R.
 }
 
 # Per-symbol ALL-IN round-trip cost (price units): raw spread + the $7/lot commission
@@ -685,6 +705,51 @@ def signal_ZBBOX(e: pd.DataFrame, i: int, cfg: dict):
     return None
 
 
+def signal_HAVW(e: pd.DataFrame, i: int, cfg: dict):
+    """Heikin-Ashi flip + RSI pullback + VW-MACD cross (mirrors gs_battery_lab
+    ev_havw EXACTLY). Long: HA flips red->green at bar i, RSI(14) dipped below
+    rsi_lo within the last rsi_look bars, VW-MACD crosses above its signal at i.
+    Short is the mirror. Stop = close -/+ stop_atr*ATR (entry-relative structural);
+    the chandelier trail (trail_atr from the 22-bar extreme) owns the exit."""
+    if i < 60:
+        return None
+    o = e["open"].to_numpy(float); h = e["high"].to_numpy(float)
+    l = e["low"].to_numpy(float); c = e["close"].to_numpy(float)
+    atr = e["atr50"].to_numpy(float)
+    if not np.isfinite(atr[i]):
+        return None
+    v = e["volume"].fillna(1.0).to_numpy(float) if "volume" in e else np.ones(len(c))
+    if not np.isfinite(v).all() or v.sum() <= 0:
+        v = np.ones(len(c))
+    ha_c = (o + h + l + c) / 4
+    ha_o = np.empty(i + 1); ha_o[0] = o[0]
+    for k in range(1, i + 1):
+        ha_o[k] = (ha_o[k - 1] + ha_c[k - 1]) / 2
+    green_i = ha_c[i] > ha_o[i]; green_p = ha_c[i - 1] > ha_o[i - 1]
+    if green_i == green_p:
+        return None
+    d = np.diff(c[:i + 1], prepend=c[0])
+    up = pd.Series(np.where(d > 0, d, 0.0)).ewm(alpha=1 / cfg["rsi_n"], adjust=False).mean()
+    dn = pd.Series(np.where(d < 0, -d, 0.0)).ewm(alpha=1 / cfg["rsi_n"], adjust=False).mean()
+    rsi = (100 - 100 / (1 + up / dn.replace(0, np.nan))).fillna(50).to_numpy()
+    pv = pd.Series(c[:i + 1] * v[:i + 1])
+    vs_ = pd.Series(v[:i + 1])
+    vw_fast = pv.ewm(span=12, adjust=False).mean() / vs_.ewm(span=12, adjust=False).mean()
+    vw_slow = pv.ewm(span=26, adjust=False).mean() / vs_.ewm(span=26, adjust=False).mean()
+    macd = (vw_fast - vw_slow).to_numpy()
+    sig = pd.Series(macd).ewm(span=9, adjust=False).mean().to_numpy()
+    look = cfg["rsi_look"]
+    if (green_i and rsi[i - look:i].min() < cfg["rsi_lo"]
+            and macd[i] > sig[i] and macd[i - 1] <= sig[i - 1]):
+        return dict(direction="long", atr=float(atr[i]),
+                    stop=float(c[i] - cfg["stop_atr"] * atr[i]))
+    if (not green_i and rsi[i - look:i].max() > cfg["rsi_hi"]
+            and macd[i] < sig[i] and macd[i - 1] >= sig[i - 1]):
+        return dict(direction="short", atr=float(atr[i]),
+                    stop=float(c[i] + cfg["stop_atr"] * atr[i]))
+    return None
+
+
 def signal_at_last_bar(e: pd.DataFrame, cfg: dict):
     """Live entry point: evaluate the LAST (most recently closed) bar of frame `e`.
     Returns dict(direction, stop, atr) or None — for family BOLL the dict instead
@@ -730,6 +795,8 @@ def signal_at_last_bar(e: pd.DataFrame, cfg: dict):
         return signal_AVWAP(e, i, cfg)      # BOLL-shaped dict(direction, target, atr, stop_atr)
     if cfg["family"] == "ZBPIV":
         return signal_ZBPIV(e, i, cfg)      # dict(direction, atr, stop_atr, rr) both sides
+    if cfg["family"] == "HAVW":
+        return signal_HAVW(e, i, cfg)       # dict(direction, stop, atr) both sides
     if cfg["family"] == "ZBBOX":
         return signal_ZBBOX(e, i, cfg)      # dict(direction, atr, stop_atr, rr) both sides
     if cfg["family"] == "BOS":

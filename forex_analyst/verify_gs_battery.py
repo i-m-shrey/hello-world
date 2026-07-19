@@ -117,6 +117,52 @@ def main():
                 f"n={st['n']} avg={st['avg_r']:+.4f} vs saved n={row['n']} "
                 f"avg={row['avg_r']:+.4f}")
 
+    hdr("8: LIVE PARITY — deployed signal_HAVW == lab ev_havw")
+    import live_signals as LS
+    for sym, tf, ckey in [("XAUUSD", "H1", "XAUUSD-HAVW"),
+                          ("EURUSD", "H4", "EURUSD-HAVW"),
+                          ("GBPUSD", "H4", "GBPUSD-HAVW")]:
+        d = df if (sym, tf) == ("XAUUSD", "H1") else G.prep(G.load_any(sym, tf))
+        cfg = LS.FX_STRATS[ckey]
+        ev_map = {e["i"]: e for e in G.ev_havw(d, sym)}
+        sig_bars = sorted(ev_map)[-40:]
+        good = 0
+        for i in sig_bars:
+            res = LS.signal_HAVW(d, i, cfg)
+            e = ev_map[i]
+            want = "long" if e["side"] == 1 else "short"
+            if res and res["direction"] == want and abs(res["stop"] - e["stop"]) < 1e-6:
+                good += 1
+        rng = np.random.default_rng(7)
+        ctrl = rng.choice([i for i in range(200, len(d) - 1) if i not in ev_map],
+                          300, replace=False)
+        ff = sum(1 for i in ctrl if LS.signal_HAVW(d, int(i), cfg) is not None)
+        section(f"{ckey} live path parity", good == len(sig_bars) and ff == 0,
+                f"{good}/{len(sig_bars)} signals reproduced, {ff} false fires in 300 controls")
+
+    hdr("9: WIRING SAFETY — deployed HAVW instances")
+    from unittest.mock import MagicMock
+    sys.modules["MetaTrader5"] = MagicMock()
+    import importlib
+    import live_mt5_bot as B
+    importlib.reload(B)
+    for k in ("XAUUSD_HAVW", "EURUSD_HAVW", "GBPUSD_HAVW"):
+        inst = B.INSTANCES[k]
+        checks = (k in B.LOTS and k in B.ENABLE
+                  and inst["risk_mode"] == "trend_trail" and inst["exit"] == "trail"
+                  and inst["cfg"]["trail_basis"] == "hh22"
+                  and inst["cfg"]["trail_atr"] == 3.0 and inst["cfg"]["stop_atr"] == 3.0
+                  and inst.get("equity_min", 0) >= 250)
+        section(f"{k} wired (lots/enable/trail_basis/gates)", bool(checks),
+                f"magic={inst['magic']} feed={inst['feed']} equity_min={inst.get('equity_min')}")
+    fx_caps = (B.INSTANCES["EURUSD_HAVW"].get("fx_max_risk_usd") == 15.0
+               and B.INSTANCES["GBPUSD_HAVW"].get("fx_max_risk_usd") == 15.0
+               and B.INSTANCES["XAUUSD_HAVW"].get("fx_max_risk_usd") is None)
+    section("FX H4 instances carry the $15 per-instance cap; gold rides the $ guard",
+            fx_caps)
+    section("H4 feeds registered", all(f in B.SYMBOLS for f in ("EURUSD_H4", "GBPUSD_H4")),
+            "EURUSD_H4 + GBPUSD_H4 bar_min=240")
+
     print("=" * 78)
     bad = [n for n, ok in RESULTS if not ok]
     print("OVERALL: ALL SECTIONS PASS" if not bad else f"OVERALL: FAIL -> {bad}")
