@@ -1,13 +1,13 @@
 # ============================================================================
-# FINAL PRODUCTION FILE (July 18 2026 rev5 -- adds the HAVW strategy family).
-# rev4 base (H4 TZ false-positive fix, stale-tick guard, auto-recovering TZ
-# entry gate) UNCHANGED. New in rev5: XAUUSD_HAVW (H1) + EURUSD_HAVW/
-# GBPUSD_HAVW (H4) -- Heikin-Ashi flip + RSI pullback + volume-weighted MACD,
-# both directions, 3-ATR chandelier trail from the 22-bar extreme. Validated:
-# verify_gs_battery 7/7 + live-parity 120/120 signals + forward-bias audit on
-# all 16 generators; plateau 36/36; daily-R corr to gold book <= +0.05.
-# Engine deltas: trend_trail now handles shorts + FX dollar-sizing; the trail
-# ratchet manages shorts (never loosened); per-instance fx_max_risk_usd cap.
+# FINAL PRODUCTION FILE (July 20 2026 rev6 -- coarse-TF TZ fingerprint fix).
+# rev5 (HAVW family) + rev4 (TZ defenses) UNCHANGED except: H4/D1 feeds now
+# SKIP the weekend fingerprint (real broker H4 history has missing final
+# Friday bars at ~half the weekend boundaries -- measured live 48/89 XAU_H4,
+# 53/89 EUR/GBP_H4 while every H1 feed on the SAME markets read CONSISTENT OK
+# and the tick-measured offset was UTC+03:00). Coarse feeds are covered by the
+# same market's fine-TF fingerprint + the authoritative measured-offset check,
+# mirroring the July 12 index-CFD precedent. Without this, the H4 fingerprint
+# false-positive engages the TZ entry gate and freezes the whole book.
 # Fill the six <<<PASTE-...>>> lines, save as live_mt5_bot.py.
 # ============================================================================
 """
@@ -2368,6 +2368,20 @@ def main():
             if mkt in MINLOT_SYMBOLS and mkt != "XAUUSD":
                 log(f"TZ VERIFY [{sym2}]: index CFD — own session calendar, weekend "
                     f"fingerprint n/a (covered by the measured-offset check)")
+                continue
+            # July 20 2026 fix: COARSE feeds (H4/D1) skip the weekend fingerprint.
+            # Real broker H4 history has missing/truncated final Friday bars at ~half
+            # the weekend boundaries (measured live: XAUUSD_H4 48/89, EURUSD_H4 53/89
+            # while EVERY H1 feed on the SAME markets read 21/21 CONSISTENT OK and the
+            # tick-measured offset was UTC+03:00). A coarse-bar fingerprint is
+            # structurally unreliable on gappy history — same class of false positive
+            # as the July 12 GER40 index incident and the July 16 H4 grid-phase bug,
+            # and it froze the whole book's entries again on July 20. Coverage is NOT
+            # lost: the same market's fine-grained feed still runs the fingerprint,
+            # and the authoritative tick-offset METHOD-1 check runs for everything.
+            if SYMBOLS[sym2].get("bar_min", 60) >= 240:
+                log(f"TZ VERIFY [{sym2}]: coarse TF (>=H4) — weekend fingerprint n/a "
+                    f"(covered by the same market's fine-TF fingerprint + measured offset)")
                 continue
             if verify_tz_via_weekend(caches[sym2][0].df, sym2) is False:
                 ok = False
