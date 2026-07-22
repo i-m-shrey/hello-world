@@ -68,7 +68,7 @@ import live_signals as LS
 # terminal (two separate MT5 installs - the API allows one terminal per process).
 CREDENTIALS = {
     "standard": dict(
-        account=0,                          # <<< PASTE STANDARD ACCOUNT NUMBER
+        account=0,                          # <<<PASTE-STANDARD-ACCOUNT-NUMBER>>>
         password="<<<PASTE-STANDARD-PASSWORD>>>",
         server="<<<PASTE-STANDARD-SERVER>>>",
         terminal="C:\\Program Files\\MetaTrader 5\\terminal64.exe",
