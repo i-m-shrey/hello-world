@@ -46,3 +46,14 @@ Protocol: selection ONLY on train 2016–22 (need n≥120, avg ≥ +0.05R); vali
 ## Verdict
 
 The corrected spec v2 rules are materially better than the first literal reading (wider fake-out stop halves the bleed) and the claimed 1:6–7 planned RR is confirmed — but the strategy is still unprofitable on 2016+ data at any tested setting, and it is NOT a cost artifact: the 2023–2026 out-of-sample period is ≈ zero even frictionless. 960 total configurations tested across both scans; none survive out-of-sample. Chasing further parameter combinations would be curve-fitting, not discovery: the selection metric (train 2016–22) already fails to transfer to 2023+ everywhere, which is the signature of a dead edge, not an under-tuned one.
+
+## Refinement pass (`refine_lab.py`) — depth filter + multi-day runner
+
+Two final levers, selected on train 2016–22 only:
+
+1. **Sweep-depth filter** (only trade fake-outs ≥ k×ATR(M5,50) beyond the line, k ∈ {3,4,5}, implemented in-engine so 2-full-SL accounting stays honest). A tradebook *conditional* analysis suggested deep sweeps (>4 ATR) were positive in both halves (+0.05/+0.06 R). Implemented as a live filter it does NOT reproduce: blocking shallow triggers changes which entries exist at all (zones re-signal deeper, shallow losers no longer consume SL slots), and every depth cell is train-negative (d4: −0.138 avg vs unfiltered −0.075). The conditional result was a path-selection illusion, not an executable edge.
+2. **Multi-day runner** (reason-4 runners re-simulated across sessions on a breakeven floor ± tighten-only chandelier, cap ~10 sessions; booked fraction 80% vs 50%). This genuinely helps — best cell `d0-extBE-b50` (no depth filter, hold runner at breakeven across days, book only 50% at T1) reaches train −0.000 avg (−1.4R over 3,013 trades) — but validation 2023–26 is still −0.112 avg (−169R), and 2× cost is −0.196. Median extended hold ≈ 2,800 M1 bars (~2 sessions), so the video's multi-day runner picture is real; the profits still aren't.
+
+One cell (`d5-extBE-b50`) shows +78R on validation — with −261R on train. Selecting it would be selecting on the out-of-sample period, i.e. cheating; it is reported for completeness, not recommended.
+
+**Final verdict after 1,024 configurations across four scans: no honestly-selected configuration of this strategy is profitable on 2016–2026 XAUUSD data.** The best achievable is breakeven-before-validation, and the out-of-sample period fails everywhere the training period doesn't. The mechanical pattern has no surviving edge; any profitable manual implementation must derive its edge from discretionary trade selection outside these rules.

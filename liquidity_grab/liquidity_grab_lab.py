@@ -400,7 +400,7 @@ def run_engine(o, h, l, c,
                m5_map, chand_s, chand_l,
                q_full, sel_first, t1_mode, run_mode, max_att, cost,
                ny_min, ent_lo, ent_hi, min_risk,
-               sl_mode, body_frac, att_mode):
+               sl_mode, body_frac, att_mode, atr_bar, min_depth_atr):
     """ONE honest bar-walk shared by every variant. Per bar: (1) forced flat at
     the 16:55 bar open; (2) manage open trade (stop before target; runner BE /
     chandelier active from the bar AFTER T1); (3) zone triggers — entry only if
@@ -590,7 +590,10 @@ def run_engine(o, h, l, c,
                     _e = oj if oj < sig_lo else sig_lo
                     _sl = S_ext if (sl_mode == 1 and S_ext > sig_hi) else sig_hi
                     if (ny_min[j] < ent_lo or ny_min[j] >= ent_hi
-                            or (_sl - _e) + cost < min_risk):
+                            or (_sl - _e) + cost < min_risk
+                            or (min_depth_atr > 0.0
+                                and not ((S_ext - pdh)
+                                         >= min_depth_atr * atr_bar[j]))):
                         S_sig = -1                   # filtered trigger: consumed
                     elif (not was_in) and (not in_tr):
                         if att_mode == 0:
@@ -650,7 +653,10 @@ def run_engine(o, h, l, c,
                     _e = oj if oj > sig_hi else sig_hi
                     _sl = L_ext if (sl_mode == 1 and L_ext < sig_lo) else sig_lo
                     if (ny_min[j] < ent_lo or ny_min[j] >= ent_hi
-                            or (_e - _sl) + cost < min_risk):
+                            or (_e - _sl) + cost < min_risk
+                            or (min_depth_atr > 0.0
+                                and not ((pdl - L_ext)
+                                         >= min_depth_atr * atr_bar[j]))):
                         L_sig = -1                   # filtered trigger: consumed
                     elif (not was_in) and (not in_tr):
                         if att_mode == 0:
@@ -758,10 +764,13 @@ class Lab:
         self.pdh = self.sess["pdh"].to_numpy(float)
         self.pdl = self.sess["pdl"].to_numpy(float)
         self.ny_min = df["ny_min"].to_numpy(np.int64)
+        self.atr_bar = np.where(self.m5_map >= 0,
+                                (self.chand_s[self.m5_map]
+                                 - self.chand_l[self.m5_map]) / 4.0, np.nan)
 
     def run(self, qual, sel, t1, run, att, cost=COST,
             ent_lo=0, ent_hi=1440, min_risk=0.0,
-            sl_mode=0, body_frac=0.0, att_mode=0):
+            sl_mode=0, body_frac=0.0, att_mode=0, min_depth_atr=0.0):
         out = run_engine(
             self.o, self.h, self.l, self.c,
             self.sa["s0"], self.sa["s1"], self.sa["force"], self.sa["fopen"],
@@ -773,7 +782,7 @@ class Lab:
             self.m5_map, self.chand_s, self.chand_l,
             qual, sel, t1, run, att, cost,
             self.ny_min, ent_lo, ent_hi, min_risk,
-            sl_mode, body_frac, att_mode)
+            sl_mode, body_frac, att_mode, self.atr_bar, min_depth_atr)
         cols = ["si", "side", "attempt", "sig_j", "entry_j", "entry", "sl",
                 "risk", "t1", "t1_fallback", "t1_hit", "exit_j", "exit_px",
                 "r", "mfe_px", "mae_px", "reason"]
@@ -914,7 +923,7 @@ def selftest():
                           np.full(n, -1, np.int64), ef, ef,
                           0, 0, 2, run_mode, 3, 0.2,
                           np.zeros(n, np.int64), 0, 1440, 0.0,
-                          0, 0.0, 0)   # T1 = fixed 3R
+                          0, 0.0, 0, np.zeros(n), 0.0)   # T1 = fixed 3R
 
     # 1) sweep bar closing back under PDH resets arming; fresh break re-arms;
     #    red close above PDH = signal; low < signal low triggers; same-bar
