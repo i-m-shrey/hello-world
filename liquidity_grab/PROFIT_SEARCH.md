@@ -57,3 +57,12 @@ Two final levers, selected on train 2016–22 only:
 One cell (`d5-extBE-b50`) shows +78R on validation — with −261R on train. Selecting it would be selecting on the out-of-sample period, i.e. cheating; it is reported for completeness, not recommended.
 
 **Final verdict after 1,024 configurations across four scans: no honestly-selected configuration of this strategy is profitable on 2016–2026 XAUUSD data.** The best achievable is breakeven-before-validation, and the out-of-sample period fails everywhere the training period doesn't. The mechanical pattern has no surviving edge; any profitable manual implementation must derive its edge from discretionary trade selection outside these rules.
+
+## Max-SL invalidation rule (spec v3 addition)
+
+The final spec version adds: skip the trade when the required SL is excessively large (70–90 pips ≈ $7–9/oz on gold). Tested as an in-engine cap (max_risk ∈ {3,5,7,9,12} $/oz, filtered triggers consume the signal) on spec v2, M1 gold 2016+, crossed with the multi-day-runner exits (`maxrisk_results.csv`):
+
+- The rule is nearly inert where the spec puts it: the median M1 stop is $0.85/oz, so a $7–9 cap removes ~0.3% of trades (n 4,526 → 4,510) and changes nothing (train −0.081, valid −0.127 at cap $7).
+- Even the aggressive $3 cap (removing 3% of trades) combined with the best exit found (multi-day BE runner, 50% booked) reaches train +0.001R — and validation is still −0.049R avg (−69R).
+
+No change to the verdict: the oversized-stop invalidation addresses a failure mode this strategy doesn't have. Its losses come from ordinary-sized stops being swept 83% of the time, not from rare monster stops.
