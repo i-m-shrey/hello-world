@@ -1079,18 +1079,22 @@ def build_report(meta, mat, base_tb, base_name):
     say(f"| NY 08:00–12:00 | ${sp['core_median']:.3f} | ${sp['core_p90']:.3f} |")
     for y, v in sorted(sp["per_year"].items()):
         say(f"| {y} (all hours) | ${v['median']:.3f} | ${v['p90']:.3f} |")
+    yr_first, yr_last = min(sp["per_year"]), max(sp["per_year"])
     say("")
     say(f"Mean ${sp['mean']:.3f}, p99 ${sp['p99']:.3f}; "
         f"{fmt_pct(sp['neg_share'])} of minutes print a transiently negative "
         "top-of-book (raw feed artifact). SANITY CHECK, stated honestly: the "
         f"measured Dukascopy median spread (${sp['median']:.3f}, widening "
-        "with the gold price from $0.38 in 2024 to $0.70 in 2026) is "
+        f"with the gold price from ${sp['per_year'][yr_first]['median']:.2f} "
+        f"in {yr_first} to ${sp['per_year'][yr_last]['median']:.2f} in "
+        f"{yr_last}) is "
         "substantially WIDER than the $0.16 spread inside the house all-in "
         "round trip of **$0.23/oz** (0.16 spread + 0.07 commission, from "
         "`live_signals.FX_SPREADS` on capy/tz-audit-discovery, measured from "
         "live fills on a raw-spread retail account). The house $0.23 is "
         "therefore treated as the OPTIMISTIC baseline cost; executing at "
-        "Dukascopy's own top-of-book would cost ≈$0.52+commission ≈ 2.5× "
+        f"Dukascopy's own top-of-book would cost ≈${sp['median']:.2f}"
+        f"+commission ≈ {(sp['median'] + 0.07) / 0.23:.1f}× "
         "that, i.e. the mandated 2× stress row approximates Dukascopy-median "
         "execution and 3× covers news-time widening (p99 above). Every "
         "headline figure charges $0.23 per round trip; risk includes cost, "
@@ -1516,7 +1520,7 @@ def main():
     bt = books[base_name].copy()
     # sanity: reason-1 exits at the SL level are exactly -1R
     slc = bt[(bt["reason"] == 1) & (bt["exit_px"] == bt["sl"])]
-    assert (slc["r"] + 1).abs().max() < 1e-9, "SL accounting broke"
+    assert slc.empty or (slc["r"] + 1).abs().max() < 1e-9, "SL accounting broke"
     # independent structural audit of the baseline book (engine-free re-derivation)
     bad = audit_trades(lab, books[base_name], n_sample=400, verbose_n=2)
     assert bad == 0, f"{bad} audit violations — refusing to report"

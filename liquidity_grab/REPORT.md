@@ -1,6 +1,6 @@
 # LIQUIDITY GRAB (PDH/PDL sweep-reversal) — XAUUSD M1 backtest
 
-Generated 2026-07-22 13:15Z by `liquidity_grab_lab.py` (deterministic; every figure below comes from the run that wrote this file). Strategy per the video brief: sweep of the previous day's high/low, signal-candle stop entry back through the level, 80% booked at the prior swing, breakeven runner into session end.
+Generated 2026-07-22 13:28Z by `liquidity_grab_lab.py` (deterministic; every figure below comes from the run that wrote this file). Strategy per the video brief: sweep of the previous day's high/low, signal-candle stop entry back through the level, 80% booked at the prior swing, breakeven runner into session end.
 
 ## 1. Data provenance
 
@@ -54,7 +54,7 @@ ASK−BID on matched M1 closes, 2024-01-01 → 2026-07-21 (884,112 matched minut
 | 2025 (all hours) | $0.580 | $0.767 |
 | 2026 (all hours) | $0.700 | $0.960 |
 
-Mean $0.549, p99 $1.340; 0.0% of minutes print a transiently negative top-of-book (raw feed artifact). SANITY CHECK, stated honestly: the measured Dukascopy median spread ($0.520, widening with the gold price from $0.38 in 2024 to $0.70 in 2026) is substantially WIDER than the $0.16 spread inside the house all-in round trip of **$0.23/oz** (0.16 spread + 0.07 commission, from `live_signals.FX_SPREADS` on capy/tz-audit-discovery, measured from live fills on a raw-spread retail account). The house $0.23 is therefore treated as the OPTIMISTIC baseline cost; executing at Dukascopy's own top-of-book would cost ≈$0.52+commission ≈ 2.5× that, i.e. the mandated 2× stress row approximates Dukascopy-median execution and 3× covers news-time widening (p99 above). Every headline figure charges $0.23 per round trip; risk includes cost, so a stop-out is exactly −1R.
+Mean $0.549, p99 $1.340; 0.0% of minutes print a transiently negative top-of-book (raw feed artifact). SANITY CHECK, stated honestly: the measured Dukascopy median spread ($0.520, widening with the gold price from $0.38 in 2024 to $0.70 in 2026) is substantially WIDER than the $0.16 spread inside the house all-in round trip of **$0.23/oz** (0.16 spread + 0.07 commission, from `live_signals.FX_SPREADS` on capy/tz-audit-discovery, measured from live fills on a raw-spread retail account). The house $0.23 is therefore treated as the OPTIMISTIC baseline cost; executing at Dukascopy's own top-of-book would cost ≈$0.52+commission ≈ 2.6× that, i.e. the mandated 2× stress row approximates Dukascopy-median execution and 3× covers news-time widening (p99 above). Every headline figure charges $0.23 per round trip; risk includes cost, so a stop-out is exactly −1R.
 
 ## 4. Sessions
 
