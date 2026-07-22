@@ -1,13 +1,13 @@
 # ============================================================================
-# FINAL PRODUCTION FILE (July 21 2026 rev8 -- one file runs BOTH accounts).
-# rev7 base unchanged. BROKER_PROFILE now also accepts "both": the process
-# becomes a supervisor that spawns one "standard" worker (Eightcap: FX +
-# indices + intraday gold) and one "swapfree" worker (gold overnight tier),
-# each logging into its OWN terminal from the CREDENTIALS dict below. Role
-# reaches each worker via an internal env var -- no command-line parameters.
-# Workers keep separate state/log/tradebook/cache files (_standard/_swapfree
-# suffixes); solo keeps original filenames. Crashed worker auto-restarts in
-# 60s; Ctrl+C stops both. Verified: all 4 modes load the exact intended sets.
+# FINAL PRODUCTION FILE (July 22 2026 rev9 -- capital-proportional sizing).
+# rev8 base unchanged. New section 2c: SIZING_MODE off|manual|auto scales the
+# $300-calibrated book (FX 0.04 lots/$10.50 cap, minlot 0.01) with capital.
+# FX lots+caps scale continuously; indices in whole lot-steps; XAUUSD scales
+# ONLY when SCALE_XAUUSD=True (gold risk guard scales with it, lot-aware $).
+# Multiplier clamped [1x, SIZING_MAX_MULT]: never shrinks below calibration,
+# never jumps past the ceiling. Drawdown throttle still applies on top.
+# Default ships mode=off -- byte-identical behavior to rev8 until you opt in.
+# Verified: off/auto/manual/floor/ceiling/gold-guard tests all pass.
 # Fill the placeholders in CREDENTIALS (+ Telegram), save as live_mt5_bot.py.
 # ============================================================================
 """
@@ -265,6 +265,61 @@ MT5_SERVER = CREDENTIALS[_CRED_KEY]["server"]
 MT5_TERMINAL_PATH = CREDENTIALS[_CRED_KEY]["terminal"]
 _FILE_SUFFIX = "" if BROKER_PROFILE in ("solo", "both") else f"_{BROKER_PROFILE}"
 _LOG_TAG = {"standard": "[STD] ", "swapfree": "[SWF] "}.get(BROKER_PROFILE, "")
+
+# ================== 2c. CAPITAL-PROPORTIONAL SIZING (July 21 2026) ==========
+# The whole book was CALIBRATED at ~$300 equity: FX 0.04 lots / $10.50 risk cap,
+# gold+indices 0.01 min lot. These switches scale that calibration as capital
+# grows, so risk stays a constant FRACTION of equity instead of shrinking away.
+#   SIZING_MODE "off"    -> exactly today's fixed sizes (default).
+#               "manual" -> multiplier = SIZING_MANUAL_CAPITAL / SIZING_BASE_CAPITAL.
+#               "auto"   -> multiplier = live account equity at startup / base
+#                           (re-read on every restart; restart after big equity moves).
+# FX pairs: lots AND the $ risk caps scale continuously (0.04 -> 0.08 at 2x).
+# Indices:  min-lot instruments scale in WHOLE lot-steps (0.01 -> 0.02 at 2x).
+# XAUUSD:   scales ONLY if SCALE_XAUUSD=True (default False - gold stops/targets
+#           are large; you chose to keep gold fixed until you say otherwise).
+#           When True, gold lots scale in whole steps and the $1-$20 gold risk
+#           guard scales with them (else every scaled trade would be skipped).
+# Multiplier is clamped to [1.0, SIZING_MAX_MULT]: sizes never DROP below the
+# calibration, and never jump more than the sanity ceiling in one go.
+# The drawdown throttle still applies ON TOP of whatever this produces.
+SIZING_MODE = "off"            # "off" | "manual" | "auto"
+SIZING_BASE_CAPITAL = 300.0    # equity at which current LOTS/caps were calibrated
+SIZING_MANUAL_CAPITAL = 300.0  # used only when SIZING_MODE = "manual"
+SIZING_MAX_MULT = 4.0          # sanity ceiling (4x = calibrated book at $1200)
+SCALE_XAUUSD = False           # True -> gold lots + gold risk guard scale too
+SCALE_INDICES = True           # index CFDs scale in whole lot-steps
+
+
+def _apply_capital_scaling(equity: float):
+    """Mutates LOTS + the $ risk caps once at startup. Logged loudly so the
+    active sizes are always visible in the first screen of the log."""
+    global FX_MAX_RISK_USD, XAUUSD_MAX_RISK_USD
+    if SIZING_MODE == "off":
+        log("SIZING: mode=off - calibrated fixed sizes (FX 0.04 / $10.50 cap, minlot 0.01)")
+        return
+    ref = SIZING_MANUAL_CAPITAL if SIZING_MODE == "manual" else equity
+    mult = max(1.0, min(ref / SIZING_BASE_CAPITAL, SIZING_MAX_MULT))
+    steps = max(1, int(mult))              # whole-lot factor for min-lot symbols
+    fx_syms = ("EURUSD", "GBPUSD", "USDCAD", "USDCHF")
+    for k, inst in INSTANCES.items():
+        s = inst["symbol"]
+        if s in fx_syms:
+            LOTS[k] = round(max(0.01, round(LOTS[k] * mult / 0.01) * 0.01), 2)
+        elif s == "XAUUSD" and SCALE_XAUUSD:
+            LOTS[k] = round(LOTS[k] * steps, 2)
+        elif s not in ("XAUUSD", "XAGUSD") and SCALE_INDICES:
+            LOTS[k] = round(LOTS[k] * steps, 2)
+        if inst.get("fx_max_risk_usd"):
+            inst["fx_max_risk_usd"] = round(inst["fx_max_risk_usd"] * mult, 2)
+    FX_MAX_RISK_USD = round(FX_MAX_RISK_USD * mult, 2)
+    if SCALE_XAUUSD:
+        XAUUSD_MAX_RISK_USD = round(XAUUSD_MAX_RISK_USD * steps, 2)
+    log(f"SIZING: mode={SIZING_MODE} ref=${ref:.0f} base=${SIZING_BASE_CAPITAL:.0f} "
+        f"-> mult x{mult:.2f} (minlot steps x{steps}) | FX cap ${FX_MAX_RISK_USD:.2f}"
+        f" | gold {'SCALED, guard $' + format(XAUUSD_MAX_RISK_USD, '.2f') if SCALE_XAUUSD else 'FIXED 0.01'}"
+        f" | ex: EURUSD_E {LOTS.get('EURUSD_E')} lots, XAUUSD_S5 {LOTS.get('XAUUSD_S5')} lots")
+
 
 DRY_RUN = False   # !! starts True: shadow-mode. Flip to False ONLY after the shadow phase. !!
 
@@ -1370,16 +1425,17 @@ def _gold_usd_risk_guard(key, inst, risk_points):
     Returns a skip-reason string, or None when the trade may proceed."""
     if inst["symbol"] != "XAUUSD":
         return None
-    risk_usd = float(risk_points)          # $ at the 0.01 broker-minimum lot
+    lot = LOTS.get(key, 0.01)              # $1 price move = $1 P&L per 0.01 lot
+    risk_usd = float(risk_points) * (lot / 0.01)
     if risk_usd > XAUUSD_MAX_RISK_USD:
-        log(f"{key}: SKIP — SL risk ${risk_usd:.2f} at 0.01 lot > "
+        log(f"{key}: SKIP — SL risk ${risk_usd:.2f} at {lot:.2f} lot > "
             f"XAUUSD_MAX_RISK_USD ${XAUUSD_MAX_RISK_USD:.2f} (no trade taken)")
         return f"risk ${risk_usd:.2f} > ${XAUUSD_MAX_RISK_USD:.2f} cap — skipped"
     if risk_usd < XAUUSD_MIN_RISK_USD:
-        log(f"{key}: SKIP — SL risk ${risk_usd:.2f} at 0.01 lot < "
+        log(f"{key}: SKIP — SL risk ${risk_usd:.2f} at {lot:.2f} lot < "
             f"XAUUSD_MIN_RISK_USD ${XAUUSD_MIN_RISK_USD:.2f} (no trade taken)")
         return f"risk ${risk_usd:.2f} < ${XAUUSD_MIN_RISK_USD:.2f} floor — skipped"
-    log(f"{key}: risk guard OK — SL risk ${risk_usd:.2f} at 0.01 lot within "
+    log(f"{key}: risk guard OK — SL risk ${risk_usd:.2f} at {lot:.2f} lot within "
         f"[${XAUUSD_MIN_RISK_USD:.2f}, ${XAUUSD_MAX_RISK_USD:.2f}]")
     return None
 
@@ -2423,6 +2479,7 @@ def main():
     acc = mt5.account_info()
     if acc is not None:
         log(f"ACCOUNT: balance ${acc.balance:.2f} | equity ${acc.equity:.2f} | currency {acc.currency}")
+    _apply_capital_scaling(acc.equity if acc is not None else SIZING_BASE_CAPITAL)
     check_account_type()      # hedging vs netting — multi-strategy gold needs HEDGING
     broker_preflight()        # lot minimums / stop distances / live spreads vs assumptions
     startup_summary()
