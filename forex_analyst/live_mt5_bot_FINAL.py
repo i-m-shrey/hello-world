@@ -1,15 +1,14 @@
 # ============================================================================
-# FINAL PRODUCTION FILE (July 21 2026 rev7 -- BROKER_PROFILE switch).
-# rev6 base unchanged. New: ONE variable at the top (BROKER_PROFILE) decides
-# which slice of the book this running copy trades, for the two-account split:
-#   solo     = single account, whole book (default -- today's behavior)
-#   standard = swap-charging broker: FX + indices + intraday gold (S5/S6/S3LO/
-#              HAVW); gold OVERNIGHT tier auto-off (swap -$70.51/lot/night)
-#   swapfree = swap-free broker: ONLY gold overnight tier (DONCH_TR, VCX_B,
-#              MACROSS, BOS, ZBPIV, STRAD, H1A [+ZBBOX]); FX/indices auto-off
-# CRASH (short-only, EARNS swap) and intraday gold stay on standard by design.
-# Verified: all three profiles enable exactly the intended instance sets.
-# Fill the six <<<PASTE-...>>> lines, save as live_mt5_bot.py.
+# FINAL PRODUCTION FILE (July 21 2026 rev8 -- one file runs BOTH accounts).
+# rev7 base unchanged. BROKER_PROFILE now also accepts "both": the process
+# becomes a supervisor that spawns one "standard" worker (Eightcap: FX +
+# indices + intraday gold) and one "swapfree" worker (gold overnight tier),
+# each logging into its OWN terminal from the CREDENTIALS dict below. Role
+# reaches each worker via an internal env var -- no command-line parameters.
+# Workers keep separate state/log/tradebook/cache files (_standard/_swapfree
+# suffixes); solo keeps original filenames. Crashed worker auto-restarts in
+# 60s; Ctrl+C stops both. Verified: all 4 modes load the exact intended sets.
+# Fill the placeholders in CREDENTIALS (+ Telegram), save as live_mt5_bot.py.
 # ============================================================================
 """
 ================================================================================
@@ -61,15 +60,26 @@ from smc_engine import STRAT
 import live_signals as LS
 
 # ============================== 1. CREDENTIALS ==============================
-# (legacy credential line redacted)
-# (legacy credential line redacted)
-# (legacy credential line redacted)
-# (legacy credential line redacted)
-
-MT5_ACCOUNT = 0  # <<< PASTE YOUR ACCOUNT NUMBER
-MT5_PASSWORD = "<<<PASTE-YOUR-PASSWORD>>>"
-MT5_SERVER = "<<<PASTE-YOUR-SERVER>>>"
-MT5_TERMINAL_PATH = "<<<PASTE-YOUR-TERMINAL-PATH>>>"
+# TWO named credential sets - one per broker/terminal. Which one THIS process
+# uses is decided by BROKER_PROFILE (section 2a):
+#   solo / standard / both-parent -> "standard" set
+#   swapfree                      -> "swapfree" set
+# The "both" supervisor spawns one child per set; each child logs into its OWN
+# terminal (two separate MT5 installs - the API allows one terminal per process).
+CREDENTIALS = {
+    "standard": dict(
+        account=0,                          # <<< PASTE STANDARD ACCOUNT NUMBER
+        password="<<<PASTE-STANDARD-PASSWORD>>>",
+        server="<<<PASTE-STANDARD-SERVER>>>",
+        terminal="C:\\Program Files\\MetaTrader 5\\terminal64.exe",
+    ),
+    "swapfree": dict(                       # fill when the two-account split happens
+        account=0,                          # <<< PASTE SWAP-FREE ACCOUNT NUMBER
+        password="<<<PASTE-SWAPFREE-PASSWORD>>>",
+        server="<<<PASTE-SWAPFREE-SERVER>>>",
+        terminal="C:\\Program Files\\MetaTrader 5 - SwapFree\\terminal64.exe",
+    ),
+}
 
 
 # ====================== 2. PER-STRATEGY-PER-SYMBOL LOT SIZES =================
@@ -202,7 +212,16 @@ ENABLE = {
 #                 swap-free account (gold long swap measured -$70.51/lot/night).
 #   "swapfree" -> swap-free broker: ONLY the gold overnight tier. FX/indices are
 #                 auto-disabled (that broker's ~3-pip FX spreads kill those edges).
+#   "both"     -> ONE command runs BOTH accounts: this process becomes a
+#                 supervisor that spawns one "standard" child and one "swapfree"
+#                 child (each owns its own terminal), restarts a crashed child
+#                 after 60s, and stops both on Ctrl+C. The role reaches each
+#                 child through an INTERNAL env var - you never pass parameters.
 BROKER_PROFILE = "solo"
+
+_ROLE = os.environ.get("MT5_BOT_ROLE", "")
+if _ROLE:                     # set only by the 'both' supervisor for its children
+    BROKER_PROFILE = _ROLE
 
 # Gold strategies that hold overnight (1-10 nights) and bleed long swap on the
 # standard broker - the slice that moves to the swap-free account at the split:
@@ -221,8 +240,8 @@ GOLD_OVERNIGHT_STRATS = {
 def _apply_broker_profile():
     """Flip ENABLE flags for this instance's role. A disabled-by-profile strategy
     logs as ':off' exactly like a hand-disabled one - no new code paths."""
-    if BROKER_PROFILE == "solo":
-        return
+    if BROKER_PROFILE in ("solo", "both"):
+        return                # 'both' parent never trades - workers filter themselves
     if BROKER_PROFILE == "standard":
         for k in GOLD_OVERNIGHT_STRATS:
             if k in ENABLE:
@@ -233,9 +252,19 @@ def _apply_broker_profile():
             if k not in GOLD_OVERNIGHT_STRATS:
                 ENABLE[k] = False
         return
-    raise SystemExit(f"BROKER_PROFILE must be solo/standard/swapfree, got {BROKER_PROFILE!r}")
+    raise SystemExit(f"BROKER_PROFILE must be solo/standard/swapfree/both, got {BROKER_PROFILE!r}")
 
 _apply_broker_profile()
+
+# Resolve THIS process's credentials + keep worker files separate. solo keeps the
+# unsuffixed filenames (state/tradebook continuity with everything logged so far).
+_CRED_KEY = "swapfree" if BROKER_PROFILE == "swapfree" else "standard"
+MT5_ACCOUNT = CREDENTIALS[_CRED_KEY]["account"]
+MT5_PASSWORD = CREDENTIALS[_CRED_KEY]["password"]
+MT5_SERVER = CREDENTIALS[_CRED_KEY]["server"]
+MT5_TERMINAL_PATH = CREDENTIALS[_CRED_KEY]["terminal"]
+_FILE_SUFFIX = "" if BROKER_PROFILE in ("solo", "both") else f"_{BROKER_PROFILE}"
+_LOG_TAG = {"standard": "[STD] ", "swapfree": "[SWF] "}.get(BROKER_PROFILE, "")
 
 DRY_RUN = False   # !! starts True: shadow-mode. Flip to False ONLY after the shadow phase. !!
 
@@ -318,11 +347,11 @@ DEVIATION_POINTS = 30
 # There is no automatic halt or auto-close on drawdown. Monitor equity yourself.
 POLL_SECONDS = 5
 FULL_RESYNC_BARS = 288
-STATE_FILE = "live_bot_state.json"
-LOG_FILE = "live_bot.log"
-TRADEBOOK_CSV = "live_tradebook.csv"
-POSITIONS_CSV = "live_positions.csv"
-PNL_DAILY_CSV = "live_pnl_daily.csv"
+STATE_FILE = f"live_bot_state{_FILE_SUFFIX}.json"
+LOG_FILE = f"live_bot{_FILE_SUFFIX}.log"
+TRADEBOOK_CSV = f"live_tradebook{_FILE_SUFFIX}.csv"
+POSITIONS_CSV = f"live_positions{_FILE_SUFFIX}.csv"
+PNL_DAILY_CSV = f"live_pnl_daily{_FILE_SUFFIX}.csv"
 
 # ====================== PHONE NOTIFICATIONS (Telegram) =====================
 # Get a phone push whenever a trade opens/closes. Setup (5 min, free):
@@ -822,7 +851,7 @@ ACTIVE_SYMBOLS = sorted({feed_of(i) for k, i in INSTANCES.items() if ENABLE.get(
 
 # ============================== INFRASTRUCTURE ==============================
 def log(msg: str):
-    line = f"{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}Z | {msg}"
+    line = f"{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}Z | {_LOG_TAG}{msg}"
     print(line, flush=True)
     try:
         with open(LOG_FILE, "a", encoding="utf-8") as f:
@@ -2344,7 +2373,46 @@ def check_account_type():
 
 
 # ============================== MAIN LOOP ==============================
+def _run_supervisor():
+    """BROKER_PROFILE='both': spawn one worker per credential set and babysit them.
+    Each worker is a full, independent copy of this file connected to its OWN
+    terminal; a crashed worker is relaunched after 60s; Ctrl+C stops both."""
+    import subprocess
+    me = os.path.abspath(__file__)
+    print(f"SUPERVISOR: launching standard + swapfree workers from {me}", flush=True)
+
+    def spawn(role):
+        env = os.environ.copy()
+        env["MT5_BOT_ROLE"] = role
+        return subprocess.Popen([sys.executable, me], env=env)
+
+    procs = {}
+    for role in ("standard", "swapfree"):
+        procs[role] = spawn(role)
+        print(f"SUPERVISOR: {role} worker pid={procs[role].pid}", flush=True)
+        time.sleep(10)                      # stagger terminal logins
+    try:
+        while True:
+            time.sleep(30)
+            for role, pr in list(procs.items()):
+                rc = pr.poll()
+                if rc is not None:
+                    print(f"SUPERVISOR: {role} worker EXITED rc={rc} - restart in 60s",
+                          flush=True)
+                    time.sleep(60)
+                    procs[role] = spawn(role)
+                    print(f"SUPERVISOR: {role} worker relaunched pid={procs[role].pid}",
+                          flush=True)
+    except KeyboardInterrupt:
+        print("SUPERVISOR: Ctrl+C - terminating both workers", flush=True)
+        for pr in procs.values():
+            pr.terminate()
+
+
 def main():
+    if BROKER_PROFILE == "both":
+        _run_supervisor()
+        return
     log("=" * 70)
     log(f"LIVE MT5 BOT (multi-symbol) | DRY_RUN={DRY_RUN} | BROKER_PROFILE={BROKER_PROFILE}")
     log("Active: " + ", ".join(k for k in INSTANCES if ENABLE.get(k)))
@@ -2367,10 +2435,10 @@ def main():
     caches = {}
     for sym in ACTIVE_SYMBOLS:
         sc = SYMBOLS[sym]
-        c_main = BarCache(broker_sym(market_of(sym)), TF_MAP[sc["tf"]], sc["bars"], f"cache_{sym}_{sc['tf']}.csv",
+        c_main = BarCache(broker_sym(market_of(sym)), TF_MAP[sc["tf"]], sc["bars"], f"cache_{sym}_{sc['tf']}{_FILE_SUFFIX}.csv",
                           sc["baseline"], sc["bar_min"])
         c_bias = BarCache(broker_sym(market_of(sym)), TF_MAP[sc["bias_tf"]], sc["bias_bars"],
-                          f"cache_{sym}_{sc['bias_tf']}.csv", sc["baseline_bias"], sc["bias_min"])
+                          f"cache_{sym}_{sc['bias_tf']}{_FILE_SUFFIX}.csv", sc["baseline_bias"], sc["bias_min"])
         log(f"Warming {sym} ({sc['tf']}+{sc['bias_tf']})...")
         if not c_main.full_sync() or not c_bias.full_sync():
             log(f"FATAL: could not warm {sym} history.")
