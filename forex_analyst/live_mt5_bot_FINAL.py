@@ -1,13 +1,14 @@
 # ============================================================================
-# FINAL PRODUCTION FILE (July 20 2026 rev6 -- coarse-TF TZ fingerprint fix).
-# rev5 (HAVW family) + rev4 (TZ defenses) UNCHANGED except: H4/D1 feeds now
-# SKIP the weekend fingerprint (real broker H4 history has missing final
-# Friday bars at ~half the weekend boundaries -- measured live 48/89 XAU_H4,
-# 53/89 EUR/GBP_H4 while every H1 feed on the SAME markets read CONSISTENT OK
-# and the tick-measured offset was UTC+03:00). Coarse feeds are covered by the
-# same market's fine-TF fingerprint + the authoritative measured-offset check,
-# mirroring the July 12 index-CFD precedent. Without this, the H4 fingerprint
-# false-positive engages the TZ entry gate and freezes the whole book.
+# FINAL PRODUCTION FILE (July 21 2026 rev7 -- BROKER_PROFILE switch).
+# rev6 base unchanged. New: ONE variable at the top (BROKER_PROFILE) decides
+# which slice of the book this running copy trades, for the two-account split:
+#   solo     = single account, whole book (default -- today's behavior)
+#   standard = swap-charging broker: FX + indices + intraday gold (S5/S6/S3LO/
+#              HAVW); gold OVERNIGHT tier auto-off (swap -$70.51/lot/night)
+#   swapfree = swap-free broker: ONLY gold overnight tier (DONCH_TR, VCX_B,
+#              MACROSS, BOS, ZBPIV, STRAD, H1A [+ZBBOX]); FX/indices auto-off
+# CRASH (short-only, EARNS swap) and intraday gold stay on standard by design.
+# Verified: all three profiles enable exactly the intended instance sets.
 # Fill the six <<<PASTE-...>>> lines, save as live_mt5_bot.py.
 # ============================================================================
 """
@@ -191,6 +192,50 @@ ENABLE = {
     "GBPUSD_BOLL15": False,
     "USDCHF_BOLL15": False,
 }
+
+# ===================== 2a. BROKER PROFILE (July 21 2026) ====================
+# >>> ONE switch decides WHICH SLICE of the book THIS running copy trades. <<<
+# The same file runs on two MT5 terminals / two accounts; only this line differs:
+#   "solo"     -> single-account mode: everything ENABLE says (today's default).
+#   "standard" -> swap-charging broker (Eightcap): FX + indices + INTRADAY gold.
+#                 The gold OVERNIGHT tier is auto-disabled here - it lives on the
+#                 swap-free account (gold long swap measured -$70.51/lot/night).
+#   "swapfree" -> swap-free broker: ONLY the gold overnight tier. FX/indices are
+#                 auto-disabled (that broker's ~3-pip FX spreads kill those edges).
+BROKER_PROFILE = "solo"
+
+# Gold strategies that hold overnight (1-10 nights) and bleed long swap on the
+# standard broker - the slice that moves to the swap-free account at the split:
+GOLD_OVERNIGHT_STRATS = {
+    "XAUUSD_DONCH_TR", "XAUUSD_DONCH", "XAUUSD_VCX_A", "XAUUSD_VCX_B",
+    "XAUUSD_MACROSS", "XAUUSD_BOS", "XAUUSD_ZBPIV", "XAUUSD_STRAD",
+    "XAUUSD_H1A", "XAGUSD_ZBBOX",
+}
+# Deliberately NOT in the set:
+#   XAUUSD_S5/S6/S3LO/S4/HAVW - intraday gold (median holds in hours; validated
+#     at the standard broker's tighter spread; rare overnights cost less than
+#     paying +$0.14 wider spread on every trade).
+#   XAUUSD_CRASH - SHORT-only: gold shorts EARN +$0.29/night swap on the
+#     standard broker; moving it would throw income away.
+
+def _apply_broker_profile():
+    """Flip ENABLE flags for this instance's role. A disabled-by-profile strategy
+    logs as ':off' exactly like a hand-disabled one - no new code paths."""
+    if BROKER_PROFILE == "solo":
+        return
+    if BROKER_PROFILE == "standard":
+        for k in GOLD_OVERNIGHT_STRATS:
+            if k in ENABLE:
+                ENABLE[k] = False
+        return
+    if BROKER_PROFILE == "swapfree":
+        for k in ENABLE:
+            if k not in GOLD_OVERNIGHT_STRATS:
+                ENABLE[k] = False
+        return
+    raise SystemExit(f"BROKER_PROFILE must be solo/standard/swapfree, got {BROKER_PROFILE!r}")
+
+_apply_broker_profile()
 
 DRY_RUN = False   # !! starts True: shadow-mode. Flip to False ONLY after the shadow phase. !!
 
@@ -2301,7 +2346,7 @@ def check_account_type():
 # ============================== MAIN LOOP ==============================
 def main():
     log("=" * 70)
-    log(f"LIVE MT5 BOT (multi-symbol) | DRY_RUN={DRY_RUN}")
+    log(f"LIVE MT5 BOT (multi-symbol) | DRY_RUN={DRY_RUN} | BROKER_PROFILE={BROKER_PROFILE}")
     log("Active: " + ", ".join(k for k in INSTANCES if ENABLE.get(k)))
     log("=" * 70)
     if not mt5_connect():
