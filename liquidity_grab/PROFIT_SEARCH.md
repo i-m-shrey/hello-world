@@ -66,3 +66,12 @@ The final spec version adds: skip the trade when the required SL is excessively 
 - Even the aggressive $3 cap (removing 3% of trades) combined with the best exit found (multi-day BE runner, 50% booked) reaches train +0.001R — and validation is still −0.049R avg (−69R).
 
 No change to the verdict: the oversized-stop invalidation addresses a failure mode this strategy doesn't have. Its losses come from ordinary-sized stops being swept 83% of the time, not from rare monster stops.
+
+## Daily-trend gate (final lever)
+
+Gate each side by the causal daily trend (momentum of completed-session closes, lookback k ∈ {3,5,10}; "with" = fade sweeps only against the trap direction, "counter" = opposite), crossed with the best exits (`trendgate_results.csv`, 24 cells):
+
+- Honest train-selection picks `k5-with-extBE-b50` (train +0.165R avg) → **valid −0.166R**. Fails.
+- One cell is positive in both halves (`k10-counter-extBE-b50`: train +0.044, valid +0.024) — but it ranks 4th on train (selection wouldn't choose it), its k3/k5 neighbors are strongly negative (no plateau), the trend sign flips with lookback (noise signature), and 24 screened cells make one marginal both-positive expected by chance. Rejected per house replication rules; recorded, not recommended.
+
+This closes the last standard structural lever. Cumulative: **1,324 configurations, 0 honest survivors.**
