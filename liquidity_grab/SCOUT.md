@@ -26,3 +26,36 @@ Rules: a displacement fair-value-gap (bar range ≥1.2×ATR, gap vs 2 bars back)
 - All three are R-based (risk a fixed fraction per trade; R = risk incl. costs). Expected cadence is low: DONCH-TR ~2–3 trades/mo, STRAD ~1/mo, P1 ~0.6/mo — these are patience edges, the opposite profile of the M1 liquidity-grab.
 - DONCH-TR and STRAD both hold gold-long breakouts and will partially overlap; treat them as one correlated sleeve when sizing. P1 is FX two-sided and independent.
 - The two gold strategies are long-only by design (gold's structural uptrend; official short-side tests bleed). A prolonged gold bear market is the known failure regime — the official CRASH short exists as the book's insurance leg.
+
+---
+
+# SCOUT BATCH 2 — four more replicated strategies (`scout2.py`)
+
+Same protocol: rules transcribed from the deployed bot, re-run on this project's independent Dukascopy frames, gold window 2008–26, train ≤2023 / holdout ≥2024, house costs with 2×/3× stress. H4 bias = H4 EMA20>EMA50, timestamped at the H4 close, merged backward (mirrors `live_signals.h4_gate`).
+
+## 4. XAUUSD BOS — H1 structure-break continuation (long, rr5)
+Close crosses above the last confirmed pivot high (k=3, +0.1×ATR pad; previous close below its own threshold) → long next open; stop = close − 2×ATR; TP = 5R; max hold 96; 2/day.
+- Official: +267.4R, avg +0.170, WR 26%, 3×-immune (+182R), overlap vs DONCH only 30%.
+- **This feed: n=1,708, +281.9R, avg +0.165, WR 27%, train +197.2 / holdout +84.7, 13/19 years, maxDD −53R; 3× cost +166.8R. CONFIRMED.** Daily-R correlation vs DONCH-TR: +0.16 (genuinely additive). WR 26–27% at 5R targets means 8–10 loss streaks are NORMAL.
+
+## 5. XAUUSD MACROSS — H1 EMA20×50 cross + H4 bias (long, rr3)
+EMA20 crosses above EMA50 AND H4 bias bullish → long next open; stop = close − 2×ATR; TP = 3R; max hold 96; 2/day.
+- Official: +49.8R (TZ-fixed +54.5R), 3× PASS.
+- **This feed: n=404, +70.6R, avg +0.175, train +44.1 / holdout +26.6, 14/19 years, maxDD −33R; 3× +53.4R. CONFIRMED**, corr vs DONCH-TR +0.03 — near-independent despite both being gold-long trend.
+
+## 6. XAUUSD MTF-DONCH — H1 Donchian-24 gated by H4 trend (long, rr3)
+Close breaks the prior-24-bar high +0.1×ATR AND H4 EMA20>EMA50 → long; stop = close − 2×ATR; TP = 3R; max hold 96; 2/day.
+- Official (watchlist): train +48.1 / holdout +98.0 — flagged holdout-heavy.
+- **This feed: n=1,008, +195.8R, avg +0.194, train +95.7 / holdout +100.1, 13/19 years, maxDD −30R; 3× +126.0R. CONFIRMED** — the strongest recent-years profile in the whole battery (2024+ = +100R). Corr vs DONCH-TR +0.27 (partial overlap — size with the trend sleeve).
+
+## 7. XAUUSD CRASH — H1 crash-continuation SHORT (the insurance leg)
+Bar range ≥2×ATR closing red in the bottom 25% of its range AND H4 bias bearish → short next open; stop = close + 2×ATR; TP = 2R; max hold 96; 2/day.
+- Official: +63.1R, WR 37%, pays in every bear window (2011-15 +42R, 2022 +10R); holdout negative by design in bull runs.
+- **This feed: n=711, +69.5R, avg +0.098, train +57.0 / holdout +12.5, 13/19 years, maxDD −30R; 3× +15.2R (cost-sensitive at 3×). CONFIRMED.** Corr vs DONCH-TR −0.01 — this is the hedge that pays exactly when the long sleeve doesn't.
+
+## Rejected in batch 2 (full disclosure)
+- **P1 ports to EURUSD M30** (official +21R, known cost-sensitive): −25.7R on this feed → REJECTED.
+- **P1 port to USDCHF H1** (official +16R): +0.4R ≈ zero here → NOT recommended; only the GBPUSD original stands.
+
+## Portfolio note (all seven)
+Gold-long sleeve: DONCH-TR, STRAD, BOS, MACROSS, MTF-DONCH (pairwise daily-R corr +0.03…+0.27 measured on this feed — lower than expected, but they share the gold-bull regime; a gold bear hits all five). CRASH short is the counter-regime leg (corr ≈ 0). GBPUSD P1 is the independent FX leg. Combined cadence ≈ 10–15 trades/month.
