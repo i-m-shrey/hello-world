@@ -1,13 +1,14 @@
 # ============================================================================
-# FINAL PRODUCTION FILE (July 22 2026 rev9 -- capital-proportional sizing).
-# rev8 base unchanged. New section 2c: SIZING_MODE off|manual|auto scales the
-# $300-calibrated book (FX 0.04 lots/$10.50 cap, minlot 0.01) with capital.
-# FX lots+caps scale continuously; indices in whole lot-steps; XAUUSD scales
-# ONLY when SCALE_XAUUSD=True (gold risk guard scales with it, lot-aware $).
-# Multiplier clamped [1x, SIZING_MAX_MULT]: never shrinks below calibration,
-# never jumps past the ceiling. Drawdown throttle still applies on top.
-# Default ships mode=off -- byte-identical behavior to rev8 until you opt in.
-# Verified: off/auto/manual/floor/ceiling/gold-guard tests all pass.
+# FINAL PRODUCTION FILE (July 22 2026 rev10 -- PROP-FIRM CHALLENGE MODE).
+# rev9 base unchanged. New section 2d: PROP_MODE=True re-anchors the book to
+# a prop challenge account (default $6K FundedNext-style): ~0.75%/trade
+# sizing, HARD daily kill at -3.5% (flatten + block entries till next broker
+# day), HARD max kill at -8% (flatten + permanent halt), stacking caps cut to
+# prop-safe 1 gold / 2 per-USD / 4 total (firms treat stacked positions as one
+# trade idea), optional PROP_WEEKEND_FLAT for funded-stage weekend bans.
+# Kill-switch anchors follow prop convention: daily = max(balance,equity) at
+# broker midnight incl. FLOATING losses; max = initial account size (static).
+# Default ships PROP_MODE=False -- byte-identical to rev9 until you opt in.
 # Fill the placeholders in CREDENTIALS (+ Telegram), save as live_mt5_bot.py.
 # ============================================================================
 """
@@ -320,6 +321,131 @@ def _apply_capital_scaling(equity: float):
         f" | gold {'SCALED, guard $' + format(XAUUSD_MAX_RISK_USD, '.2f') if SCALE_XAUUSD else 'FIXED 0.01'}"
         f" | ex: EURUSD_E {LOTS.get('EURUSD_E')} lots, XAUUSD_S5 {LOTS.get('XAUUSD_S5')} lots")
 
+
+# ==================== 2d. PROP-FIRM CHALLENGE MODE (July 22 2026) ===========
+# Turns the book into a prop-challenge-compliant machine (FundedNext/The5ers/
+# FTMO style rules). What it does when PROP_MODE=True:
+#   * sizes every trade to ~PROP_RISK_PER_R_PCT of PROP_ACCOUNT_SIZE (via the
+#     2c scaling machinery for FX/indices; gold gets its own conservative step
+#     factor and the $ risk guard is re-anchored to the same per-trade budget)
+#   * HARD DAILY STOP: if equity (incl. floating) drops PROP_DAILY_STOP_PCT
+#     below the day's anchor (max of balance/equity at broker midnight), it
+#     FLATTENS everything, cancels pendings, and blocks entries until the next
+#     broker day - a buffer under the firm's 4-5% daily loss limit.
+#   * HARD MAX STOP: equity below PROP_ACCOUNT_SIZE*(1-PROP_MAX_STOP_PCT)
+#     flattens and HALTS permanently (manual restart required) - buffer under
+#     the firm's 6-10% max loss.
+#   * stacking caps drop to prop-safe values (firms treat stacked positions as
+#     ONE trade idea with per-idea risk caps: 4 stacked gold longs = breach).
+#   * optional PROP_WEEKEND_FLAT closes the book Friday 16:30 NY (FundedNext
+#     bans weekend holds on FUNDED accounts; The5ers allows them - flip as needed).
+PROP_MODE = False
+PROP_ACCOUNT_SIZE = 6000.0      # the challenge account size
+PROP_RISK_PER_R_PCT = 0.0075    # ~0.75% of the account per trade
+PROP_DAILY_STOP_PCT = 0.035     # self-imposed daily kill (firm limit usually 4-5%)
+PROP_MAX_STOP_PCT = 0.08        # self-imposed max kill (firm limit usually 10%)
+PROP_WEEKEND_FLAT = False       # True -> flatten Fri 16:30 NY + no entries till Sunday
+PROP_MAX_STACKED_GOLD = 1
+PROP_MAX_PER_USD = 2
+PROP_MAX_TOTAL = 4
+
+_PROP = {"blocked_until": None, "halted": False, "day": None, "baseline": None}
+
+
+def _apply_prop_mode():
+    """Re-anchors sizing + caps to the prop account. Called at import when
+    PROP_MODE is on; overrides SIZING_* so 2c does the FX/index scaling."""
+    global SIZING_MODE, SIZING_MANUAL_CAPITAL, SIZING_MAX_MULT, SCALE_XAUUSD, SCALE_INDICES
+    global MAX_STACKED_GOLD_LONGS, MAX_CONCURRENT_TOTAL, MAX_CONCURRENT_PER_USD
+    global XAUUSD_MAX_RISK_USD
+    if not PROP_MODE:
+        return
+    risk_usd = PROP_ACCOUNT_SIZE * PROP_RISK_PER_R_PCT          # per-trade budget
+    mult = risk_usd / 10.50                                     # FX cap calibration
+    SIZING_MODE = "manual"
+    SIZING_MANUAL_CAPITAL = SIZING_BASE_CAPITAL * mult
+    SIZING_MAX_MULT = max(SIZING_MAX_MULT, mult)
+    SCALE_XAUUSD = False                                        # gold handled below
+    SCALE_INDICES = True
+    gold_steps = max(1, int(round(mult / 2)))                   # deliberately conservative:
+    for k, inst in INSTANCES.items():                           # keeps median gold stops
+        if inst["symbol"] == "XAUUSD":                          # inside the $ guard below
+            LOTS[k] = round(LOTS[k] * gold_steps, 2)
+    XAUUSD_MAX_RISK_USD = round(risk_usd, 2)
+    MAX_STACKED_GOLD_LONGS = PROP_MAX_STACKED_GOLD
+    MAX_CONCURRENT_TOTAL = PROP_MAX_TOTAL
+    MAX_CONCURRENT_PER_USD = PROP_MAX_PER_USD
+
+
+def _prop_flatten(reason):
+    """Close every bot position and cancel every bot pending order. Best-effort
+    with one retry pass; broker-side SLs remain as the backstop."""
+    for _ in range(2):
+        open_any = False
+        for key2, inst2 in INSTANCES.items():
+            for pos in positions_for(inst2):
+                open_any = True
+                close_position(inst2, pos, reason)
+            for od in pending_for(inst2):
+                cancel_order(key2, od.ticket)
+        if not open_any:
+            break
+        time.sleep(2)
+
+
+def _prop_guard(state) -> bool:
+    """Returns True when NEW ENTRIES are blocked. Flattens on breach of the
+    self-imposed daily/max stops. Anchors follow prop convention: daily anchor
+    = max(balance, equity) at broker midnight; max anchor = initial account."""
+    if not PROP_MODE:
+        return False
+    ps = state.setdefault("prop", {})
+    if ps.get("halted"):
+        return True
+    acc2 = mt5.account_info()
+    if acc2 is None:
+        return True                                       # fail-safe: no data, no entries
+    now_b = datetime.now(timezone.utc).astimezone(BTZ)
+    bday = str(now_b.date())
+    if ps.get("day") != bday:
+        ps["day"] = bday
+        ps["baseline"] = max(acc2.balance, acc2.equity)
+        ps.pop("blocked_today", None)
+        log(f"PROP: new broker day {bday} - daily anchor ${ps['baseline']:.2f} "
+            f"(kill at ${ps['baseline'] * (1 - PROP_DAILY_STOP_PCT):.2f})")
+    if acc2.equity <= PROP_ACCOUNT_SIZE * (1 - PROP_MAX_STOP_PCT):
+        log(f"!!! PROP MAX-LOSS KILL: equity ${acc2.equity:.2f} <= "
+            f"{PROP_MAX_STOP_PCT:.0%} under ${PROP_ACCOUNT_SIZE:.0f} - flattening, HALTED")
+        _prop_flatten("prop_max_kill")
+        ps["halted"] = True
+        notify(f"PROP HALT: max-loss kill at ${acc2.equity:.2f}. Bot stopped entering; "
+               f"manual review required.")
+        return True
+    if ps.get("blocked_today"):
+        return True
+    base = ps.get("baseline") or max(acc2.balance, acc2.equity)
+    if acc2.equity <= base * (1 - PROP_DAILY_STOP_PCT):
+        log(f"!! PROP DAILY KILL: equity ${acc2.equity:.2f} <= "
+            f"{PROP_DAILY_STOP_PCT:.1%} under today's anchor ${base:.2f} - "
+            f"flattening, no entries until the next broker day")
+        _prop_flatten("prop_daily_kill")
+        ps["blocked_today"] = True
+        notify(f"PROP daily stop hit at ${acc2.equity:.2f} - book flattened, "
+               f"entries resume next broker day.")
+        return True
+    if PROP_WEEKEND_FLAT:
+        ny_now = datetime.now(timezone.utc).astimezone(NY)
+        if (ny_now.weekday() == 4 and (ny_now.hour, ny_now.minute) >= (16, 30))                 or ny_now.weekday() == 5 or (ny_now.weekday() == 6 and ny_now.hour < 17):
+            for _k, _i in INSTANCES.items():
+                if positions_for(_i):
+                    log("PROP: weekend-flat window - closing remaining positions")
+                    _prop_flatten("prop_weekend_flat")
+                    break
+            return True
+    return False
+
+
+# (called below, after INSTANCES/caps exist - see the line after MAGIC2KEY)
 
 DRY_RUN = False   # !! starts True: shadow-mode. Flip to False ONLY after the shadow phase. !!
 
@@ -816,6 +942,7 @@ INSTANCES = {
                       max_tpd=LS.FX_STRATS["USDCHF-P1"]["max_tpd"], bar_seconds=3600),
 }
 MAGIC2KEY = {v["magic"]: k for k, v in INSTANCES.items()}
+_apply_prop_mode()      # PROP_MODE re-anchoring (needs INSTANCES + caps above)
 
 # Per-FEED data config. A feed = one (market, timeframe-pair) stream; keys are feed names.
 # "market" is the broker symbol (defaults to the feed name) — lets one symbol have TWO feeds
@@ -2598,6 +2725,11 @@ def main():
                 log("TZ ENTRY GATE: " + ("CLEARED — entries re-enabled" if tz_entries_ok
                                          else "still failing — entries remain disabled"))
             now_utc = datetime.now(timezone.utc)
+            prop_blocked = _prop_guard(state)
+            if prop_blocked and state.get("prop", {}).get("halted"):
+                save_state(state)
+                time.sleep(POLL_SECONDS)
+                continue                       # halted: only the log line above, no trading
             manage_positions(now_utc, state)
             manage_pending(state)
             poll_closed_trades(state)
@@ -2656,6 +2788,8 @@ def main():
                         status.append(f"{key}:off"); continue
                     if not tz_entries_ok:
                         status.append(f"{key}: TZ-GATE (no new entries)"); continue
+                    if prop_blocked:
+                        status.append(f"{key}: PROP-GATE (no new entries)"); continue
                     status.append(f"{key}: {try_enter(key, inst, frames, state)}")
                 log(f"[{sym} {cur['ny_time']} NY] " + " | ".join(status))
             time.sleep(POLL_SECONDS)
