@@ -184,4 +184,7 @@ if __name__ == "__main__":
     elif a.report:
         report()
     else:
-        print(__doc__)
+        # no flag (e.g. PyCharm run button) -> default to collect mode
+        print("no mode flag given - defaulting to --collect "
+              "(run with --report for the analysis)")
+        collect()
