@@ -1,0 +1,118 @@
+--- /tmp/live_mt5_bot.pre_tzfix.py	2026-07-15 16:59:38.301125753 +0000
++++ live_mt5_bot.py	2026-07-15 17:01:29.023090140 +0000
+@@ -738,13 +738,28 @@
+ def detect_broker_offset_minutes():
+     """METHOD 1 (measure): broker server clock minus true UTC, to the nearest 15 minutes =
+     the broker's CURRENT UTC offset. Works for ANY offset — UTC+2/+3, +6, +7, negative, and
+-    even :30/:45 zones — because it is measured, never assumed. Guards reject implausible
+-    values (e.g. a stale weekend tick)."""
++    even :30/:45 zones — because it is measured, never assumed.
++    July 15 2026 fix: a just-launched terminal can serve an HOURS-OLD cached tick before the
++    quote stream syncs (this measured a bogus UTC-05:45 live). A stale tick's clock does NOT
++    advance, a live stream's does — so we now require the tick time to ADVANCE before
++    trusting it. Returns None (keep current/fallback TZ) when no live tick is available."""
+     try:
+-        tick = mt5.symbol_info_tick(broker_sym(market_of(ACTIVE_SYMBOLS[0])))
+-        if tick is None or not tick.time:
++        bsym = broker_sym(market_of(ACTIVE_SYMBOLS[0]))
++        t1 = mt5.symbol_info_tick(bsym)
++        if t1 is None or not t1.time:
+             return None
+-        broker_now = pd.to_datetime(tick.time, unit="s")               # broker wall clock (naive)
++        t2 = None
++        deadline = time.time() + 12.0                                  # gold ticks ~every sec when open
++        while time.time() < deadline:
++            time.sleep(1.5)
++            t2 = mt5.symbol_info_tick(bsym)
++            if t2 is not None and t2.time and t2.time > t1.time:
++                break
++        if t2 is None or not t2.time or t2.time <= t1.time:
++            log("TZ measure: tick clock NOT advancing (cached quote / market closed) — refusing "
++                "to measure an offset from a stale tick")
++            return None
++        broker_now = pd.to_datetime(t2.time, unit="s")                 # broker wall clock (naive)
+         utc_now = pd.Timestamp.utcnow().tz_localize(None)              # true UTC (naive)
+         off_min = int(round((broker_now - utc_now).total_seconds() / 60.0 / 15.0)) * 15
+         return off_min if -12 * 60 <= off_min <= 14 * 60 else None     # sanity band
+@@ -2144,26 +2159,33 @@
+             f"UTC now {datetime.now(timezone.utc):%H:%M} | offset {BROKER_TZ} (auto={BROKER_TZ_AUTO})")
+         log("           ^ 'interpreted NY' should match real New York wall-clock.")
+     # METHOD 2 — independent cross-check on the warmed bars (broker-independent anchor)
+-    tz_ok = True
+-    for sym in ACTIVE_SYMBOLS:
+-        mkt = market_of(sym)
+-        # Index CFDs have their OWN session calendars (DAX closes Fri 16:00 NY, US
+-        # holidays close 12-13:00) — the Fri-16-17-NY fingerprint is an FX/gold anchor.
+-        # July 12 fix: GER40 15/25 tripped a FALSE "TIMEZONE CROSS-CHECK FAILED" while
+-        # every FX feed was 20/20. Indices rely on measured-offset METHOD 1 instead.
+-        if mkt in MINLOT_SYMBOLS and mkt != "XAUUSD":
+-            log(f"TZ VERIFY [{sym}]: index CFD — own session calendar, weekend "
+-                f"fingerprint n/a (covered by the measured-offset check)")
+-            continue
+-        res = verify_tz_via_weekend(caches[sym][0].df, sym)
+-        if res is False:
+-            tz_ok = False
+-    if not tz_ok:
++    def weekend_crosscheck() -> bool:
++        ok = True
++        for sym2 in ACTIVE_SYMBOLS:
++            mkt = market_of(sym2)
++            # Index CFDs have their OWN session calendars (DAX closes Fri 16:00 NY, US
++            # holidays close 12-13:00) — the Fri-16-17-NY fingerprint is an FX/gold anchor.
++            # July 12 fix: GER40 15/25 tripped a FALSE "TIMEZONE CROSS-CHECK FAILED" while
++            # every FX feed was 20/20. Indices rely on measured-offset METHOD 1 instead.
++            if mkt in MINLOT_SYMBOLS and mkt != "XAUUSD":
++                log(f"TZ VERIFY [{sym2}]: index CFD — own session calendar, weekend "
++                    f"fingerprint n/a (covered by the measured-offset check)")
++                continue
++            if verify_tz_via_weekend(caches[sym2][0].df, sym2) is False:
++                ok = False
++        return ok
++
++    tz_entries_ok = weekend_crosscheck()
++    if not tz_entries_ok:
+         log("!!! TIMEZONE CROSS-CHECK FAILED — the measured offset does not put Friday close at "
+             "17:00 NY. Session filters would be WRONG. Investigate before trusting live signals.")
++        log("!!! TZ ENTRY GATE ENGAGED — NEW ENTRIES DISABLED (July 15 2026 fix). Existing "
++            "positions are still managed (trails/exits/closes). Re-measuring every 15 min; "
++            "entries re-enable automatically once the cross-check passes.")
+ 
+     last_bar = {sym: None for sym in ACTIVE_SYMBOLS}
+     last_tz_day = datetime.now(timezone.utc).date()
++    last_tz_retry = time.time()
+     while True:
+         try:
+             if not ensure_connection():
+@@ -2176,6 +2198,23 @@
+                     log("Broker TZ changed — full resync of all caches.")
+                     for c_m, c_b in caches.values():
+                         c_m.full_sync(); c_b.full_sync()
++                    was_ok = tz_entries_ok
++                    tz_entries_ok = weekend_crosscheck()
++                    if was_ok and not tz_entries_ok:
++                        log("!!! TZ ENTRY GATE ENGAGED after daily re-measure — new entries "
++                            "disabled until the cross-check passes.")
++            # TZ ENTRY GATE recovery: while blocked, re-measure + resync + re-verify
++            # every 15 min so a transient bad measurement heals without a restart.
++            if not tz_entries_ok and time.time() - last_tz_retry >= 900:
++                last_tz_retry = time.time()
++                log("TZ ENTRY GATE: re-measuring broker offset and re-verifying...")
++                if refresh_broker_tz():
++                    log("Broker TZ changed — full resync of all caches.")
++                    for c_m, c_b in caches.values():
++                        c_m.full_sync(); c_b.full_sync()
++                tz_entries_ok = weekend_crosscheck()
++                log("TZ ENTRY GATE: " + ("CLEARED — entries re-enabled" if tz_entries_ok
++                                         else "still failing — entries remain disabled"))
+             now_utc = datetime.now(timezone.utc)
+             manage_positions(now_utc, state)
+             manage_pending(state)
+@@ -2231,6 +2270,8 @@
+                         continue
+                     if not ENABLE.get(key):
+                         status.append(f"{key}:off"); continue
++                    if not tz_entries_ok:
++                        status.append(f"{key}: TZ-GATE (no new entries)"); continue
+                     status.append(f"{key}: {try_enter(key, inst, frames, state)}")
+                 log(f"[{sym} {cur['ny_time']} NY] " + " | ".join(status))
+             time.sleep(POLL_SECONDS)

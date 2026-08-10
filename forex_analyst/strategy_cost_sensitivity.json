@@ -1,0 +1,50 @@
+{
+ "XAUUSD_DONCH": {
+  "avg1x": 0.1438,
+  "avg2x": 0.1177,
+  "assumed_cost": 0.23,
+  "hours": null
+ },
+ "XAUUSD_DONCH_TR": {
+  "avg1x": 0.2765,
+  "avg2x": 0.2415,
+  "assumed_cost": 0.23,
+  "hours": null
+ },
+ "XAUUSD_MACROSS": {
+  "avg1x": 0.1649,
+  "avg2x": 0.1245,
+  "assumed_cost": 0.23,
+  "hours": null
+ },
+ "XAUUSD_BOS": {
+  "avg1x": 0.1615,
+  "avg2x": 0.1251,
+  "assumed_cost": 0.23,
+  "hours": null
+ },
+ "SPX500_DONCH": {
+  "avg1x": 0.0443,
+  "avg2x": -0.0221,
+  "assumed_cost": 1.7,
+  "hours": null
+ },
+ "GER40_DONCH": {
+  "avg1x": 0.2196,
+  "avg2x": 0.1619,
+  "assumed_cost": 4.7,
+  "hours": null
+ },
+ "US30_DONCH": {
+  "avg1x": 0.1506,
+  "avg2x": 0.134,
+  "assumed_cost": 3.4,
+  "hours": null
+ },
+ "JPN225_DONCH": {
+  "avg1x": 0.1533,
+  "avg2x": 0.0622,
+  "assumed_cost": 13.5,
+  "hours": null
+ }
+}
