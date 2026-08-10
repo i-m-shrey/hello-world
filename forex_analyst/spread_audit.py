@@ -67,7 +67,7 @@ def attach():
             return None
         return m.group(1)
 
-    if re.search(r"^MT5_ACCOUNT\s*=", src, re.M):          # legacy flat layout
+    if re.search(r"^MT5_ACCOUNT\s*=\s*\d+", src, re.M):          # legacy flat layout
         acct = int(grab(r"^MT5_ACCOUNT\s*=\s*(\d+)"))
         pw = grab(r'^MT5_PASSWORD\s*=\s*"([^"]+)"')
         srv = grab(r'^MT5_SERVER\s*=\s*"([^"]+)"')
