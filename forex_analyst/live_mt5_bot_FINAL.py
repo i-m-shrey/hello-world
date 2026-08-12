@@ -504,14 +504,17 @@ RUNNER_MIN_SL_STEP = 0.05         # only send SL changes larger than this (price
 # changes, validated train +42.2 / holdout +12.4, 6/6 years, plateau disp 2.3-2.6:
 S6R_DISP_ATR_MULT = 2.4    # displacement bar must be >= 2.4 x ATR50 (was 2.2)
 
-# ====================== 2e. GOLD-TREND $ RISK GUARD (July 2026, owner) =======
-# HARD per-trade $ cap for every XAUUSD instance in the "trend"/"trend_trail"
-# risk modes (DONCH / DONCH_TR / VCX / MACROSS / CRASH / BOS ride 0.01 lot,
-# where $1 of gold move = $1 P&L). If the SL distance in $ falls outside
-# [MIN, MAX], the trade is SKIPPED and logged. NOTE THE MATH at today's ATR
-# (~$16-20 H1): a 2xATR structural stop is $32-40, so MAX=20 blocks most
-# gold-trend entries until volatility halves — that is the intended,
-# owner-decided capital-preservation behavior, not a bug.
+# ====================== 2e. GOLD-TREND $ RISK SIZER (Aug 2026, owner) ========
+# Per-trade $ budget for every XAUUSD instance in the "trend"/"trend_trail"/
+# "zone" risk modes (DONCH / DONCH_TR / VCX / MACROSS / CRASH / BOS / ZBPIV;
+# $1 of gold move = $1 P&L per 0.01 lot). OWNER DECISION Aug 2026: the guard
+# now SIZES the lot DOWN (in broker volume steps, from the configured lot as
+# ceiling) so the trade risks AT MOST XAUUSD_MAX_RISK_USD — mirroring the FX
+# dollar-risk sizing — instead of skipping the trade outright. A trade is
+# skipped ONLY when even the broker-minimum 0.01 lot would risk more than the
+# cap, or the sized risk falls under the MIN floor. (Pre-Aug-2026 behavior:
+# hard skip on any breach at the configured lot; that skipped wide-ATR
+# gold-trend entries the backtests count — often the big trend winners.)
 XAUUSD_MIN_RISK_USD = 1.0
 XAUUSD_MAX_RISK_USD = 20.0
 S6R_REQUIRE_BIAS5 = True   # 5m swing_bias must be +1 (structure gate — THE fix)
@@ -1546,25 +1549,47 @@ def round_price(symbol, x):
 
 
 def _gold_usd_risk_guard(key, inst, risk_points):
-    """OWNER RULE (July 2026): XAUUSD trend-family trades ride 0.01 lot, where
-    $1 of price = $1 P&L, so risk_$ == SL distance in points. Skip + LOG any
-    trade whose $ risk falls outside [XAUUSD_MIN_RISK_USD, XAUUSD_MAX_RISK_USD].
-    Returns a skip-reason string, or None when the trade may proceed."""
+    """OWNER RULE (July 2026; DOLLAR-SIZING owner decision Aug 2026): XAUUSD
+    trend-family trades are sized from the SL distance in dollars, mirroring
+    fx_lot_for_min_risk. $1 of gold move = $1 P&L per 0.01 lot, so
+    risk_$ == SL points * (lot / 0.01). The configured lot (LOTS[key], after
+    the drawdown throttle) is the CEILING; when it would risk more than
+    XAUUSD_MAX_RISK_USD the lot is stepped DOWN in broker volume steps until
+    the risk fits the cap. A trade is SKIPPED only when even the broker
+    minimum lot busts the cap, or the sized risk is under XAUUSD_MIN_RISK_USD.
+    Returns (skip_reason, lot): skip_reason is None when the trade may
+    proceed; lot is None for non-gold instances (caller keeps its own sizing)."""
     if inst["symbol"] != "XAUUSD":
-        return None
-    lot = LOTS.get(key, 0.01)              # $1 price move = $1 P&L per 0.01 lot
-    risk_usd = float(risk_points) * (lot / 0.01)
-    if risk_usd > XAUUSD_MAX_RISK_USD:
-        log(f"{key}: SKIP — SL risk ${risk_usd:.2f} at {lot:.2f} lot > "
+        return None, None
+    sym = broker_sym("XAUUSD")
+    info = mt5.symbol_info(sym)
+    step = getattr(info, "volume_step", 0.01) or 0.01
+    vmin = getattr(info, "volume_min", 0.01) or 0.01
+    base_lot = throttled_base_lot(key, sym)
+    risk_per_001 = float(risk_points)      # $ risk at 0.01 lot ($1 move = $1)
+    if risk_per_001 <= 0:
+        return f"invalid gold risk {risk_points}", None
+    # largest lot (in whole broker steps) whose $ risk stays inside the cap
+    max_lot = int((XAUUSD_MAX_RISK_USD / risk_per_001) * 0.01 / step + 1e-9) * step
+    lot = round(min(base_lot, max_lot), 2)
+    if lot < vmin:
+        risk_at_min = risk_per_001 * (vmin / 0.01)
+        log(f"{key}: SKIP — SL risk ${risk_at_min:.2f} even at minimum {vmin:.2f} lot > "
             f"XAUUSD_MAX_RISK_USD ${XAUUSD_MAX_RISK_USD:.2f} (no trade taken)")
-        return f"risk ${risk_usd:.2f} > ${XAUUSD_MAX_RISK_USD:.2f} cap — skipped"
+        return f"risk ${risk_at_min:.2f} at min lot > ${XAUUSD_MAX_RISK_USD:.2f} cap — skipped", None
+    risk_usd = risk_per_001 * (lot / 0.01)
     if risk_usd < XAUUSD_MIN_RISK_USD:
         log(f"{key}: SKIP — SL risk ${risk_usd:.2f} at {lot:.2f} lot < "
             f"XAUUSD_MIN_RISK_USD ${XAUUSD_MIN_RISK_USD:.2f} (no trade taken)")
-        return f"risk ${risk_usd:.2f} < ${XAUUSD_MIN_RISK_USD:.2f} floor — skipped"
-    log(f"{key}: risk guard OK — SL risk ${risk_usd:.2f} at {lot:.2f} lot within "
-        f"[${XAUUSD_MIN_RISK_USD:.2f}, ${XAUUSD_MAX_RISK_USD:.2f}]")
-    return None
+        return f"risk ${risk_usd:.2f} < ${XAUUSD_MIN_RISK_USD:.2f} floor — skipped", None
+    if lot < base_lot:
+        log(f"{key}: SIZED DOWN {base_lot:.2f} -> {lot:.2f} lot — SL risk "
+            f"${risk_per_001 * (base_lot / 0.01):.2f} at {base_lot:.2f} lot > "
+            f"${XAUUSD_MAX_RISK_USD:.2f} cap; trade proceeds risking ${risk_usd:.2f}")
+    else:
+        log(f"{key}: risk guard OK — SL risk ${risk_usd:.2f} at {lot:.2f} lot within "
+            f"[${XAUUSD_MIN_RISK_USD:.2f}, ${XAUUSD_MAX_RISK_USD:.2f}]")
+    return None, lot
 
 
 def is_runner(inst):
@@ -2389,11 +2414,11 @@ def try_enter(key, inst, frames, state):
             tp_abs = est_entry - sig["rr"] * risk
         if risk <= 0 or not (0.3 * atr <= risk <= 4.0 * atr):
             return f"risk {risk:.2f} out of ATR bounds"
-        guard = _gold_usd_risk_guard(key, inst, risk)
+        guard, gold_lot = _gold_usd_risk_guard(key, inst, risk)
         if guard:
             return guard
         ok = send_market(key, inst, sig["direction"],
-                         throttled_base_lot(key, broker_sym(inst["symbol"])),
+                         gold_lot or throttled_base_lot(key, broker_sym(inst["symbol"])),
                          stop, None, atr=atr, state=state, tp_abs=tp_abs)
         return f"{note}{' EXECUTED' if ok else ' FAILED'}"
     if inst["risk_mode"] == "trend_trail":
@@ -2411,11 +2436,11 @@ def try_enter(key, inst, frames, state):
             risk = est_entry - stop
         if risk <= 0 or not (0.3 * atr <= risk <= 4.0 * atr):
             return f"risk {risk:.2f} out of ATR bounds"
-        guard = _gold_usd_risk_guard(key, inst, risk)
+        guard, gold_lot = _gold_usd_risk_guard(key, inst, risk)
         if guard:
             return guard
         if inst["symbol"] in MINLOT_SYMBOLS:
-            lot = throttled_base_lot(key, broker_sym(inst["symbol"]))
+            lot = gold_lot or throttled_base_lot(key, broker_sym(inst["symbol"]))
         else:
             lot = fx_lot_for_min_risk(key, inst, sig["direction"], est_entry, stop)
             if lot is None:
@@ -2439,11 +2464,11 @@ def try_enter(key, inst, frames, state):
             tp_abs = est_entry + sig["rr"] * risk
         if risk <= 0 or not (0.3 * atr <= risk <= 4.0 * atr):
             return f"risk {risk:.2f} out of ATR bounds"
-        guard = _gold_usd_risk_guard(key, inst, risk)
+        guard, gold_lot = _gold_usd_risk_guard(key, inst, risk)
         if guard:
             return guard
         ok = send_market(key, inst, sig["direction"],
-                         throttled_base_lot(key, broker_sym(inst["symbol"])),
+                         gold_lot or throttled_base_lot(key, broker_sym(inst["symbol"])),
                          stop, None, atr=atr, state=state, tp_abs=tp_abs)
         return f"{note}{' EXECUTED' if ok else ' FAILED'}"
     if inst["risk_mode"] == "p1":
