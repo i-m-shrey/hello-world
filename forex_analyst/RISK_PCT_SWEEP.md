@@ -1,69 +1,89 @@
-# Risk-% Sweep — evidence-based per-trade risk (rev11 companion)
+# Risk-% Sweep v2 — evidence-based per-trade risk (rev11 companion)
 
-**Date:** Aug 14 2026 · **Tool:** `risk_pct_sweep_mc.py` (same BOOK/correlation/kill
-model as `prop_challenge_mc.py`; barriers re-derived in R per risk%; min-lot
-quantization modeled — gold lognormal stop-$ fit to the live FundedNext stops,
-index cells in per-0.01-lot dollar steps, FX ~0.97 fill).
+**Date:** Aug 14 2026 (v2, same day — v1 review fixes below) · **Tool:** `risk_pct_sweep_mc.py`
 
-## Headline numbers ($6K, base scenario, N=3000 phases / 1200 funded paths)
+**v2 changes after review:** (1) full table — v1's report omitted the 0.70%/0.85% rows
+even though they were simulated; (2) gold stop-$ distribution refit from n=7 live
+stops to **tiered lognormals anchored on n=369 backtest stops** (HAVW gold-H1
+tradebook, log-σ 0.317) scaled to 2026 ATR and validated against live fills+skips;
+(3) **global cross-tier correlation stress** added (`--gcorr`) — v1 correlated trades
+within a tier (Gaussian copula, gold w=0.45/0.65, idx 0.40, fx 0.20) but drew the
+gold/index/FX tier factors independently, optimistic for macro-shock days;
+(4) recovery-time claim derived + measured (new `P2now_td` column); (5) the −42/−62R
+drawdown figures attributed correctly (throttle-on vs raw).
 
-| risk% | P(P1) | P(P2) | P(P2 from $5,920) | P(both) | med tdays P1+P2 | funded sv 13/26wk | wk$ | P(both)×sv13 |
-|---|---|---|---|---|---|---|---|---|
-| 0.40% | 79.1% | 84.3% | 72.4% | **66.7%** | 76 | 90/85% | $21 | 60.1% |
-| 0.50% | 73.8% | 76.2% | 70.9% | 56.2% | 50 | 82/75% | $26 | 46.0% |
-| 0.60% | 69.4% | 75.2% | 65.7% | 52.2% | 34 | 73/67% | $33 | 38.1% |
-| **0.75%** | 65.7% | 72.4% | **65.2%** | 47.6% | **22** | 66/59% | $46 | 31.3% |
-| 0.85% | 64.8% | 71.1% | 63.4% | 46.1% | 21 | 67/62% | $52 | 30.8% — **illegal funded @cap4** |
-| 1.00% | 65.0% | 68.3% | 63.4% | 44.4% | 14 | 60/55% | $70 | 26.7% — **illegal funded @cap4** |
+## Main table ($6K, base scenario, N=3000 phases / 1200 funded paths, gcorr 0)
 
-$15K sweep: same shape, quantization pain gone (gold skips 12.7%→0.1% at 0.4%),
-weekly $ scales ~2.5× (e.g. $116/wk at 0.75%).
+| risk% | P(P1) | P(P2) | P(P2 from $5,920) | med td | P(both) | P1+P2 med td | sv13/26wk | wk$ | plan | gold skip |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0.40% | 76.1% | 79.5% | 73.5% | 36 | 60.6% | 83 | 89/82% | $18 | 53.7% | **37.9%** |
+| 0.50% | 71.2% | 77.4% | 69.1% | 22 | 55.1% | 48 | 78/73% | $25 | 43.2% | 23.6% |
+| 0.60% | 68.6% | 74.0% | 66.8% | 15 | 50.8% | 33 | 72/65% | $30 | 36.7% | 11.4% |
+| 0.70% | 67.6% | 72.6% | 65.7% | 12 | 49.0% | 27 | 68/62% | $39 | 33.5% | 5.8% |
+| 0.75% | 63.8% | 72.4% | 62.9% | 10 | 46.2% | 22 | 67/61% | $46 | 31.2% | 4.0% |
+| 0.85% | 65.0% | 70.0% | 63.3% | 8 | 45.5% | 21 | 66/61% | $54 | 30.0% | 1.5% — *illegal funded @cap4* |
+| 1.00% | 64.3% | 69.9% | 59.9% | 7 | 44.9% | 14 | 62/57% | $72 | 27.9% | 0.5% — *illegal funded @cap4* |
 
-## What the evidence actually says
+**Correlation stress (gcorr 0.35, all tiers share a global factor):** at 0.75% —
+P(both) 46.2→44.5% (−1.7pp), funded sv13 67.4→60.9% (−6.5pp), plan 31.2→27.1%.
+The reviewer was right that funded survival is the correlation-sensitive number;
+the *ranking* across risk% is unchanged under stress (orderings hold at every row),
+so the decision survives, but treat funded survival as 55–67% band, not a point.
 
-1. **Lower risk buys pass probability with time, not for free.** No time limit ⇒
-   P(pass both) rises monotonically as risk falls (47.6% → 66.7% from 0.75% → 0.40%),
-   but median trading time to funded stretches 22 → 76 tdays (~1 month → ~3.6 months).
-   A failed attempt costs $137 and restarts; a slow attempt costs months of the
-   ladder's compounding. Expected calendar-to-funded ≈ attempts × duration:
-   ~2.2 months at 0.75% vs ~4.3 months at 0.50%. **Time is the scarce resource for
-   the $2–3K/mo goal; the retry fee is not.**
-2. **The funded stage caps risk by RULE, not by preference.** FundedNext funded
-   accounts: total open risk ≤3% of initial. At the 4-position cap that means
-   ≤0.75%/trade; 0.85–1.0% would require cap 3, and the July concurrency study
-   already showed admission-cutting costs book R. Funded extraction EV within the
-   legal band rises with risk ($494 → $893 expected per 26 weeks from 0.40% → 0.75%)
-   because payouts front-run account death — the extraction-vehicle logic.
-3. **Quantization sets the floor.** At $6K/0.40% the budget is $24 and 12.7% of gold
-   trades can't be sized at all (0.01 lot > budget) — the "safe" setting quietly
-   deletes part of the edge. Mean deployed fill is only ~0.75–0.82 of intended risk
-   at any setting (gold rounding + index steps); on $15K the floor effectively
-   disappears. Ultra-low risk% is not actually available on small accounts.
-4. **Drawdown context** (`streak_dd_mc.py`): the book's median *monthly*
-   peak-to-trough DD is ~13R, p99 ~25R. At 0.75% that is 9.8%/19% — the firm's 10%
-   static line sits at 13.3R. No feasible risk% makes the 5-year backtest maxDD
-   (−42…−62R) fit inside 10%; immortality would need ≤0.15%/trade, below the gold
-   min-lot floor and economically pointless. **Accounts are extraction vehicles;
-   survival of the plan comes from the ladder + fee-from-payouts discipline.**
+**$15K:** same shape; gold skips vanish (0.5% at 0.40%), wk$ ≈ 2.4× (e.g. $117/wk
+at 0.75%).
 
-## Decision (owner-approved framework, numbers now derived not asserted)
+## What v2 changed materially — the stop refit hurts LOW risk
 
-- **Challenge phases (every account, 6K and 15K): `PROP_RISK_PER_R_PCT = 0.0075`.**
-  Time-optimal; the safety bought by 0.5% costs ~2 extra months per funded account
-  and its pass-probability gain (+8.6pp) is worth less than the time.
-- **Funded stage: `PROP_RISK_PER_R_PCT = 0.0070`, keep `PROP_MAX_TOTAL = 4`.**
-  4 × 0.70% = 2.8% ≤ 3% firm rule with real headroom for SL-attach slippage —
-  resolves the handoff's "cap 3 OR risk 0.0070" fork in favor of keeping admissions
-  (the cap study says cuts cost R; 0.05pp of risk does not).
-- **Never ≥0.85% anywhere:** illegal at funded under cap 4, and P(both) is worse
-  anyway — there is no upside case.
-- **Live Phase 2 right now: NO change.** From $5,920.53 the pass probability at the
-  current 0.75% is ~65%; dropping to 0.5% adds ~6pp at the cost of weeks and a
-  mid-run config change the freeze discipline exists to prevent.
-- **The $2–3K/mo goal is a capital problem, not a risk% problem:** $46/wk on 6K vs
-  $116/wk on 15K at identical risk. The ladder (merge → scale-ups → $75–100K) is
-  the lever; risk% is now set where the evidence puts it.
+With the tiered fit (gold-trend median stop ≈ $28/0.01-lot at 2026 ATR — the three
+logged PROP skips at $33.7–39.5 sit at p72–p86 of it, live fills $26.9–27 near
+median), the low-risk rows lose much more of the gold book than v1 showed:
+**at $6K/0.40%, 37.9% of gold trades can't be sized at all** (v1 said 12.7%).
+P(both) at 0.40% fell 66.7%→60.6% accordingly. The "safe" end of the sweep was
+partly an artifact of the thin n=7 fit; with real stop data it is even less
+attractive on a small account. On $15K the effect disappears — low risk% is a
+*large-account* option, not a small-account one.
 
-Caveats: MC noise ±2pp at these sample sizes; the gold stop-$ distribution is fit
-to 7 live stops (refit after a month of live data); scenario anchor = base 4.5R/mo
-with the haircut held fixed across the sweep so risk% is the only variable.
+## Recovery-time claim — derivation + measurement (was asserted in v1)
+
+Derivation: to recover a fixed dollar/percent distance D at risk r and size
+multiplier m, the distance in R is D/(r·m) while drift per day in R (edge per
+trade) is unchanged, so **E[days] ≈ D/(r·m·μ_R) — linear in 1/m**: halving size
+doubles expected recovery time. *Assumption: stationary edge* — if the edge has
+decayed, smaller size is loss-limiting, not recovery-delaying; a 14-trade live
+sample cannot yet distinguish these, which is what the mid-Aug calibration gate
+and monthly refits are for. Measured (P2 from $5,920, `P2now_td` median):
+10 tdays at 0.75% → 22 at 0.50% → 36 at 0.40%, while P(pass|now) rises
+62.9%→69.1%→73.5%. The trade is ~+10pp of pass probability for ~3.6× the time.
+
+## The −42/−62R drawdown figures, attributed (was ambiguous in v1)
+
+−62.0R = the RAW 2020–25 book max drawdown; **−42.1R = the same book with the
+−20R/0.5× throttle active** (the throttle is live in the bot: −30% tail DD for
+−21% profit, net/DD 7.3→8.4). The DD axis has been searched before this sweep:
+concurrency cap 4→3 cuts maxDD only −47.8R→−45.8R while costing −11.6R of profit
+(bot §governor comments), and the owner's dynamic-cap idea was backtested and
+rejected (−1–2pp pass, July study). Conclusion stands with attribution: the
+throttle is the accepted DD lever and is already in every number here; further
+slot-cutting buys ~2R of DD for ~12R of profit and stays rejected.
+
+## Decision (v2 wording — honest about what is data vs rule)
+
+- **Challenge phases: 0.75%** (0.70–0.75% are statistically indistinguishable at
+  N=3000, ±2pp; 0.75% is the incumbent and time-optimal; nothing in v2 argues for
+  a change in either direction).
+- **Funded: 0.70% with cap 4.** Plainly: **this is a rule-geometry choice, not a
+  sim-selected one** — 4×0.70% = 2.8% keeps 0.2pp of headroom under FundedNext's
+  3% open-risk rule against SL-attach slippage. The sim's job here was to confirm
+  it costs nothing measurable vs 0.75% (it does: all deltas inside noise) and that
+  the alternative fork (cap 3) costs real R (July study). "Derived from evidence"
+  in v1 overstated it; "rule-derived, evidence-cleared" is the correct claim.
+- **Never ≥0.85% anywhere** (illegal at funded under cap 4; worse P(both) anyway).
+- **No mid-phase change to the live P2** — now with the derivation and the
+  measured column above instead of an assertion.
+
+Caveats that remain: MC noise ±2pp; scenario anchor = base 4.5R/mo with the
+haircut held fixed across the sweep; the goldi (M5) stop fit still leans on few
+live points (the goldt tier, which actually binds the budget, is the n=369 one);
+cross-tier correlation 0.35 is a stress guess, not an estimate — fitting it from
+the daily backtest equity curves is the natural next refinement.

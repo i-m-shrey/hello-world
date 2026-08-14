@@ -78,8 +78,22 @@ is_gold   = np.array([t in ("goldi", "goldt") for t in tier])
 is_idx    = np.array([t == "idx" for t in tier])
 idx_step  = np.array([IDX_STEP_USD.get(n, 0.0) for n in names])
 
-# gold stop-$ per 0.01 lot: lognormal fit to the live FundedNext stops
-GOLD_MU, GOLD_SIGMA = np.log(14.5), 0.44
+# gold stop-$ per 0.01 lot: TIERED lognormals (v2, review fix — was a single
+# n=7 live fit). Shape from the n=369 backtest HAVW gold-H1 tradebook
+# (havw_gold_h1_trades.csv risk column: median $14.4, log-sigma 0.317), scaled
+# to 2026 ATR and split by tier:
+#   goldi (M5 scalps): median ~$12 — the live M5 stops (9.1-14.3) sit here.
+#   goldt (H1 trend):  median ~$28 — anchored on live H1 fills ($26.9-27) and
+#     the three logged PROP skips ($33.7-39.5/0.01 = p72-p86 of this fit).
+GOLDI_MU, GOLDI_SIGMA = np.log(12.0), 0.30
+GOLDT_MU, GOLDT_SIGMA = np.log(28.0), 0.32
+
+# --gcorr G adds a GLOBAL market factor shared by ALL tiers (review fix: v1
+# correlated trades within a tier but drew gold/index/FX tier factors
+# independently — optimistic for macro-shock days). g^2 + w^2 must stay <= 1.
+GCORR = 0.0
+if "--gcorr" in sys.argv:
+    GCORR = float(sys.argv[sys.argv.index("--gcorr") + 1])
 
 def gold_ceiling_steps(budget):
     """PROP chain: mult = budget/10.5, gold_steps = max(1, round(mult/2)) 0.01-lots."""
@@ -89,7 +103,10 @@ def eff_risk(i, budget, seed_rng):
     """Realized risk as a fraction of 1R for trade on BOOK row i, after broker
     lot quantization. 0.0 = trade skipped (min lot busts the budget)."""
     if is_gold[i]:
-        stop = float(np.exp(GOLD_MU + GOLD_SIGMA * seed_rng.standard_normal()))
+        if is_goldt[i]:
+            stop = float(np.exp(GOLDT_MU + GOLDT_SIGMA * seed_rng.standard_normal()))
+        else:
+            stop = float(np.exp(GOLDI_MU + GOLDI_SIGMA * seed_rng.standard_normal()))
         if stop > budget:
             return 0.0                              # even 0.01 lot over budget -> skip
         k = min(int(budget / stop), gold_ceiling_steps(budget))
@@ -117,8 +134,11 @@ def sim_days(n_days, haircut, risk_pct, kill=True, seed_rng=rng, collect_eff=Non
             out[d] = 0.0
             continue
         zf = seed_rng.standard_normal(6)
+        zg = seed_rng.standard_normal()
         w = mixw[idx]
-        z = w * zf[factor_id[idx]] + np.sqrt(1 - w**2) * seed_rng.standard_normal(len(idx))
+        z = (GCORR * zg + w * zf[factor_id[idx]]
+             + np.sqrt(np.maximum(1 - w**2 - GCORR**2, 0.0))
+             * seed_rng.standard_normal(len(idx)))
         u = ndtr(z)
         r = np.where(u < wr[idx],
                      win_r[idx] * (0.4 + 1.2 * seed_rng.random(len(idx))),
@@ -170,11 +190,11 @@ _eff = []
 raw = sim_days(20000, 0.0, 0.0075, kill=False, collect_eff=_eff).mean() * DAYS_PER_MONTH
 tpd = p_day.sum() * 0.93
 HAIRCUT = (raw - 4.5) / (tpd * DAYS_PER_MONTH)
-print(f"account ${ACCOUNT:.0f} | calibration: raw {raw:.1f}R/mo @0.75% quantized "
+print(f"account ${ACCOUNT:.0f} | gcorr {GCORR} | calibration: raw {raw:.1f}R/mo @0.75% quantized "
       f"(mean fill {np.mean(_eff):.2f}) -> haircut {HAIRCUT:.3f}R/trade | "
       f"N_phase={N_PHASE} N_funded={N_FUND}")
 print(f"{'risk%':>6} {'$bud':>6} | {'P(P1)':>6} {'P(P2)':>6} {'P(P2|now)':>9} {'P(both)':>7} "
-      f"{'med_td':>6} | {'sv13':>5} {'sv26':>5} {'wk$':>5} {'4w>=40':>6} | "
+      f"{'med_td':>6} {'P2now_td':>8} | {'sv13':>5} {'sv26':>5} {'wk$':>5} {'4w>=40':>6} | "
       f"{'plan':>5} | {'goldskip':>8} {'fill':>5} {'fundcap':>7}")
 
 CURRENT_DD_PCT = (5920.53 - 6000.0) / 6000.0    # live Phase-2 state, Aug 13 2026
@@ -186,6 +206,7 @@ for rp in (0.004, 0.005, 0.006, 0.007, 0.0075, 0.0085, 0.010):
     p2n = [run_phase(0.050 + 0, HAIRCUT, rp, cum0_pct=CURRENT_DD_PCT) for _ in range(N_PHASE // 2)]
     p1p = np.mean([x[0] for x in p1]); p2p = np.mean([x[0] for x in p2])
     p2np = np.mean([x[0] for x in p2n])
+    p2n_med = np.median([x[1] for x in p2n if x[0]]) if any(x[0] for x in p2n) else float("nan")
     both = p1p * p2p
     med_td = np.median([x[1] for x in p1 if x[0]]) + np.median([x[1] for x in p2 if x[0]])
     fund = [run_funded(HAIRCUT, rp) for _ in range(N_FUND)]
@@ -202,11 +223,12 @@ for rp in (0.004, 0.005, 0.006, 0.007, 0.0075, 0.0085, 0.010):
     e = []
     sim_days(600, HAIRCUT, rp, kill=False, collect_eff=e)
     e = np.array(e)
-    gold_draws = np.exp(GOLD_MU + GOLD_SIGMA * rng.standard_normal(4000))
-    gold_skip = np.mean(gold_draws > budget)
+    gt = np.exp(GOLDT_MU + GOLDT_SIGMA * rng.standard_normal(4000))
+    gi = np.exp(GOLDI_MU + GOLDI_SIGMA * rng.standard_normal(4000))
+    gold_skip = 0.55 * np.mean(gt > budget) + 0.45 * np.mean(gi > budget)
     fundcap = "OK" if 4 * rp <= 0.03 + 1e-9 else "cap3!"
     plan = both * sv13
     print(f"{rp*100:5.2f}% {budget:6.1f} | {p1p:6.1%} {p2p:6.1%} {p2np:9.1%} {both:7.1%} "
-          f"{med_td:6.0f} | {sv13:5.1%} {sv26:5.1%} {np.mean(wk_all):5.0f} "
+          f"{med_td:6.0f} {p2n_med:8.0f} | {sv13:5.1%} {sv26:5.1%} {np.mean(wk_all):5.0f} "
           f"{np.mean(frac40) if frac40 else 0:6.1%} | {plan:5.1%} | "
           f"{gold_skip:8.1%} {e[e > 0].mean():5.2f} {fundcap:>7}")
