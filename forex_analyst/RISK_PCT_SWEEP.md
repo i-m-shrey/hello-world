@@ -24,11 +24,30 @@ drawdown figures attributed correctly (throttle-on vs raw).
 | 0.85% | 65.0% | 70.0% | 63.3% | 8 | 45.5% | 21 | 66/61% | $54 | 30.0% | 1.5% — *illegal funded @cap4* |
 | 1.00% | 64.3% | 69.9% | 59.9% | 7 | 44.9% | 14 | 62/57% | $72 | 27.9% | 0.5% — *illegal funded @cap4* |
 
-**Correlation stress (gcorr 0.35, all tiers share a global factor):** at 0.75% —
-P(both) 46.2→44.5% (−1.7pp), funded sv13 67.4→60.9% (−6.5pp), plan 31.2→27.1%.
-The reviewer was right that funded survival is the correlation-sensitive number;
-the *ranking* across risk% is unchanged under stress (orderings hold at every row),
-so the decision survives, but treat funded survival as 55–67% band, not a point.
+**Correlation stress (gcorr 0.35, all tiers share a global factor) — full table,
+not asserted:**
+
+| risk% | P(both) | sv13 | wk$ | plan |
+|---|---|---|---|---|
+| 0.40% | 56.6% | 86.1% | $18 | 48.7% |
+| 0.50% | 52.3% | 75.9% | $26 | 39.7% |
+| 0.60% | 48.1% | 66.8% | $34 | 32.1% |
+| 0.70% | 44.9% | 67.2% | $43 | 30.2% |
+| 0.75% | 44.5% | 60.9% | $49 | 27.1% |
+| 0.85% | 43.7% | 62.3% | $58 | 27.2% |
+| 1.00% | 42.0% | 60.7% | $87 | 25.5% |
+
+P(both) and plan stay monotonic under stress; sv13 shows one 0.60/0.70 inversion
+inside noise. At 0.75%: P(both) 46.2→44.5% (−1.7pp), sv13 67.4→60.9% (−6.5pp).
+Funded survival at 0.75% therefore reads **61–67% measured** (gcorr 0 vs 0.35);
+0.35 is a stress guess, not a fitted value — deeper true correlation pushes lower,
+and fitting it from the daily backtest equity curves is the queued refinement.
+
+**Provenance note (review):** v1 (commit 483e68f) simulated all seven risk points —
+the loop `for rp in (0.004 … 0.010)` is in that commit at line 182 — but the v1
+report table omitted the 0.70%/0.85% rows. v2 rows differ from v1 (e.g. 0.75%
+P(both) 47.6→46.2%) because v2 is a **fresh run of a changed model** (tiered stop
+fit + recalibrated haircut 0.042→0.044R), not the v1 numbers unhidden.
 
 **$15K:** same shape; gold skips vanish (0.5% at 0.40%), wk$ ≈ 2.4× (e.g. $117/wk
 at 0.75%).
@@ -44,17 +63,22 @@ partly an artifact of the thin n=7 fit; with real stop data it is even less
 attractive on a small account. On $15K the effect disappears — low risk% is a
 *large-account* option, not a small-account one.
 
-## Recovery-time claim — derivation + measurement (was asserted in v1)
+## Recovery-time claim — derivation, measurement, and where the linear model breaks
 
-Derivation: to recover a fixed dollar/percent distance D at risk r and size
-multiplier m, the distance in R is D/(r·m) while drift per day in R (edge per
-trade) is unchanged, so **E[days] ≈ D/(r·m·μ_R) — linear in 1/m**: halving size
-doubles expected recovery time. *Assumption: stationary edge* — if the edge has
-decayed, smaller size is loss-limiting, not recovery-delaying; a 14-trade live
-sample cannot yet distinguish these, which is what the mid-Aug calibration gate
-and monthly refits are for. Measured (P2 from $5,920, `P2now_td` median):
-10 tdays at 0.75% → 22 at 0.50% → 36 at 0.40%, while P(pass|now) rises
-62.9%→69.1%→73.5%. The trade is ~+10pp of pass probability for ~3.6× the time.
+First-order derivation: recovery distance in R is D/(r·m); if drift per day in R
+were size-invariant, E[days] ≈ D/(r·m·μ) — linear in 1/m, "halving size doubles
+recovery." **The measured numbers run hotter than linear** (0.75%→0.40% predicts
+~1.9–2.1×, measured 3.6×: 10→36 tdays median), and the reason is the sweep's own
+point 3: μ is NOT size-invariant. Kill-free drift by risk% (`--mu-only`,
+quantization included): 0.40% → 3.69 R/mo, 0.50% → 3.77, 0.60% → 3.64,
+0.70% → 4.36, 0.75% → 4.11, 0.85% → 3.97, 1.00% → 5.45. Lot quantization and
+gold-trend skips (37.9% at $24 budgets) cut realized drift at low risk — a
+structural t=0 effect, distinct from edge decay over time, and not something
+monthly recalibration fixes. **File the claim as: linear only locally near
+0.70–0.85%; below that, recovery degrades super-linearly (measured 3.6× for a
+0.53× risk cut), which strengthens — not weakens — the case against cutting risk
+mid-drawdown on a small account.** Stationary-edge assumption still applies to
+the drift itself; the live recalibration gates watch that separately.
 
 ## The −42/−62R drawdown figures, attributed (was ambiguous in v1)
 

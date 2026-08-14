@@ -193,6 +193,16 @@ HAIRCUT = (raw - 4.5) / (tpd * DAYS_PER_MONTH)
 print(f"account ${ACCOUNT:.0f} | gcorr {GCORR} | calibration: raw {raw:.1f}R/mo @0.75% quantized "
       f"(mean fill {np.mean(_eff):.2f}) -> haircut {HAIRCUT:.3f}R/trade | "
       f"N_phase={N_PHASE} N_funded={N_FUND}")
+# --mu-only: print the kill-free drift (monthly R) per risk%, isolating the
+# size-dependent quantization effect that breaks linear-in-1/risk recovery
+# scaling at low budgets (review fix, Aug 14).
+if "--mu-only" in sys.argv:
+    print("\nkill-free drift by risk% (quantization included):")
+    for rp in (0.004, 0.005, 0.006, 0.007, 0.0075, 0.0085, 0.010):
+        mu = sim_days(15000, HAIRCUT, rp, kill=False).mean() * DAYS_PER_MONTH
+        print(f"  {rp*100:.2f}%: {mu:5.2f} R/mo")
+    sys.exit(0)
+
 print(f"{'risk%':>6} {'$bud':>6} | {'P(P1)':>6} {'P(P2)':>6} {'P(P2|now)':>9} {'P(both)':>7} "
       f"{'med_td':>6} {'P2now_td':>8} | {'sv13':>5} {'sv26':>5} {'wk$':>5} {'4w>=40':>6} | "
       f"{'plan':>5} | {'goldskip':>8} {'fill':>5} {'fundcap':>7}")
