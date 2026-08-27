@@ -55,7 +55,8 @@ BOOK = [
 # --baseline reproduces the July 2026 book (no US30) for A/B comparison.
 if "--baseline" in sys.argv:
     BOOK = [b for b in BOOK if b[0] != "US30_DONCH"]
-print(f"BOOK: {len(BOOK)} strategies ({'baseline, no US30' if '--baseline' in sys.argv else 'rev11, with US30_DONCH'})")
+GOLD_STACK = 2 if "--goldstack2" in sys.argv else 1
+print(f"BOOK: {len(BOOK)} strategies (gold stack cap {GOLD_STACK}) ({'baseline, no US30' if '--baseline' in sys.argv else 'rev11, with US30_DONCH'})")
 
 DAYS_PER_MONTH = 21
 R_USD = 45.0                      # 0.75% of $6000
@@ -84,10 +85,10 @@ def sim_days(n_days, haircut, kill=True, seed_rng=rng):
     out = np.empty(n_days)
     for d in range(n_days):
         fires = seed_rng.random(len(BOOK)) < p_day
-        # gold-trend stacking cap: at most 1 gold-trend trade per day
+        # gold-trend stacking cap (PROP_MAX_STACKED_GOLD); --goldstack2 tests cap 2
         gt = np.where(fires & is_goldt)[0]
-        if len(gt) > 1:
-            keep = seed_rng.choice(gt)
+        if len(gt) > GOLD_STACK:
+            keep = seed_rng.choice(gt, size=GOLD_STACK, replace=False)
             fires[gt] = False
             fires[keep] = True
         idx = np.where(fires)[0]

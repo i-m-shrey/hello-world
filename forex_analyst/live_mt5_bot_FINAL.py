@@ -364,7 +364,7 @@ def _apply_prop_mode():
     PROP_MODE is on; overrides SIZING_* so 2c does the FX/index scaling."""
     global SIZING_MODE, SIZING_MANUAL_CAPITAL, SIZING_MAX_MULT, SCALE_XAUUSD, SCALE_INDICES
     global MAX_STACKED_GOLD_LONGS, MAX_CONCURRENT_TOTAL, MAX_CONCURRENT_PER_USD
-    global XAUUSD_MAX_RISK_USD, INDEX_RISK_TARGET_USD
+    global XAUUSD_MAX_RISK_USD, INDEX_RISK_TARGET_USD, GOLD_RISK_TARGET_USD, FX_MIN_RISK_USD
     if not PROP_MODE:
         return
     risk_usd = PROP_ACCOUNT_SIZE * PROP_RISK_PER_R_PCT          # per-trade budget
@@ -380,6 +380,8 @@ def _apply_prop_mode():
             LOTS[k] = round(LOTS[k] * gold_steps, 2)
     XAUUSD_MAX_RISK_USD = round(risk_usd, 2)
     INDEX_RISK_TARGET_USD = round(risk_usd, 2)   # rev11: index cells match the $/R the MC models
+    GOLD_RISK_TARGET_USD = round(risk_usd, 2)    # rev12: gold sizes UP to the budget too (§2g)
+    FX_MIN_RISK_USD = round(risk_usd, 2)         # rev12: FX floor = cap -> every FX trade ~= budget
     MAX_STACKED_GOLD_LONGS = PROP_MAX_STACKED_GOLD
     MAX_CONCURRENT_TOTAL = PROP_MAX_TOTAL
     MAX_CONCURRENT_PER_USD = PROP_MAX_PER_USD
@@ -555,6 +557,22 @@ INDEX_RISK_SIZED_KEYS = {
 #                  stays ENABLED at the legacy fixed lot (dust-size on FundedNext's
 #                  10-JPY contract) purely as a zero-cost live-forward collector.
 #   HK50_MACROSS — never validated (matrix row "n/t"): ENABLE flipped False in §2.
+
+# ====================== 2g. GOLD $ BUDGET SIZER (rev12, Aug 2026) ============
+# WHY (owner finding, Aug 27 live audit of the 15K tradebook): the book made
+# +2.83R over 25 trades (40% WR — on model) yet netted -$177, because winners
+# deployed $58 per R while losers deployed $83 per R. Root cause: gold intraday
+# cells ride FIXED lots (tight-stop winners deploy far under the budget; S6 at
+# $10-16 stops risked $50-83 vs the $112.50 budget) and FX had a cap but NO
+# floor (USDCAD_A's +3.33R winner earned $140 instead of $375). rev12 makes
+# EVERY gold trade risk ~the per-trade budget, symmetric with FX/indices:
+#   lot = budget / stop$  (broker steps), sized UP as well as DOWN, with a
+#   GAP-TAIL CEILING of GOLD_SIZEUP_MAX_MULT x the legacy fixed lot so a tiny
+#   stop can never build a position where a weekend gap costs many R.
+# OFF by default (target 0 = legacy fixed lots; the $300 solo book unchanged).
+# PROP_MODE sets the target to the same per-trade budget as FX/indices.
+GOLD_RISK_TARGET_USD = 0.0     # 0 = OFF; PROP_MODE sets PROP_ACCOUNT_SIZE * PROP_RISK_PER_R_PCT
+GOLD_SIZEUP_MAX_MULT = 3.0     # ceiling: sized lot <= this x the legacy fixed lot
 
 # ============================ 3. SAFETY SETTINGS ============================
 # TIMEZONE — the bot converts broker bar times to NY for ALL session filters. Most MT5
@@ -1608,7 +1626,15 @@ def _gold_usd_risk_guard(key, inst, risk_points):
         return f"invalid gold risk {risk_points}", None
     # largest lot (in whole broker steps) whose $ risk stays inside the cap
     max_lot = int((XAUUSD_MAX_RISK_USD / risk_per_001) * 0.01 / step + 1e-9) * step
-    lot = round(min(base_lot, max_lot), 2)
+    if GOLD_RISK_TARGET_USD > 0:
+        # rev12 (§2g): size toward the budget in BOTH directions — tight stops size
+        # UP (gap-tail ceiling = GOLD_SIZEUP_MAX_MULT x the legacy lot), wide stops
+        # size DOWN exactly as before (the cap still binds via max_lot).
+        fit = int((GOLD_RISK_TARGET_USD / risk_per_001) * 0.01 / step + 1e-9) * step
+        ceiling = round(base_lot * GOLD_SIZEUP_MAX_MULT, 2)
+        lot = round(min(fit, ceiling, max_lot), 2)
+    else:
+        lot = round(min(base_lot, max_lot), 2)
     if lot < vmin:
         risk_at_min = risk_per_001 * (vmin / 0.01)
         log(f"{key}: SKIP — SL risk ${risk_at_min:.2f} even at minimum {vmin:.2f} lot > "
@@ -1623,6 +1649,10 @@ def _gold_usd_risk_guard(key, inst, risk_points):
         log(f"{key}: SIZED DOWN {base_lot:.2f} -> {lot:.2f} lot — SL risk "
             f"${risk_per_001 * (base_lot / 0.01):.2f} at {base_lot:.2f} lot > "
             f"${XAUUSD_MAX_RISK_USD:.2f} cap; trade proceeds risking ${risk_usd:.2f}")
+    elif lot > base_lot:
+        log(f"{key}: SIZED UP {base_lot:.2f} -> {lot:.2f} lot toward "
+            f"${GOLD_RISK_TARGET_USD:.2f} budget — SL risk ${risk_usd:.2f}"
+            f"{' (gap ceiling)' if lot >= round(base_lot * GOLD_SIZEUP_MAX_MULT, 2) else ''}")
     else:
         log(f"{key}: risk guard OK — SL risk ${risk_usd:.2f} at {lot:.2f} lot within "
             f"[${XAUUSD_MIN_RISK_USD:.2f}, ${XAUUSD_MAX_RISK_USD:.2f}]")
@@ -1831,6 +1861,11 @@ def fx_lot_for_min_risk(key, inst, direction, entry, stop):
     FX_MAX_RISK_SKIP is True. Uses the broker's own P&L calc for $risk-per-lot."""
     throttle_m = _RISK_MULT["m"] if RISK_THROTTLE_ENABLED else 1.0
     lot = throttled_base_lot(key, broker_sym(inst["symbol"]))
+    if inst["symbol"] == "XAUUSD" and GOLD_RISK_TARGET_USD > 0:
+        # rev12 (§2g): the gold INTRADAY tier (S5/S6/S3LO/H1A/STRAD path) is budget-
+        # sized like everything else. Skip semantics match the trend-tier guard.
+        skip, glot = _gold_usd_risk_guard(key, inst, abs(entry - stop))
+        return None if skip else glot
     if inst["symbol"] in MINLOT_SYMBOLS or (FX_MIN_RISK_USD <= 0 and FX_MAX_RISK_USD <= 0):
         return lot                      # gold + indices ride the broker-minimum lot
     sym = broker_sym(inst["symbol"])
