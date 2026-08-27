@@ -6,6 +6,7 @@ gs_battery/havw data, July 2026) under PROP_MODE rules:
   max kill -8% (=-10.67R permanent halt), stacking caps (1 gold trend).
 Phase targets: +8% (=+10.67R), +5% (=+6.67R). ~21 trading days/month.
 """
+import sys
 import numpy as np
 from scipy.special import ndtr, ndtri
 
@@ -45,7 +46,17 @@ BOOK = [
     ("GER_DONCH",  3.7, 0.305, 0.220, "idx"),
     ("GER_BOS",    7.9, 0.260, 0.038, "idx"),
     ("SPX_ZBPIV",  0.9, 0.470, 0.200, "idx"),
+    # US30_DONCH promoted Aug 2026 with the rev11 index $ sizer (§2f in the bot):
+    # matrix n=181, 3.4 tr/mo, rr3, avg +0.151R -> WR=(0.151+1)/(3+1)=0.288.
+    # Pre-rev11 it rode dust lots and was correctly excluded from this book.
+    ("US30_DONCH", 3.4, 0.288, 0.151, "idx"),
 ]
+
+# --baseline reproduces the July 2026 book (no US30) for A/B comparison.
+if "--baseline" in sys.argv:
+    BOOK = [b for b in BOOK if b[0] != "US30_DONCH"]
+GOLD_STACK = 2 if "--goldstack2" in sys.argv else 1
+print(f"BOOK: {len(BOOK)} strategies (gold stack cap {GOLD_STACK}) ({'baseline, no US30' if '--baseline' in sys.argv else 'rev11, with US30_DONCH'})")
 
 DAYS_PER_MONTH = 21
 R_USD = 45.0                      # 0.75% of $6000
@@ -74,10 +85,10 @@ def sim_days(n_days, haircut, kill=True, seed_rng=rng):
     out = np.empty(n_days)
     for d in range(n_days):
         fires = seed_rng.random(len(BOOK)) < p_day
-        # gold-trend stacking cap: at most 1 gold-trend trade per day
+        # gold-trend stacking cap (PROP_MAX_STACKED_GOLD); --goldstack2 tests cap 2
         gt = np.where(fires & is_goldt)[0]
-        if len(gt) > 1:
-            keep = seed_rng.choice(gt)
+        if len(gt) > GOLD_STACK:
+            keep = seed_rng.choice(gt, size=GOLD_STACK, replace=False)
             fires[gt] = False
             fires[keep] = True
         idx = np.where(fires)[0]

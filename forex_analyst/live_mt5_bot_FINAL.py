@@ -109,9 +109,12 @@ LOTS = {
                              # the benched BOLL15 fades with a 2x fatter per-trade edge
     "XAUUSD_BOS":    0.01,   # structure-break long rr5 — +267R/18y avg +0.170, 3x-cost immune
     "GER40_BOS":     0.01,   # DAX structure-break long rr3 — +51.6R/7y avg +0.070
-    "US30_DONCH":    0.01,   # EQUITY-GATED ($600): validated, ~$15/trade at min lot
-    "JPN225_DONCH":  0.01,   # EQUITY-GATED ($800): validated, ~$17-21/trade at min lot
-    "HK50_MACROSS":  0.01,   # EQUITY-GATED ($800): validated, ~$15-20/trade at min lot
+    "US30_DONCH":    0.01,   # EQUITY-GATED ($600): validated. $-sized under §2f when
+                             # INDEX_RISK_TARGET_USD is on; this lot is the fallback.
+    "JPN225_DONCH":  0.01,   # EQUITY-GATED ($800): borderline validation — NOT $-sized
+                             # (§2f); on FundedNext this is deliberate dust (~$2/trade).
+    "HK50_MACROSS":  0.01,   # DISABLED Aug 2026 (never validated — matrix "n/t").
+                             # Lot kept only to satisfy the INSTANCES/LOTS assert.
     "XAUUSD_DONCH_TR": 0.01, # DONCH exit-upgrade twin (chandelier trail) — rides min lot
     "XAUUSD_VCX_A":  0.01,   # VCX gold cell A (q0.20 pad0.2 stop2.5) — min lot
     "XAUUSD_VCX_B":  0.01,   # VCX gold cell B (q0.25 pad0.1 stop2.0) — min lot
@@ -177,12 +180,16 @@ ENABLE = {
     "GBPUSD_AVWAP": True,   # wired July 14 2026 on user's word after full battery + overlap
     "XAUUSD_BOS": True,     # wired July 15 2026 on user's word (exit grid: rr5)
     "GER40_BOS": True,      # wired July 15 2026 on user's word (rr3 — DAX doesn't extend)
-    # The three below are ENABLED but EQUITY-GATED (see equity_min in INSTANCES): they
-    # arm themselves automatically when account equity crosses the threshold. At $150
-    # capital their $15-21/trade risk is 10-14% per trade — the gate is the risk rule.
+    # US30/JPN225 are ENABLED but EQUITY-GATED (see equity_min in INSTANCES): they
+    # arm themselves automatically when account equity crosses the threshold. NOTE
+    # (Aug 2026 audit): the $15-21/trade gate math came from the RESEARCH feed's
+    # contract sizes — on FundedNext (10-JPY / 10-HKD contracts) the same lots risk
+    # $2-9, so the gates are conservative there. US30_DONCH is $-sized under §2f.
     "US30_DONCH": True,
-    "JPN225_DONCH": True,
-    "HK50_MACROSS": True,
+    "JPN225_DONCH": True,   # borderline validation — rides legacy dust lot as a collector (§2f)
+    "HK50_MACROSS": False,  # OFF Aug 2026 (owner triage): never validated — STRATEGY_MATRIX
+                            # row is "n/t" (no backtest stats exist). Do not re-enable
+                            # without a full battery pass on fresh data.
     "USDCAD_A":   True,
     "USDCHF_A":   True,
     "USDCHF_RSI30": True,
@@ -357,7 +364,7 @@ def _apply_prop_mode():
     PROP_MODE is on; overrides SIZING_* so 2c does the FX/index scaling."""
     global SIZING_MODE, SIZING_MANUAL_CAPITAL, SIZING_MAX_MULT, SCALE_XAUUSD, SCALE_INDICES
     global MAX_STACKED_GOLD_LONGS, MAX_CONCURRENT_TOTAL, MAX_CONCURRENT_PER_USD
-    global XAUUSD_MAX_RISK_USD
+    global XAUUSD_MAX_RISK_USD, INDEX_RISK_TARGET_USD, GOLD_RISK_TARGET_USD, FX_MIN_RISK_USD
     if not PROP_MODE:
         return
     risk_usd = PROP_ACCOUNT_SIZE * PROP_RISK_PER_R_PCT          # per-trade budget
@@ -372,6 +379,9 @@ def _apply_prop_mode():
         if inst["symbol"] == "XAUUSD":                          # inside the $ guard below
             LOTS[k] = round(LOTS[k] * gold_steps, 2)
     XAUUSD_MAX_RISK_USD = round(risk_usd, 2)
+    INDEX_RISK_TARGET_USD = round(risk_usd, 2)   # rev11: index cells match the $/R the MC models
+    GOLD_RISK_TARGET_USD = round(risk_usd, 2)    # rev12: gold sizes UP to the budget too (§2g)
+    FX_MIN_RISK_USD = round(risk_usd, 2)         # rev12: FX floor = cap -> every FX trade ~= budget
     MAX_STACKED_GOLD_LONGS = PROP_MAX_STACKED_GOLD
     MAX_CONCURRENT_TOTAL = PROP_MAX_TOTAL
     MAX_CONCURRENT_PER_USD = PROP_MAX_PER_USD
@@ -518,6 +528,51 @@ S6R_DISP_ATR_MULT = 2.4    # displacement bar must be >= 2.4 x ATR50 (was 2.2)
 XAUUSD_MIN_RISK_USD = 1.0
 XAUUSD_MAX_RISK_USD = 20.0
 S6R_REQUIRE_BIAS5 = True   # 5m swing_bias must be +1 (structure gate — THE fix)
+
+# ====================== 2f. INDEX $ RISK SIZER (rev11, Aug 2026) =============
+# WHY (FundedNext live audit, Aug 13 2026 — tick-verified tradebook): index cells
+# ride FIXED minlot-multiple lots, but $-per-point varies ~175x across index
+# contracts (FundedNext: GER30 10 EUR/pt, SPX500 10 USD/pt, JP225 10 JPY/pt,
+# HK50 10 HKD/pt). At the PROP 4x-minlot 0.04 that made GER40 risk ~$57/R (127%
+# of the $45 budget), SPX500 ~$8.6 (19%), JP225 ~$1.85 (4%), HK50 ~$8.5 (19%) —
+# while prop_challenge_mc.py monetizes EVERY modeled index R at the full budget
+# (R_USD = $45). This sizer makes live match the model the same way gold/FX
+# already do: lot = target$ / $risk-per-lot, from the broker's own
+# order_calc_profit (currency conversion included), tick_value/tick_size
+# fallback when the calc is unavailable (market closed), floored to broker
+# volume steps, hard-capped at INDEX_RISK_MAX_LOTS.
+# OFF by default (target 0 = legacy fixed lots; the $300 solo book is untouched).
+# PROP_MODE turns it on at the same per-trade budget as gold/FX.
+INDEX_RISK_TARGET_USD = 0.0      # 0 = OFF; PROP_MODE sets PROP_ACCOUNT_SIZE * PROP_RISK_PER_R_PCT
+INDEX_RISK_MAX_LOTS = 5.0        # hard safety ceiling on any sized index lot
+INDEX_RISK_SYMBOLS = ("SPX500", "GER40", "US30", "JPN225", "HK50")
+INDEX_RISK_SIZED_KEYS = {
+    "GER40_DONCH", "GER40_BOS",      # modeled in the MC at $45/R since July 2026
+    "SPX500_DONCH", "SPX500_ZBPIV",  # modeled in the MC; ran at ~19% of budget pre-rev11
+    "US30_DONCH",                    # PROMOTED Aug 2026: validated (matrix n=181, 3.4/mo,
+                                     # avg +0.151R, stress PASS +0.133) — now enters the MC
+}
+# Deliberately NOT sized (owner triage, Aug 2026):
+#   JPN225_DONCH — borderline validation (train-negative window in STRATEGY_MATRIX):
+#                  stays ENABLED at the legacy fixed lot (dust-size on FundedNext's
+#                  10-JPY contract) purely as a zero-cost live-forward collector.
+#   HK50_MACROSS — never validated (matrix row "n/t"): ENABLE flipped False in §2.
+
+# ====================== 2g. GOLD $ BUDGET SIZER (rev12, Aug 2026) ============
+# WHY (owner finding, Aug 27 live audit of the 15K tradebook): the book made
+# +2.83R over 25 trades (40% WR — on model) yet netted -$177, because winners
+# deployed $58 per R while losers deployed $83 per R. Root cause: gold intraday
+# cells ride FIXED lots (tight-stop winners deploy far under the budget; S6 at
+# $10-16 stops risked $50-83 vs the $112.50 budget) and FX had a cap but NO
+# floor (USDCAD_A's +3.33R winner earned $140 instead of $375). rev12 makes
+# EVERY gold trade risk ~the per-trade budget, symmetric with FX/indices:
+#   lot = budget / stop$  (broker steps), sized UP as well as DOWN, with a
+#   GAP-TAIL CEILING of GOLD_SIZEUP_MAX_MULT x the legacy fixed lot so a tiny
+#   stop can never build a position where a weekend gap costs many R.
+# OFF by default (target 0 = legacy fixed lots; the $300 solo book unchanged).
+# PROP_MODE sets the target to the same per-trade budget as FX/indices.
+GOLD_RISK_TARGET_USD = 0.0     # 0 = OFF; PROP_MODE sets PROP_ACCOUNT_SIZE * PROP_RISK_PER_R_PCT
+GOLD_SIZEUP_MAX_MULT = 3.0     # ceiling: sized lot <= this x the legacy fixed lot
 
 # ============================ 3. SAFETY SETTINGS ============================
 # TIMEZONE — the bot converts broker bar times to NY for ALL session filters. Most MT5
@@ -1571,7 +1626,15 @@ def _gold_usd_risk_guard(key, inst, risk_points):
         return f"invalid gold risk {risk_points}", None
     # largest lot (in whole broker steps) whose $ risk stays inside the cap
     max_lot = int((XAUUSD_MAX_RISK_USD / risk_per_001) * 0.01 / step + 1e-9) * step
-    lot = round(min(base_lot, max_lot), 2)
+    if GOLD_RISK_TARGET_USD > 0:
+        # rev12 (§2g): size toward the budget in BOTH directions — tight stops size
+        # UP (gap-tail ceiling = GOLD_SIZEUP_MAX_MULT x the legacy lot), wide stops
+        # size DOWN exactly as before (the cap still binds via max_lot).
+        fit = int((GOLD_RISK_TARGET_USD / risk_per_001) * 0.01 / step + 1e-9) * step
+        ceiling = round(base_lot * GOLD_SIZEUP_MAX_MULT, 2)
+        lot = round(min(fit, ceiling, max_lot), 2)
+    else:
+        lot = round(min(base_lot, max_lot), 2)
     if lot < vmin:
         risk_at_min = risk_per_001 * (vmin / 0.01)
         log(f"{key}: SKIP — SL risk ${risk_at_min:.2f} even at minimum {vmin:.2f} lot > "
@@ -1586,10 +1649,80 @@ def _gold_usd_risk_guard(key, inst, risk_points):
         log(f"{key}: SIZED DOWN {base_lot:.2f} -> {lot:.2f} lot — SL risk "
             f"${risk_per_001 * (base_lot / 0.01):.2f} at {base_lot:.2f} lot > "
             f"${XAUUSD_MAX_RISK_USD:.2f} cap; trade proceeds risking ${risk_usd:.2f}")
+    elif lot > base_lot:
+        log(f"{key}: SIZED UP {base_lot:.2f} -> {lot:.2f} lot toward "
+            f"${GOLD_RISK_TARGET_USD:.2f} budget — SL risk ${risk_usd:.2f}"
+            f"{' (gap ceiling)' if lot >= round(base_lot * GOLD_SIZEUP_MAX_MULT, 2) else ''}")
     else:
         log(f"{key}: risk guard OK — SL risk ${risk_usd:.2f} at {lot:.2f} lot within "
             f"[${XAUUSD_MIN_RISK_USD:.2f}, ${XAUUSD_MAX_RISK_USD:.2f}]")
     return None, lot
+
+
+def _index_usd_risk_lot(key, inst, risk_points, direction=None, entry=None, stop=None):
+    """rev11 (Aug 2026): dollar-risk sizing for INDEX CFD cells — see §2f for the
+    audit that motivated it. Sizes lot = INDEX_RISK_TARGET_USD / $risk-per-lot so
+    every sized index cell risks the same dollars the MC models, on ANY broker's
+    contract spec. $risk-per-lot comes from the broker's own order_calc_profit
+    (currency conversion included); tick_value/tick_size fallback otherwise.
+    Respects the drawdown throttle (scales the TARGET, like FX floor sizing).
+    Returns (skip_reason, lot); (None, None) = caller keeps the legacy fixed lot
+    (feature off / non-index symbol / key not in INDEX_RISK_SIZED_KEYS)."""
+    sym0 = inst["symbol"]
+    if (INDEX_RISK_TARGET_USD <= 0 or sym0 not in INDEX_RISK_SYMBOLS
+            or key not in INDEX_RISK_SIZED_KEYS):
+        return None, None
+    sym = broker_sym(sym0)
+    info = mt5.symbol_info(sym)
+    if info is None:
+        return f"{key}: no symbol info for {sym} — skipped", None
+    step = getattr(info, "volume_step", 0.01) or 0.01
+    vmin = getattr(info, "volume_min", 0.01) or 0.01
+    vmax = min(getattr(info, "volume_max", 100.0) or 100.0, INDEX_RISK_MAX_LOTS)
+    per_lot = None
+    if direction is not None and entry is not None and stop is not None:
+        try:
+            otype = mt5.ORDER_TYPE_BUY if direction == "long" else mt5.ORDER_TYPE_SELL
+            p = mt5.order_calc_profit(otype, sym, 1.0, entry, stop)
+            if p:
+                per_lot = abs(float(p))
+        except Exception:  # noqa: BLE001
+            pass
+    if not per_lot:
+        tv = float(getattr(info, "trade_tick_value", 0.0) or 0.0)
+        ts = float(getattr(info, "trade_tick_size", 0.0) or 0.0)
+        if tv > 0 and ts > 0:
+            per_lot = float(risk_points) * tv / ts
+    if not per_lot or per_lot <= 0:
+        log(f"{key}: SKIP — cannot price index risk (no order_calc_profit, no tick data)")
+        return f"{key}: cannot price index risk — skipped", None
+    throttle_m = _RISK_MULT["m"] if RISK_THROTTLE_ENABLED else 1.0
+    target = INDEX_RISK_TARGET_USD * throttle_m
+    raw = int(target / per_lot / step + 1e-9) * step
+    if raw < vmin:
+        risk_at_min = per_lot * vmin
+        log(f"{key}: SKIP — SL risk ${risk_at_min:.2f} even at minimum {vmin:.2f} lot > "
+            f"index target ${target:.2f} (no trade taken)")
+        return f"risk ${risk_at_min:.2f} at min lot > ${target:.2f} target — skipped", None
+    lot = min(round(raw, 2), vmax)
+    risk_usd = per_lot * lot
+    if lot < raw - 1e-9:
+        log(f"{key}: INDEX SIZED {lot:.2f} lot (CEILING {INDEX_RISK_MAX_LOTS:.2f} cut it from "
+            f"{raw:.2f}) — SL risk ${risk_usd:.2f} under target ${target:.2f}")
+    else:
+        log(f"{key}: INDEX SIZED -> {lot:.2f} lot — SL risk ${risk_usd:.2f} vs target "
+            f"${target:.2f}{' [THROTTLED]' if throttle_m < 1 else ''}")
+    return None, lot
+
+
+def _usd_risk_guard(key, inst, risk_points, direction=None, entry=None, stop=None):
+    """Dollar-risk dispatch for MINLOT symbols: gold -> _gold_usd_risk_guard
+    (down-size to the $ cap, skip outside [MIN, MAX]); index CFDs ->
+    _index_usd_risk_lot (rev11 target sizing, §2f). Returns (skip_reason, lot);
+    (None, None) means the caller keeps its legacy lot."""
+    if inst["symbol"] == "XAUUSD":
+        return _gold_usd_risk_guard(key, inst, risk_points)
+    return _index_usd_risk_lot(key, inst, risk_points, direction, entry, stop)
 
 
 def is_runner(inst):
@@ -1728,6 +1861,11 @@ def fx_lot_for_min_risk(key, inst, direction, entry, stop):
     FX_MAX_RISK_SKIP is True. Uses the broker's own P&L calc for $risk-per-lot."""
     throttle_m = _RISK_MULT["m"] if RISK_THROTTLE_ENABLED else 1.0
     lot = throttled_base_lot(key, broker_sym(inst["symbol"]))
+    if inst["symbol"] == "XAUUSD" and GOLD_RISK_TARGET_USD > 0:
+        # rev12 (§2g): the gold INTRADAY tier (S5/S6/S3LO/H1A/STRAD path) is budget-
+        # sized like everything else. Skip semantics match the trend-tier guard.
+        skip, glot = _gold_usd_risk_guard(key, inst, abs(entry - stop))
+        return None if skip else glot
     if inst["symbol"] in MINLOT_SYMBOLS or (FX_MIN_RISK_USD <= 0 and FX_MAX_RISK_USD <= 0):
         return lot                      # gold + indices ride the broker-minimum lot
     sym = broker_sym(inst["symbol"])
@@ -2414,11 +2552,11 @@ def try_enter(key, inst, frames, state):
             tp_abs = est_entry - sig["rr"] * risk
         if risk <= 0 or not (0.3 * atr <= risk <= 4.0 * atr):
             return f"risk {risk:.2f} out of ATR bounds"
-        guard, gold_lot = _gold_usd_risk_guard(key, inst, risk)
+        guard, sized_lot = _usd_risk_guard(key, inst, risk, sig["direction"], est_entry, stop)
         if guard:
             return guard
         ok = send_market(key, inst, sig["direction"],
-                         gold_lot or throttled_base_lot(key, broker_sym(inst["symbol"])),
+                         sized_lot or throttled_base_lot(key, broker_sym(inst["symbol"])),
                          stop, None, atr=atr, state=state, tp_abs=tp_abs)
         return f"{note}{' EXECUTED' if ok else ' FAILED'}"
     if inst["risk_mode"] == "trend_trail":
@@ -2436,11 +2574,11 @@ def try_enter(key, inst, frames, state):
             risk = est_entry - stop
         if risk <= 0 or not (0.3 * atr <= risk <= 4.0 * atr):
             return f"risk {risk:.2f} out of ATR bounds"
-        guard, gold_lot = _gold_usd_risk_guard(key, inst, risk)
+        guard, sized_lot = _usd_risk_guard(key, inst, risk, sig["direction"], est_entry, stop)
         if guard:
             return guard
         if inst["symbol"] in MINLOT_SYMBOLS:
-            lot = gold_lot or throttled_base_lot(key, broker_sym(inst["symbol"]))
+            lot = sized_lot or throttled_base_lot(key, broker_sym(inst["symbol"]))
         else:
             lot = fx_lot_for_min_risk(key, inst, sig["direction"], est_entry, stop)
             if lot is None:
@@ -2464,11 +2602,11 @@ def try_enter(key, inst, frames, state):
             tp_abs = est_entry + sig["rr"] * risk
         if risk <= 0 or not (0.3 * atr <= risk <= 4.0 * atr):
             return f"risk {risk:.2f} out of ATR bounds"
-        guard, gold_lot = _gold_usd_risk_guard(key, inst, risk)
+        guard, sized_lot = _usd_risk_guard(key, inst, risk, sig["direction"], est_entry, stop)
         if guard:
             return guard
         ok = send_market(key, inst, sig["direction"],
-                         gold_lot or throttled_base_lot(key, broker_sym(inst["symbol"])),
+                         sized_lot or throttled_base_lot(key, broker_sym(inst["symbol"])),
                          stop, None, atr=atr, state=state, tp_abs=tp_abs)
         return f"{note}{' EXECUTED' if ok else ' FAILED'}"
     if inst["risk_mode"] == "p1":
